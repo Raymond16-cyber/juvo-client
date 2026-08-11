@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #050816; /* main background (dark-only) */
+  --card: #0B1220;
+  --primary: #00D4FF;
+  --secondary: #5EEBFF;
+  --accent: #3B82F6;
+  --text: #FFFFFF;
+  --muted: #9CA3AF;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(0, 212, 255, 0.14), transparent 26%),
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.16), transparent 24%),
+    linear-gradient(180deg, #050816 0%, #060b18 48%, #050816 100%);
+  color: var(--text);
+  font-family: var(--font-geist-sans, ui-sans-serif, system-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 92%);
+  opacity: 0.14;
+}
+
+::selection {
+  background: rgba(0, 212, 255, 0.22);
+  color: #ffffff;
+}
+
+section {
+  scroll-margin-top: 96px;
+}
+
+/* Utility for cards */
+.card {
+  background: var(--card);
+  color: var(--text);
+  border-radius: 20px;
+}
+
+/* small helpers */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

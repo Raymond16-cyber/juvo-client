@@ -1,0 +1,7 @@
+/----- Colors used in juvo application: -----/
+-- #00D4FF
+-- #0066FF
+-- #0B132B
+-- #0F172A
+-- #FFFFFF
+
