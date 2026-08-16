@@ -179,7 +179,7 @@ export default function Hero() {
                   </div>
 
                   <div className="mt-4 grid grid-cols-7 gap-2 text-center text-[11px] text-slate-400">
-                    {["M", "T", "W", "T", "F", "S", "S"].map((day) => (
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
                       <div key={day} className="py-1">
                         {day}
                       </div>

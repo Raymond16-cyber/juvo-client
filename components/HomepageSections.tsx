@@ -220,7 +220,7 @@ const showcaseSlides = [
             </div>
 
             <div className="mt-4 grid grid-cols-7 gap-2 text-center text-[11px] text-slate-400">
-              {["M", "T", "W", "T", "F", "S", "S"].map((day) => (
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
                 <div key={day} className="py-1">
                   {day}
                 </div>
@@ -570,7 +570,7 @@ const showcaseSlides = [
                 {[28, 34, 24, 42, 50, 44, 58, 62, 54, 68, 73, 66].map(
                   (bar, index) => (
                     <div
-                      key={bar + index}
+                      key={bar}
                       className="flex flex-1 flex-col items-center gap-2"
                     >
                       <div
@@ -596,19 +596,19 @@ const testimonials = [
   {
     quote:
       "Placeholder testimonial: JUVO gives us a clean structure for turning trades into lessons.",
-    name: "Placeholder Trader",
+    name: "Annie",
     role: "Future testimonial",
   },
   {
     quote:
       "Placeholder testimonial: the calendar and journal views make it easier to review behavior.",
-    name: "Placeholder Trader",
+    name: "Raymond",
     role: "Future testimonial",
   },
   {
     quote:
       "Placeholder testimonial: it feels built around discipline instead of hype.",
-    name: "Placeholder Trader",
+    name: "Emmanuel",
     role: "Future testimonial",
   },
 ];
@@ -884,11 +884,13 @@ export default function HomepageSections() {
                 </div>
 
                 <div className="mt-4 grid grid-cols-7 gap-2 text-center text-[11px] text-slate-400">
-                  {["M", "T", "W", "T", "F", "S", "S"].map((day) => (
-                    <div key={day} className="py-1">
-                      {day}
-                    </div>
-                  ))}
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                    (day) => (
+                      <div key={day} className="py-1">
+                        {day}
+                      </div>
+                    ),
+                  )}
                   {[
                     "+$120",
                     "-$40",

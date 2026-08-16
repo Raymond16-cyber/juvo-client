@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 :root {
   --bg: #050816; /* main background (dark-only) */
   --card: #0B1220;

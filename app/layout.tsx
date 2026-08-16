@@ -1,24 +1,35 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono,Saira } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import localFont from "next/font/local";
+import AuthProvider from "@/Providers/auth.provider";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const saira = Saira({
-  subsets: ["latin"],
+const saira = localFont({
+  src: [
+    {
+      path: "../public/fonts/Saira/static/Saira-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Saira/static/Saira-Medium.ttf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Saira/static/Saira-SemiBold.ttf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/Saira/static/Saira-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-saira",
-  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -70,12 +81,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={` ${saira.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${saira.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-background text-text">
-        <Providers>{children}</Providers>
+        <AuthProvider>
+          <Providers>{children}</Providers>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "aos": "^2.3.4",
+    "axios": "^1.19.0",
     "framer-motion": "^12.23.12",
     "gsap": "^3.13.0",
     "lucide-react": "^0.542.0",
@@ -18,7 +19,8 @@
     "react-countup": "^6.5.3",
     "react-dom": "19.2.8",
     "recharts": "^3.10.1",
-    "swiper": "^12.0.3"
+    "swiper": "^12.0.3",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@types/node": "^20",

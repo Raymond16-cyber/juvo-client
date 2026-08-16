@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import images from "@/constants/images.service";
 import Button from "@/components/ui/Button";
 import { ArrowRight, Menu, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -18,6 +19,7 @@ const navLinks = [
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -36,8 +38,8 @@ export default function Header() {
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? "border-b border-white/10 bg-[#050816]/80 shadow-[0_12px_40px_rgba(2,6,23,0.5)] backdrop-blur-xl"
-          : "bg-transparent"
+          ? "border-b border-white/10 bg-[#050816]/82 shadow-[0_12px_40px_rgba(2,6,23,0.5)] backdrop-blur-xl"
+          : "border-b border-white/10 bg-[#050816]/58 shadow-[0_10px_30px_rgba(2,6,23,0.28)] backdrop-blur-xl"
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:py-5">
@@ -76,7 +78,7 @@ export default function Header() {
 
           <Button
             variant="primary"
-            onClick={() => scrollToTarget("pricing")}
+            onClick={() => router.push("/auth/register")} //let the get started lead to the auth page
             className="min-w-[138px]"
           >
             Get Started
