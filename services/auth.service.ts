@@ -10,13 +10,18 @@ export const registerUser = async (
   data: RegisterData,
 ): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>("/auth/sign-up", data);
-  
+
   return response.data;
 };
 
 export const loginUser = async (data: LoginData): Promise<AuthResponse> => {
   const response = await api.post<AuthResponse>("/auth/login", data);
 
+  return response.data;
+};
+
+export const requestResetPassword = async (data: { email: string }) => {
+  const response = await api.post("/auth/request-reset-password", data);
   return response.data;
 };
 

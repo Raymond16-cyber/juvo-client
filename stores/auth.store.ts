@@ -5,6 +5,7 @@ import {
   registerUser,
   getCurrentUser,
   logoutUser,
+  requestResetPassword,
 } from "@/services/auth.service";
 
 import type { User, RegisterData, LoginData } from "@/types/auth.types";
@@ -18,6 +19,7 @@ interface AuthState {
 
   register: (data: RegisterData) => Promise<void>;
   login: (data: LoginData) => Promise<void>;
+  requestResetPassword: (data: { email: string }) => Promise<void>;
   fetchCurrentUser: () => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
@@ -74,6 +76,30 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({
         isLoading: false,
         error: error.response?.data?.message || "Login failed.",
+      });
+
+      throw error;
+    }
+  },
+  requestResetPassword: async (data: { email: string }) => {
+    try {
+      set({
+        isLoading: true,
+        error: null,
+        message: null,
+      });
+      await requestResetPassword(data);
+
+      set({
+        isLoading: false,
+        message: "Password reset link sent. Please check your email.",
+      });
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error:
+          error.response?.data?.message || "Failed to request password reset.",
+        message: null,
       });
 
       throw error;

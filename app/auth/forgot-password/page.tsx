@@ -3,15 +3,23 @@
 import React from "react";
 import Header from "@/components/Header";
 import Button from "@/components/ui/Button";
+import { useAuthStore } from "@/stores/auth.store";
 
 export default function ForgotPassword() {
   const [email, setEmail] = React.useState("");
-
+  const requestResetPassword = useAuthStore(
+    (state) => state.requestResetPassword,
+  );
+  const error = useAuthStore((state) => state.error);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const message = useAuthStore((state) => state.message);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    // Later:
-    // await forgotPassword(email);
+    try {
+      const data = await requestResetPassword({ email });
+    } catch (error) {
+      console.error("Error requesting password reset:", error);
+    }
   };
 
   return (
@@ -30,6 +38,12 @@ export default function ForgotPassword() {
               password.
             </p>
           </div>
+
+          {error && (
+            <div className="mb-4 rounded-md bg-red-500/20 p-3 text-sm text-red-500">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -51,8 +65,8 @@ export default function ForgotPassword() {
               />
             </div>
 
-            <Button type="submit" className="w-full">
-              Send Reset Link
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Sending..." : "Send Reset Link"}
             </Button>
           </form>
 

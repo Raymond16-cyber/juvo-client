@@ -25,3 +25,7 @@ export interface AuthResponse {
   message: string;
   user: User;
 }
+
+export interface RequestResetPasswordData {
+  email: string;
+}
