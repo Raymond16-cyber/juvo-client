@@ -1,26 +1,42 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Header from "@/components/Header";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/stores/auth.store";
+import { useRouter } from "next/navigation";
 
 export default function ForgotPassword() {
+  const router = useRouter()
   const [email, setEmail] = React.useState("");
   const requestResetPassword = useAuthStore(
     (state) => state.requestResetPassword,
   );
+  const resetPasswordToken = useAuthStore(
+    (state)=> state.resetPasswordToken,
+  )
+  const clearError = useAuthStore((state) => state.clearError);
   const error = useAuthStore((state) => state.error);
   const isLoading = useAuthStore((state) => state.isLoading);
   const message = useAuthStore((state) => state.message);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    clearError();
     try {
       const data = await requestResetPassword({ email });
     } catch (error) {
       console.error("Error requesting password reset:", error);
     }
   };
+
+  // =========================
+  //  USE-EFFECT STATES
+  // =========================
+  useEffect(() => {
+    if (message) {
+      router.push(`/auth/verify-otp-code/${resetPasswordToken}`)
+    }
+  });
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-transparent">
@@ -42,6 +58,11 @@ export default function ForgotPassword() {
           {error && (
             <div className="mb-4 rounded-md bg-red-500/20 p-3 text-sm text-red-500">
               {error}
+            </div>
+          )}
+          {message && (
+            <div className="mb-4 rounded-md bg-green-500/20 p-3 text-sm text-green-500">
+              {message}
             </div>
           )}
 

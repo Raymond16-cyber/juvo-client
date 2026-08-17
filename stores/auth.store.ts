@@ -16,6 +16,7 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   message: string | null;
+  resetPasswordToken: string | null
 
   register: (data: RegisterData) => Promise<void>;
   login: (data: LoginData) => Promise<void>;
@@ -31,6 +32,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: false,
   error: null,
   message: null,
+  resetPasswordToken: null,
 
   register: async (data) => {
     try {
@@ -88,11 +90,13 @@ export const useAuthStore = create<AuthState>((set) => ({
         error: null,
         message: null,
       });
-      await requestResetPassword(data);
+      const result = await requestResetPassword(data);
+      console.log(result)
 
       set({
         isLoading: false,
         message: "Password reset link sent. Please check your email.",
+        resetPasswordToken: result.resetPasswordToken
       });
     } catch (error: any) {
       set({
