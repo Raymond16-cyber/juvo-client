@@ -124,6 +124,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isLoading: true,
         error: null,
         message: null,
+        resetPasswordToken: null,
       });
 
       const result = await verifyOtpCode(data);
