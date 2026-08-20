@@ -85,7 +85,7 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
         otp,
         email,
       });
-
+      console.log("OTP verification result:", result); // Log the result for debugging
 
       setMessage(result.message);
 
