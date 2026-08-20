@@ -29,3 +29,19 @@ export interface AuthResponse {
 export interface RequestResetPasswordData {
   email: string;
 }
+
+export interface VerifyOtpData {
+  token: string;
+  otp: string;
+  email: string | null;
+}
+
+export interface VerifyOtpResponse {
+  message: string;
+  isValid: boolean;
+}
+
+export interface ResetPasswordData {
+  email: string;
+  passwords: string;
+}

@@ -7,14 +7,12 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useRouter } from "next/navigation";
 
 export default function ForgotPassword() {
-  const router = useRouter()
+  const router = useRouter();
   const [email, setEmail] = React.useState("");
   const requestResetPassword = useAuthStore(
     (state) => state.requestResetPassword,
   );
-  const resetPasswordToken = useAuthStore(
-    (state)=> state.resetPasswordToken,
-  )
+  const resetPasswordToken = useAuthStore((state) => state.resetPasswordToken);
   const clearError = useAuthStore((state) => state.clearError);
   const error = useAuthStore((state) => state.error);
   const isLoading = useAuthStore((state) => state.isLoading);
@@ -34,7 +32,8 @@ export default function ForgotPassword() {
   // =========================
   useEffect(() => {
     if (message) {
-      router.push(`/auth/verify-otp-code/${resetPasswordToken}`)
+      console.log(resetPasswordToken);
+      router.push(`/auth/verify-otp-code/${resetPasswordToken}?email=${encodeURIComponent(email)}`);
     }
   });
 

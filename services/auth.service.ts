@@ -4,6 +4,8 @@ import {
   AuthResponse,
   RegisterData,
   LoginData,
+  VerifyOtpData,
+  ResetPasswordData,
 } from "@/types/auth.types";
 
 export const registerUser = async (
@@ -22,6 +24,24 @@ export const loginUser = async (data: LoginData): Promise<AuthResponse> => {
 
 export const requestResetPassword = async (data: { email: string }) => {
   const response = await api.post("/auth/request-reset-password", data);
+  return response.data;
+};
+
+export const verifyOtpCode = async (data: VerifyOtpData) => {
+  const response = await api.post(
+    `/auth/verify-reset-password-code/${data.token}`,
+    {
+      otp: data.otp,
+      email: data.email,
+    },
+  );
+
+  return response.data;
+};
+
+export const resetPassword = async (data: ResetPasswordData) => {
+  const response = await api.post("/auth/reset-password", data);
+
   return response.data;
 };
 

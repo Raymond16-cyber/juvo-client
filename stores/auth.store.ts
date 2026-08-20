@@ -6,9 +6,17 @@ import {
   getCurrentUser,
   logoutUser,
   requestResetPassword,
+  verifyOtpCode,
+  resetPassword,
 } from "@/services/auth.service";
 
-import type { User, RegisterData, LoginData } from "@/types/auth.types";
+import type {
+  User,
+  RegisterData,
+  LoginData,
+  VerifyOtpData,
+  VerifyOtpResponse,
+} from "@/types/auth.types";
 
 interface AuthState {
   user: User | null;
@@ -16,11 +24,13 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   message: string | null;
-  resetPasswordToken: string | null
+  resetPasswordToken: string | null;
 
   register: (data: RegisterData) => Promise<void>;
   login: (data: LoginData) => Promise<void>;
   requestResetPassword: (data: { email: string }) => Promise<void>;
+  verifyOtpCode: (data: VerifyOtpData) => Promise<VerifyOtpResponse>;
+  resetPassword: (data: { email: string; passwords: string }) => Promise<void>;
   fetchCurrentUser: () => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
@@ -91,12 +101,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         message: null,
       });
       const result = await requestResetPassword(data);
-      console.log(result)
 
       set({
         isLoading: false,
         message: "Password reset link sent. Please check your email.",
-        resetPasswordToken: result.resetPasswordToken
+        resetPasswordToken: result.passwordToken,
       });
     } catch (error: any) {
       set({
@@ -109,7 +118,64 @@ export const useAuthStore = create<AuthState>((set) => ({
       throw error;
     }
   },
+  verifyOtpCode: async (data) => {
+    try {
+      set({
+        isLoading: true,
+        error: null,
+        message: null,
+      });
 
+      const result = await verifyOtpCode(data);
+
+      set({
+        isLoading: false,
+        message: result.message,
+        error: null,
+      });
+
+      return result;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Failed to verify OTP code.";
+
+      set({
+        isLoading: false,
+        error: errorMessage,
+        message: null,
+      });
+
+      throw error;
+    }
+  },
+
+  resetPassword: async (data) => {
+    try {
+      set({
+        isLoading: true,
+        error: null,
+        message: null,
+      });
+
+      const result = await resetPassword(data);
+
+      set({
+        isLoading: false,
+        message: result.message || "Password reset successful.",
+        error: null,
+      });
+    } catch (error: any) {
+      set({
+        isLoading: false,
+        error: error.response?.data?.message || "Failed to reset password.",
+        message: null,
+      });
+
+      throw error;
+    }
+  },
   fetchCurrentUser: async () => {
     try {
       set({
