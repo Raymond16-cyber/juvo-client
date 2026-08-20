@@ -39,6 +39,7 @@ export interface VerifyOtpData {
 export interface VerifyOtpResponse {
   message: string;
   isValid: boolean;
+  resetPasswordToken: string | null;
 }
 
 export interface ResetPasswordData {

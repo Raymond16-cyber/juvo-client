@@ -33,7 +33,6 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
   //  USE-AUTH-STORE STATES
   // =========================
   const verifyOtp = useAuthStore((state) => state.verifyOtpCode);
-  const resetPasswordToken = useAuthStore((state) => state.resetPasswordToken);
 
   /**
    * Resolve the dynamic route parameter.
@@ -87,11 +86,12 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
         email,
       });
 
+
       setMessage(result.message);
 
       // OTP is valid
       router.push(
-        `/auth/reset-password/${resetPasswordToken}?email=${encodeURIComponent(email)}`,
+        `/auth/reset-password/${result.resetPasswordToken}?email=${encodeURIComponent(email)}`,
       );
     } catch (error: any) {
       setError(
