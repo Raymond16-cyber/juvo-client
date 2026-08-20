@@ -132,6 +132,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isLoading: false,
         message: result.message,
         error: null,
+        resetPasswordToken: result.resetPasswordToken || null,
       });
 
       return result;
