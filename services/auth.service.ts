@@ -6,6 +6,7 @@ import {
   LoginData,
   VerifyOtpData,
   ResetPasswordData,
+  LoginResponse,
 } from "@/types/auth.types";
 
 export const registerUser = async (
@@ -16,9 +17,8 @@ export const registerUser = async (
   return response.data;
 };
 
-export const loginUser = async (data: LoginData): Promise<AuthResponse> => {
-  const response = await api.post<AuthResponse>("/auth/login", data);
-
+export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
+  const response = await api.post<LoginResponse>("/auth/sign-in", data);
   return response.data;
 };
 
@@ -40,7 +40,7 @@ export const verifyOtpCode = async (data: VerifyOtpData) => {
 };
 
 export const resetPassword = async (data: ResetPasswordData) => {
-  const response = await api.post("/auth/reset-password", data);
+  const response = await api.post(`/auth/reset-password/${data.token}`, data);
 
   return response.data;
 };

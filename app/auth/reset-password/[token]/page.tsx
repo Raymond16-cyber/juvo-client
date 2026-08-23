@@ -11,7 +11,11 @@ import Header from "@/components/Header";
 import images from "@/constants/images.service";
 import { useAuthStore } from "@/stores/auth.store";
 
-export default function ResetPasswordPage() {
+export default function ResetPasswordPage({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -27,6 +31,16 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [token, setToken] = useState<string | null>(null);
+
+  /**
+   * Resolve the dynamic route parameter.
+   */
+  React.useEffect(() => {
+    params.then(({ token }) => {
+      setToken(token);
+    });
+  }, [params]);
 
   const resetPassword = useAuthStore((state) => state.resetPassword);
 
@@ -65,7 +79,8 @@ export default function ResetPasswordPage() {
     try {
       setIsLoading(true);
 
-      await resetPassword({
+      const result = await resetPassword({
+        token,
         email,
         passwords: password,
       });

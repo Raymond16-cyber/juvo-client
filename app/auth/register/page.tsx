@@ -14,9 +14,10 @@ import "swiper/css";
 import { registerUser } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
 import { useShallow } from "zustand/react/shallow";
+import { useRouter } from "next/navigation";
 
 function Register() {
-
+  const router = useRouter();
   // =========================
   // AUTH STORE
   // =========================
@@ -27,6 +28,7 @@ function Register() {
     })),
   );
   const register = useAuthStore((state) => state.register);
+  const login = useAuthStore((state) => state.login);
   const registerMessage = useAuthStore((state) => state.message);
 
   // =========================
@@ -86,7 +88,7 @@ function Register() {
       setMessage(registerMessage || "Registration successful! Please log in.");
       setLoading(false);
 
-      if(isAuthenticated) {
+      if (isAuthenticated) {
         goToLogin();
       }
     } catch (error: any) {
@@ -112,13 +114,14 @@ function Register() {
     setLoading(true);
 
     try {
-      // Later:
-      // await loginUser({
-      //   email: loginEmail,
-      //   password: loginPassword,
-      // });
-
-      console.log("Login submitted");
+      const data = await login({
+        email: loginEmail,
+        password: loginPassword,
+      });
+      if (isAuthenticated) {
+        router.push("/home/dashboard");
+      }
+      // console.log("Login submitted");
     } catch (error: any) {
       console.error("Login error:", error);
 
@@ -386,12 +389,12 @@ function Register() {
                     </div>
 
                     {/* Submit */}
-                  <a
-                    href="/auth/forgot-password"
-                    className="text-xs text-slate-400 transition-colors hover:text-white"
-                  >
-                    Forgot password?
-                  </a>
+                    <a
+                      href="/auth/forgot-password"
+                      className="text-xs text-slate-400 transition-colors hover:text-white"
+                    >
+                      Forgot password?
+                    </a>
 
                     <Button type="submit" disabled={loading} className="w-full">
                       {loading ? "Signing in..." : "Sign In"}
@@ -410,7 +413,6 @@ function Register() {
                       Register
                     </button>
                   </p>
-
                 </div>
               </SwiperSlide>
             </Swiper>

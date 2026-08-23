@@ -26,6 +26,16 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface LoginResponse {
+  user: User;
+  success: boolean;
+  message: string | null;
+  error: string | null,
+  isAuthenticated: boolean
+  token: string
+
+}
+
 export interface RequestResetPasswordData {
   email: string;
 }
@@ -43,6 +53,7 @@ export interface VerifyOtpResponse {
 }
 
 export interface ResetPasswordData {
+  token: string | null;
   email: string;
   passwords: string;
 }

@@ -16,6 +16,9 @@ import type {
   LoginData,
   VerifyOtpData,
   VerifyOtpResponse,
+  ResetPasswordData,
+  AuthResponse,
+  LoginResponse,
 } from "@/types/auth.types";
 
 interface AuthState {
@@ -24,13 +27,14 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   message: string | null;
+  token: string | null;
   resetPasswordToken: string | null;
 
   register: (data: RegisterData) => Promise<void>;
-  login: (data: LoginData) => Promise<void>;
+  login: (data: LoginData) => Promise<LoginResponse>;
   requestResetPassword: (data: { email: string }) => Promise<void>;
   verifyOtpCode: (data: VerifyOtpData) => Promise<VerifyOtpResponse>;
-  resetPassword: (data: { email: string; passwords: string }) => Promise<void>;
+  resetPassword: (data: ResetPasswordData) => Promise<void>;
   fetchCurrentUser: () => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
@@ -78,11 +82,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
 
       const response = await loginUser(data);
+      // set token to localstorage
+      const token = await localStorage.setItem("token",response.token)
 
       set({
         user: response.user,
         isAuthenticated: true,
         isLoading: false,
+        token: response.token
+        
       });
     } catch (error: any) {
       set({
