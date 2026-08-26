@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -93,10 +94,15 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
       router.push(
         `/auth/reset-password/${result.resetPasswordToken}?email=${encodeURIComponent(email)}`,
       );
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{
+        error?: string;
+        message?: string;
+      }>;
+
       setError(
-        error?.response?.data?.error ||
-          error?.response?.data?.message ||
+        axiosError.response?.data?.error ||
+          axiosError.response?.data?.message ||
           "Unable to verify the OTP. Please try again.",
       );
     } finally {
@@ -123,9 +129,11 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
       console.log("Resending OTP for token:", token);
 
       setMessage("A new verification code has been sent.");
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+
       setError(
-        error?.response?.data?.message ||
+        axiosError.response?.data?.message ||
           "Unable to resend the verification code.",
       );
     } finally {

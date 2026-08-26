@@ -1,37 +1,139 @@
+import {
+  BadgeDollarSign,
+  BarChart3,
+  Bot,
+  CalendarDays,
+  CircleHelp,
+  CreditCard,
+  FileDown,
+  Gauge,
+  Gift,
+  LineChart,
+  Link2,
+  Settings,
+  Sparkles,
+  Target,
+  UserRound,
+  X,
+} from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
-const Sidebar = () => {
+type SidebarProps = {
+  isOpen?: boolean;
+  onClose?: () => void;
+};
+
+const navigationGroups = [
+  {
+    label: "Workspace",
+    items: [
+      { name: "Dashboard", href: "/home/dashboard", icon: Gauge, active: true },
+      { name: "Journal", href: "#", icon: LineChart },
+      { name: "Juvo Calendar", href: "#", icon: CalendarDays },
+      { name: "Analytics", href: "#", icon: BarChart3 },
+      { name: "Behavioural Insights", href: "#", icon: Sparkles },
+      { name: "Juvo AI", href: "#", icon: Bot },
+      { name: "Growth", href: "#", icon: Target },
+    ],
+  },
+  {
+    label: "Accounts",
+    items: [
+      { name: "Trading Accounts", href: "#", icon: BadgeDollarSign },
+      { name: "Broker Connections", href: "#", icon: Link2 },
+      { name: "Export Data", href: "#", icon: FileDown },
+    ],
+  },
+  {
+    label: "General",
+    items: [
+      { name: "Referrals", href: "#", icon: Gift },
+      { name: "Subscriptions", href: "#", icon: CreditCard },
+      { name: "Settings", href: "#", icon: Settings },
+      { name: "Help Center", href: "#", icon: CircleHelp },
+    ],
+  },
+];
+
+const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   return (
-    <div className="flex flex-col gap-4 px-2 bg-black w-fit text-sm">
-      <h2 className="dark:text-white text-3xl">JUVO</h2>
-      <div>
-        <p>Dashboard</p>
-        <p>Journal</p>
-        <p>Juvo Calendar</p>
-        <p>Analytics</p>
-        <p>Behavioural Insights</p>
-        <p>Juvo AI</p>
-        <p>Growth</p>
+    <aside
+      className={`fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 transform flex-col border-r border-slate-200 bg-white px-4 py-5 text-slate-700 shadow-2xl shadow-slate-200/60 transition-transform duration-300 dark:border-white/10 dark:bg-[#070b14] dark:text-slate-200 dark:shadow-black/40 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:shadow-none ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div className="mb-8 flex items-center justify-between">
+        <Link href="/home/dashboard" className="flex items-center gap-3">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-950 text-lg font-bold text-primary dark:bg-white dark:text-slate-950">
+            J
+          </span>
+          <div>
+            <h2 className="text-2xl font-bold tracking-wide text-slate-950 dark:text-white">
+              JUVO
+            </h2>
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              Trading OS
+            </p>
+          </div>
+        </Link>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 lg:hidden"
+          aria-label="Close sidebar"
+        >
+          <X size={18} />
+        </button>
       </div>
-      <div>
-        <p>Trading Accounts</p>
-        <p>Broker Connections</p>
-        <p>Export Data</p>
-      </div>
-      <div>
-        <p>Referrals</p>
-        <p>Subscriptions</p>
-        <p>Settings</p>
-        <p>Help Center</p>
-      </div>
-      <div>
-        <div className="user-profile-pic"></div>
-        <div className="user-info">
-          <p className="user-name">Ballistic Trader</p>
-          <p className="user-email">uchennaraymond74@gmail.com</p>
+
+      <nav className="flex-1 space-y-7 overflow-y-auto pr-1">
+        {navigationGroups.map((group) => (
+          <div key={group.label}>
+            <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+              {group.label}
+            </p>
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition ${
+                      item.active
+                        ? "bg-slate-950 text-white shadow-lg shadow-slate-300/50 dark:bg-primary dark:text-slate-950 dark:shadow-primary/20"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                    }`}
+                  >
+                    <Icon size={18} />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/[0.04]">
+        <div className="flex items-center gap-3">
+          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/20 text-primary dark:bg-primary/15">
+            <UserRound size={20} />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-slate-950 dark:text-white">
+              Ballistic Trader
+            </p>
+            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+              uchennaraymond74@gmail.com
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };
 

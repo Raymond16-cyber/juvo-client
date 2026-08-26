@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { AxiosError } from "axios";
 
 import {
   loginUser,
@@ -17,7 +18,6 @@ import type {
   VerifyOtpData,
   VerifyOtpResponse,
   ResetPasswordData,
-  AuthResponse,
   LoginResponse,
 } from "@/types/auth.types";
 
@@ -46,6 +46,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: false,
   error: null,
   message: null,
+  token: null,
   resetPasswordToken: null,
 
   register: async (data) => {
@@ -61,13 +62,18 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: response.user,
         isAuthenticated: true,
         isLoading: false,
+        token: response.token,
         message: response.message,
         error: null,
       });
-    } catch (error: any) {
+
+      localStorage.setItem("token", response.token);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+
       set({
         isLoading: false,
-        error: error.response?.data?.message || "Registration failed.",
+        error: axiosError.response?.data?.message || "Registration failed.",
       });
 
       throw error;
@@ -82,20 +88,22 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
 
       const response = await loginUser(data);
-      // set token to localstorage
-      const token = await localStorage.setItem("token",response.token)
+      localStorage.setItem("token", response.token);
 
       set({
         user: response.user,
         isAuthenticated: true,
         isLoading: false,
-        token: response.token
-        
+        token: response.token,
       });
-    } catch (error: any) {
+
+      return response;
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+
       set({
         isLoading: false,
-        error: error.response?.data?.message || "Login failed.",
+        error: axiosError.response?.data?.message || "Login failed.",
       });
 
       throw error;
@@ -115,11 +123,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         message: "Password reset link sent. Please check your email.",
         resetPasswordToken: result.passwordToken,
       });
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+
       set({
         isLoading: false,
         error:
-          error.response?.data?.message || "Failed to request password reset.",
+          axiosError.response?.data?.message ||
+          "Failed to request password reset.",
         message: null,
       });
 
@@ -145,10 +156,14 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
 
       return result;
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{
+        error?: string;
+        message?: string;
+      }>;
       const errorMessage =
-        error.response?.data?.error ||
-        error.response?.data?.message ||
+        axiosError.response?.data?.error ||
+        axiosError.response?.data?.message ||
         "Failed to verify OTP code.";
 
       set({
@@ -176,10 +191,13 @@ export const useAuthStore = create<AuthState>((set) => ({
         message: result.message || "Password reset successful.",
         error: null,
       });
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+
       set({
         isLoading: false,
-        error: error.response?.data?.message || "Failed to reset password.",
+        error:
+          axiosError.response?.data?.message || "Failed to reset password.",
         message: null,
       });
 
@@ -212,9 +230,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await logoutUser();
     } finally {
+      localStorage.removeItem("token");
+
       set({
         user: null,
         isAuthenticated: false,
+        token: null,
       });
     }
   },

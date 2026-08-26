@@ -21,19 +21,15 @@ export interface LoginData {
 }
 
 export interface AuthResponse {
-  success: boolean;
   message: string;
   user: User;
+  token: string;
 }
 
 export interface LoginResponse {
   user: User;
-  success: boolean;
-  message: string | null;
-  error: string | null,
-  isAuthenticated: boolean
-  token: string
-
+  message: string;
+  token: string;
 }
 
 export interface RequestResetPasswordData {

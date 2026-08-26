@@ -6,12 +6,10 @@ import gsap from "gsap";
 import Image from "next/image";
 import {
   ArrowRight,
-  Brain,
   CalendarDays,
   CheckCircle2,
   NotebookPen,
   Sparkles,
-  TrendingUp,
 } from "lucide-react";
 import images from "@/constants/images.service";
 import Button from "@/components/ui/Button";
@@ -258,8 +256,8 @@ export default function Hero() {
                       Journal note
                     </p>
                     <p className="mt-2 text-sm leading-6 text-slate-300">
-                      "I entered early because I saw momentum. Next time I need
-                      a confirmation rule before pressing the button."
+                      &quot;I entered early because I saw momentum. Next time I need
+                      a confirmation rule before pressing the button.&quot;
                     </p>
                     <div className="mt-4 flex items-center gap-2 text-xs text-emerald-300">
                       <CheckCircle2 className="h-4 w-4" />

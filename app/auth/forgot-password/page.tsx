@@ -21,7 +21,7 @@ export default function ForgotPassword() {
     e.preventDefault();
     clearError();
     try {
-      const data = await requestResetPassword({ email });
+      await requestResetPassword({ email });
     } catch (error) {
       console.error("Error requesting password reset:", error);
     }
@@ -49,7 +49,7 @@ export default function ForgotPassword() {
             </h1>
 
             <p className="text-sm leading-6 text-slate-400">
-              Enter your email address and we'll send you a link to reset your
+              Enter your email address and we&apos;ll send you a link to reset your
               password.
             </p>
           </div>

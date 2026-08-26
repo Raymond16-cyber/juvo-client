@@ -11,22 +11,33 @@ import type { Swiper as SwiperType } from "swiper";
 
 import "swiper/css";
 
-import { registerUser } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
-import { useShallow } from "zustand/react/shallow";
 import { useRouter } from "next/navigation";
+
+function getAuthErrorMessage(error: unknown, fallback: string) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "response" in error &&
+    typeof error.response === "object" &&
+    error.response !== null &&
+    "data" in error.response &&
+    typeof error.response.data === "object" &&
+    error.response.data !== null &&
+    "message" in error.response.data &&
+    typeof error.response.data.message === "string"
+  ) {
+    return error.response.data.message;
+  }
+
+  return fallback;
+}
 
 function Register() {
   const router = useRouter();
   // =========================
   // AUTH STORE
   // =========================
-  const { isAuthenticated, user } = useAuthStore(
-    useShallow((state) => ({
-      isAuthenticated: state.isAuthenticated,
-      user: state.user,
-    })),
-  );
   const register = useAuthStore((state) => state.register);
   const login = useAuthStore((state) => state.login);
   const registerMessage = useAuthStore((state) => state.message);
@@ -79,24 +90,19 @@ function Register() {
     setLoading(true);
 
     try {
-      const data = await register({
+      await register({
         fullName,
         email,
         password,
       });
-      console.log("data", data);
-      setMessage(registerMessage || "Registration successful! Please log in.");
+      setMessage(registerMessage || "Registration successful!");
       setLoading(false);
-
-      if (isAuthenticated) {
-        goToLogin();
-      }
-    } catch (error: any) {
+      router.push("/home/onboarding");
+    } catch (error: unknown) {
       console.error("Registration error:", error);
 
       setError(
-        error?.response?.data?.message ||
-          "Registration failed. Please try again.",
+        getAuthErrorMessage(error, "Registration failed. Please try again."),
       );
     } finally {
       setLoading(false);
@@ -114,20 +120,15 @@ function Register() {
     setLoading(true);
 
     try {
-      const data = await login({
+      await login({
         email: loginEmail,
         password: loginPassword,
       });
-      if (isAuthenticated) {
-        router.push("/home/dashboard");
-      }
-      // console.log("Login submitted");
-    } catch (error: any) {
+      router.push("/home/dashboard");
+    } catch (error: unknown) {
       console.error("Login error:", error);
 
-      setError(
-        error?.response?.data?.message || "Login failed. Please try again.",
-      );
+      setError(getAuthErrorMessage(error, "Login failed. Please try again."));
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { AxiosError } from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -79,7 +80,7 @@ export default function ResetPasswordPage({
     try {
       setIsLoading(true);
 
-      const result = await resetPassword({
+      await resetPassword({
         token,
         email,
         passwords: password,
@@ -91,9 +92,11 @@ export default function ResetPasswordPage({
       setTimeout(() => {
         router.push("/auth/login");
       }, 1500);
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+
       setError(
-        error?.response?.data?.message ||
+        axiosError.response?.data?.message ||
           "Unable to reset your password. Please try again.",
       );
     } finally {

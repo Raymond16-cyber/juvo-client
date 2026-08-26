@@ -298,8 +298,8 @@ const showcaseSlides = [
                 Journal note
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-300">
-                "I entered early because I saw momentum. Next time I need a
-                confirmation rule before pressing the button."
+                &quot;I entered early because I saw momentum. Next time I need a
+                confirmation rule before pressing the button.&quot;
               </p>
             </div>
 

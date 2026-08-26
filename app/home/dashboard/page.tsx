@@ -1,12 +1,13 @@
-import Sidebar from '@/components/ui/Sidebar'
-import React from 'react'
+import DashboardOverview from "@/components/dashboard/DashboardOverview";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import React from "react";
 
-const page = () => {
+const Page = () => {
   return (
-    <div>
-        <Sidebar />
-    </div>
-  )
-}
+    <DashboardShell>
+      <DashboardOverview />
+    </DashboardShell>
+  );
+};
 
-export default page
+export default Page;
