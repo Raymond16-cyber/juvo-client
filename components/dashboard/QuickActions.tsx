@@ -1,14 +1,33 @@
 import Button from "@/components/ui/Button";
-import { Bot, FileDown, Link2, Plus } from "lucide-react";
-
-const actions = [
-  { label: "Log trade", icon: Plus },
-  { label: "Ask Juvo AI", icon: Bot },
-  { label: "Connect broker", icon: Link2 },
-  { label: "Export report", icon: FileDown },
-];
+import { useJournalStore } from "@/stores/journal.store";
+import { Bot, FileDown, Link2, Plus, Rocket } from "lucide-react";
 
 export default function QuickActions() {
+  const journalStatus = useJournalStore((state) => state.journalStatus);
+  const isLoadingJournalStatus = useJournalStore((state) => state.isLoading);
+  const getTodayJournalStatus = useJournalStore(
+    (state) => state.getTodayJournalStatus,
+  );
+  const primaryJournalLabel = journalStatus?.hasJournalToday
+    ? "Create a Journal"
+    : "Start My Day";
+  const PrimaryIcon = journalStatus?.hasJournalToday ? Plus : Rocket;
+  const actions = [
+    {
+      label: isLoadingJournalStatus ? "Checking..." : primaryJournalLabel,
+      icon: PrimaryIcon,
+      onClick: () => {
+        getTodayJournalStatus().catch(() => {
+          // The store owns the user-facing error state.
+        });
+      },
+      disabled: isLoadingJournalStatus,
+    },
+    { label: "Ask Juvo AI", icon: Bot },
+    { label: "Connect broker", icon: Link2 },
+    { label: "Export report", icon: FileDown },
+  ];
+
   return (
     <section className="dashboard-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card">
       <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -26,6 +45,8 @@ export default function QuickActions() {
             <Button
               key={action.label}
               variant={index === 0 ? "primary" : "ghost"}
+              onClick={action.onClick}
+              disabled={action.disabled}
               className={`w-full justify-start ${
                 index === 0
                   ? ""
