@@ -1,4 +1,5 @@
 import Button from "@/components/ui/Button";
+import { useAuthStore } from "@/stores/auth.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { Bell, CalendarDays, Plus, Rocket, Search } from "lucide-react";
 import { useEffect } from "react";
@@ -8,21 +9,32 @@ type DashboardHeaderProps = {
 };
 
 export default function DashboardHeader({ onOpenMyDay }: DashboardHeaderProps) {
+  const user= useAuthStore((state) => (state.user));
+  console.log("user", user)
   const journalStatus = useJournalStore((state) => state.journalStatus);
   const isLoadingJournalStatus = useJournalStore((state) => state.isLoading);
   const getTodayJournalStatus = useJournalStore(
     (state) => state.getTodayJournalStatus,
   );
+  const fetchCurrentUser = useAuthStore((state) => state.fetchCurrentUser);
 
   const primaryJournalLabel = journalStatus?.hasJournalToday
     ? "Add Trade"
     : "Start My Day";
 
-  useEffect(() => {
-    getTodayJournalStatus().catch(() => {
-      // The store owns the user-facing error state.
-    });
-  }, [getTodayJournalStatus]);
+ useEffect(() => {
+   const fetchUserData = async () => {
+     const data = await fetchCurrentUser().catch(() => {
+       // The store owns the user-facing error state.
+     });
+   };
+
+   fetchUserData();
+
+   getTodayJournalStatus().catch(() => {
+     // The store owns the user-facing error state.
+   });
+ }, [getTodayJournalStatus, fetchCurrentUser]);
 
   const handleGetTodayJournalStatus = async () => {
     try {
@@ -37,7 +49,7 @@ export default function DashboardHeader({ onOpenMyDay }: DashboardHeaderProps) {
     <header className="mb-6 hidden items-center justify-between gap-4 lg:flex">
       <div>
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          Welcome back, Ballistic Trader
+          Welcome back, { user?.fullName || "Trader"}!
         </p>
         <h1 className="mt-1 text-3xl font-bold text-slate-950 dark:text-white">
           Trading Dashboard

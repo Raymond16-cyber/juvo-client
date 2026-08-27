@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuthStore } from "@/stores/auth.store";
 import {
   BadgeDollarSign,
   BarChart3,
@@ -61,6 +62,7 @@ const navigationGroups = [
 
 const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   const pathname = usePathname();
+  const user = useAuthStore((state) => state.user);
 
   return (
     <aside
@@ -132,10 +134,10 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-slate-950 dark:text-white">
-              Ballistic Trader
+              { user?.fullName || "Trader"}
             </p>
             <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-              uchennaraymond74@gmail.com
+              { user?.email || "trader@juvo.com" }
             </p>
           </div>
         </div>

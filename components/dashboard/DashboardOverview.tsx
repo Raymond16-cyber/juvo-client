@@ -10,6 +10,7 @@ import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentTrades from "@/components/dashboard/RecentTrades";
 import TradingGoals from "@/components/dashboard/TradingGoals";
+import { useAuthStore } from "@/stores/auth.store";
 import { Activity, Percent, TrendingDown, TrendingUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -51,6 +52,8 @@ export default function DashboardOverview() {
   const [isMyDayOpen, setIsMyDayOpen] = useState(false);
   const [workflowPanel, setWorkflowPanel] = useState<WorkflowPanel>("start");
 
+  const user = useAuthStore((state) => state.user);
+
   const openMyDayWorkflow = (hasJournalToday?: boolean) => {
     setWorkflowPanel(hasJournalToday ? "trade" : "start");
     setIsMyDayOpen(true);
@@ -66,7 +69,7 @@ export default function DashboardOverview() {
 
       <div className="mb-6 lg:hidden">
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          Welcome back, Ballistic Trader
+          Welcome back, { user?.fullName || "Trader"}!
         </p>
         <h1 className="mt-1 text-3xl font-bold text-slate-950 dark:text-white">
           Trading Dashboard
