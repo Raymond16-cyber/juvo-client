@@ -22,7 +22,10 @@ const performanceData = [
 
 export default function PerformanceChart() {
   return (
-    <section className="dashboard-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card">
+    <section
+      data-dashboard-card
+      className="dashboard-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card"
+    >
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">

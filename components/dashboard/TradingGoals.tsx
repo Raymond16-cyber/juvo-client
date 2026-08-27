@@ -1,3 +1,10 @@
+"use client";
+
+import { animateProgressGroup } from "@/animations/analytics";
+import AnimatedProgress from "@/components/ui/AnimatedProgress";
+import AnimatedCounter from "@/components/ui/AnimatedCounter";
+import { useEffect, useRef } from "react";
+
 const goals = [
   { label: "Respect daily risk limit", progress: 92 },
   { label: "Journal every trade", progress: 78 },
@@ -5,8 +12,18 @@ const goals = [
 ];
 
 export default function TradingGoals() {
+  const goalsRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    return animateProgressGroup(goalsRef.current);
+  }, []);
+
   return (
-    <section className="dashboard-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card">
+    <section
+      ref={goalsRef}
+      data-dashboard-card
+      className="dashboard-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card"
+    >
       <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
         Growth
       </p>
@@ -16,20 +33,21 @@ export default function TradingGoals() {
 
       <div className="mt-6 space-y-6">
         {goals.map((goal) => (
-          <div key={goal.label}>
+          <div key={goal.label} data-progress-item>
             <div className="flex items-center justify-between gap-3 text-sm">
               <span className="font-semibold text-slate-700 dark:text-slate-200">
                 {goal.label}
               </span>
               <span className="font-bold text-slate-950 dark:text-white">
-                {goal.progress}%
+                <AnimatedCounter
+                  value={goal.progress}
+                  formatter={(value) => `${Math.round(value)}%`}
+                  duration={700}
+                />
               </span>
             </div>
             <div className="mt-3 h-2.5 rounded-full bg-slate-100 dark:bg-white/10">
-              <div
-                className="h-full rounded-full bg-primary"
-                style={{ width: `${goal.progress}%` }}
-              />
+              <AnimatedProgress value={goal.progress} />
             </div>
           </div>
         ))}

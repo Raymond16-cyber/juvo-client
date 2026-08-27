@@ -2,7 +2,10 @@ import { WalletCards } from "lucide-react";
 
 export default function AccountSummary() {
   return (
-    <section className="dashboard-card rounded-3xl border border-slate-200 bg-slate-950 p-7 text-white shadow-sm dark:border-white/10 dark:bg-[#08111f]">
+    <section
+      data-dashboard-card
+      className="dashboard-card rounded-2xl border border-slate-200 bg-slate-950 p-7 text-white shadow-sm dark:border-white/10 dark:bg-[#08111f]"
+    >
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-slate-300">Primary Account</p>

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   BadgeDollarSign,
   BarChart3,
@@ -17,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import React from "react";
 
 type SidebarProps = {
@@ -28,35 +31,37 @@ const navigationGroups = [
   {
     label: "Workspace",
     items: [
-      { name: "Dashboard", href: "/home/dashboard", icon: Gauge, active: true },
-      { name: "Journal", href: "#", icon: LineChart },
-      { name: "Juvo Calendar", href: "#", icon: CalendarDays },
-      { name: "Analytics", href: "#", icon: BarChart3 },
-      { name: "Behavioural Insights", href: "#", icon: Sparkles },
-      { name: "Juvo AI", href: "#", icon: Bot },
-      { name: "Growth", href: "#", icon: Target },
+      { name: "Dashboard", href: "/home/dashboard", icon: Gauge },
+      { name: "Journal", href: "/home/journal", icon: LineChart },
+      { name: "Juvo Calendar", href: "/home/calendar", icon: CalendarDays },
+      { name: "Analytics", href: "/home/analytics", icon: BarChart3 },
+      { name: "Behavioural Insights", href: "/home/insights", icon: Sparkles },
+      { name: "Juvo AI", href: "/home/ai/chat", icon: Bot },
+      { name: "Growth", href: "/home/growth", icon: Target },
     ],
   },
   {
     label: "Accounts",
     items: [
-      { name: "Trading Accounts", href: "#", icon: BadgeDollarSign },
-      { name: "Broker Connections", href: "#", icon: Link2 },
-      { name: "Export Data", href: "#", icon: FileDown },
+      { name: "Trading Accounts", href: "/home/accounts/trading", icon: BadgeDollarSign },
+      { name: "Broker Connections", href: "/home/accounts/broker", icon: Link2 },
+      { name: "Export Data", href: "/home/accounts/export", icon: FileDown },
     ],
   },
   {
     label: "General",
     items: [
-      { name: "Referrals", href: "#", icon: Gift },
-      { name: "Subscriptions", href: "#", icon: CreditCard },
-      { name: "Settings", href: "#", icon: Settings },
-      { name: "Help Center", href: "#", icon: CircleHelp },
+      { name: "Referrals", href: "/home/general/referrals", icon: Gift },
+      { name: "Subscriptions", href: "/home/general/subscriptions", icon: CreditCard },
+      { name: "Settings", href: "/home/general/settings", icon: Settings },
+      { name: "Help Center", href: "/home/general/help", icon: CircleHelp },
     ],
   },
 ];
 
 const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
+  const pathname = usePathname();
+
   return (
     <aside
       className={`fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 transform flex-col border-r border-slate-200 bg-white px-4 py-5 text-slate-700 shadow-2xl shadow-slate-200/60 transition-transform duration-300 dark:border-white/10 dark:bg-[#070b14] dark:text-slate-200 dark:shadow-black/40 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:shadow-none ${
@@ -97,13 +102,15 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
             <div className="space-y-1">
               {group.items.map((item) => {
                 const Icon = item.icon;
+                const isActive =
+                  pathname === item.href || pathname.startsWith(`${item.href}/`);
 
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
                     className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition ${
-                      item.active
+                      isActive
                         ? "bg-slate-950 text-white shadow-lg shadow-slate-300/50 dark:bg-primary dark:text-slate-950 dark:shadow-primary/20"
                         : "text-slate-500 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
                     }`}

@@ -1,16 +1,19 @@
 "use client";
 
+import { animateDashboardEntrance } from "@/animations/dashboard";
 import AccountSummary from "@/components/dashboard/AccountSummary";
 import BehavioralInsights from "@/components/dashboard/BehavioralInsights";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import MetricCard from "@/components/dashboard/MetricCard";
+import MyDayWorkflowModal from "@/components/dashboard/MyDayWorkflowModal";
 import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentTrades from "@/components/dashboard/RecentTrades";
 import TradingGoals from "@/components/dashboard/TradingGoals";
 import { Activity, Percent, TrendingDown, TrendingUp } from "lucide-react";
-import gsap from "gsap";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+type WorkflowPanel = "start" | "trade" | "account";
 
 const metrics = [
   {
@@ -45,46 +48,21 @@ const metrics = [
 
 export default function DashboardOverview() {
   const dashboardRef = useRef<HTMLDivElement>(null);
+  const [isMyDayOpen, setIsMyDayOpen] = useState(false);
+  const [workflowPanel, setWorkflowPanel] = useState<WorkflowPanel>("start");
+
+  const openMyDayWorkflow = (hasJournalToday?: boolean) => {
+    setWorkflowPanel(hasJournalToday ? "trade" : "start");
+    setIsMyDayOpen(true);
+  };
 
   useEffect(() => {
-    const context = gsap.context(() => {
-      gsap.fromTo(
-        ".dashboard-card",
-        { autoAlpha: 0, y: 22, scale: 0.98 },
-        {
-          autoAlpha: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.65,
-          ease: "power3.out",
-          stagger: 0.07,
-        },
-      );
-      gsap.to(".dashboard-ticker-track", {
-        xPercent: -50,
-        duration: 22,
-        ease: "none",
-        repeat: -1,
-      });
-      gsap.fromTo(
-        ".pulse-profit",
-        { boxShadow: "0 0 0 rgba(0,212,255,0)" },
-        {
-          boxShadow: "0 0 34px rgba(0,212,255,0.22)",
-          duration: 1.8,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
-        },
-      );
-    }, dashboardRef);
-
-    return () => context.revert();
+    return animateDashboardEntrance(dashboardRef.current);
   }, []);
 
   return (
-    <div ref={dashboardRef}>
-      <DashboardHeader />
+    <div ref={dashboardRef} data-dashboard-main>
+      <DashboardHeader onOpenMyDay={openMyDayWorkflow} />
 
       <div className="mb-6 lg:hidden">
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -95,8 +73,14 @@ export default function DashboardOverview() {
         </h1>
       </div>
 
-      <div className="dashboard-card mb-6 overflow-hidden rounded-3xl border border-slate-200 bg-white py-2 shadow-sm dark:border-white/10 dark:bg-card">
-        <div className="dashboard-ticker-track flex w-max gap-8 px-5 text-xs font-bold text-slate-500 dark:text-slate-400">
+      <div
+        data-dashboard-card
+        className="dashboard-card mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white py-2 shadow-sm dark:border-white/10 dark:bg-card"
+      >
+        <div
+          data-dashboard-ticker
+          className="dashboard-ticker-track flex w-max gap-8 px-5 text-xs font-bold text-slate-500 dark:text-slate-400"
+        >
           {[
             "XAU/USD 2368.42 +1.8%",
             "NAS100 18422 +0.7%",
@@ -116,7 +100,7 @@ export default function DashboardOverview() {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(340px,380px)]">
         <div className="space-y-6">
           <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-4">
             {metrics.map((metric) => (
@@ -124,7 +108,7 @@ export default function DashboardOverview() {
             ))}
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(360px,0.8fr)]">
+          <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.3fr)_minmax(340px,0.8fr)]">
             <PerformanceChart />
             <RecentTrades />
           </div>
@@ -137,9 +121,15 @@ export default function DashboardOverview() {
 
         <div className="space-y-6">
           <AccountSummary />
-          <QuickActions />
+          <QuickActions onOpenMyDay={openMyDayWorkflow} />
         </div>
       </div>
+
+      <MyDayWorkflowModal
+        isOpen={isMyDayOpen}
+        initialPanel={workflowPanel}
+        onClose={() => setIsMyDayOpen(false)}
+      />
     </div>
   );
 }

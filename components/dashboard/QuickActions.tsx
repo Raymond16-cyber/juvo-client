@@ -2,24 +2,31 @@ import Button from "@/components/ui/Button";
 import { useJournalStore } from "@/stores/journal.store";
 import { Bot, FileDown, Link2, Plus, Rocket } from "lucide-react";
 
-export default function QuickActions() {
+type QuickActionsProps = {
+  onOpenMyDay?: (hasJournalToday?: boolean) => void;
+};
+
+export default function QuickActions({ onOpenMyDay }: QuickActionsProps) {
   const journalStatus = useJournalStore((state) => state.journalStatus);
   const isLoadingJournalStatus = useJournalStore((state) => state.isLoading);
   const getTodayJournalStatus = useJournalStore(
     (state) => state.getTodayJournalStatus,
   );
   const primaryJournalLabel = journalStatus?.hasJournalToday
-    ? "Create a Journal"
+    ? "Add Trade"
     : "Start My Day";
   const PrimaryIcon = journalStatus?.hasJournalToday ? Plus : Rocket;
   const actions = [
     {
       label: isLoadingJournalStatus ? "Checking..." : primaryJournalLabel,
       icon: PrimaryIcon,
-      onClick: () => {
-        getTodayJournalStatus().catch(() => {
+      onClick: async () => {
+        try {
+          const response = await getTodayJournalStatus();
+          onOpenMyDay?.(response.data.hasJournalToday);
+        } catch {
           // The store owns the user-facing error state.
-        });
+        }
       },
       disabled: isLoadingJournalStatus,
     },
@@ -29,7 +36,10 @@ export default function QuickActions() {
   ];
 
   return (
-    <section className="dashboard-card rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card">
+    <section
+      data-dashboard-card
+      className="dashboard-card rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-card"
+    >
       <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
         Shortcuts
       </p>

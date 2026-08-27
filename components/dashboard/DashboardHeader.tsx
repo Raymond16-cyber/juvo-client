@@ -3,7 +3,11 @@ import { useJournalStore } from "@/stores/journal.store";
 import { Bell, CalendarDays, Plus, Rocket, Search } from "lucide-react";
 import { useEffect } from "react";
 
-export default function DashboardHeader() {
+type DashboardHeaderProps = {
+  onOpenMyDay?: (hasJournalToday?: boolean) => void;
+};
+
+export default function DashboardHeader({ onOpenMyDay }: DashboardHeaderProps) {
   const journalStatus = useJournalStore((state) => state.journalStatus);
   const isLoadingJournalStatus = useJournalStore((state) => state.isLoading);
   const getTodayJournalStatus = useJournalStore(
@@ -11,7 +15,7 @@ export default function DashboardHeader() {
   );
 
   const primaryJournalLabel = journalStatus?.hasJournalToday
-    ? "Create a Journal"
+    ? "Add Trade"
     : "Start My Day";
 
   useEffect(() => {
@@ -22,7 +26,8 @@ export default function DashboardHeader() {
 
   const handleGetTodayJournalStatus = async () => {
     try {
-      await getTodayJournalStatus();
+      const response = await getTodayJournalStatus();
+      onOpenMyDay?.(response.data.hasJournalToday);
     } catch (error) {
       console.error("Error fetching journal status:", error);
     }
