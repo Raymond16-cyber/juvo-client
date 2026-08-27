@@ -30,6 +30,7 @@ type WorkflowPanel = "start" | "trade" | "account";
 type MyDayWorkflowProps = {
   initialPanel?: WorkflowPanel;
   mode?: "card" | "modal";
+  onJournalUpdated?: () => void;
 };
 
 const defaultAccountForm: CreateTradingAccountPayload = {
@@ -63,6 +64,7 @@ const defaultTradeForm: CreateTradePayload = {
 export default function MyDayWorkflow({
   initialPanel = "start",
   mode = "card",
+  onJournalUpdated,
 }: MyDayWorkflowProps) {
   const workflowRef = useRef<HTMLElement>(null);
   const journalStatus = useJournalStore((state) => state.journalStatus);
@@ -196,6 +198,7 @@ export default function MyDayWorkflow({
     });
     setSuccessMessage("Your day journal is ready.");
     setPanel("trade");
+    onJournalUpdated?.();
   };
 
   const handleCreateTrade = async (event: FormEvent<HTMLFormElement>) => {
@@ -207,6 +210,7 @@ export default function MyDayWorkflow({
     await createTrade(journal._id, tradeForm);
     setTradeForm(defaultTradeForm);
     setSuccessMessage("Trade added to today's journal.");
+    onJournalUpdated?.();
   };
 
   const updateAccountForm = (

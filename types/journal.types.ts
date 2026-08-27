@@ -55,6 +55,30 @@ export interface TradeSummary extends CreateTradePayload {
   updatedAt: string;
 }
 
+export interface JournalListTradeSummary {
+  _id: string;
+  symbol: string;
+  instrument: CreateTradePayload["instrument"];
+  direction: CreateTradePayload["direction"];
+  status: TradeSummary["status"];
+  profitLoss: number;
+  plannedRR: number;
+  achievedRR?: number;
+  session?: CreateTradePayload["session"];
+  openedAt?: string;
+  closedAt?: string;
+  createdAt?: string;
+}
+
+export interface JournalHistoryItem extends JournalSummary {
+  trades?: JournalListTradeSummary[];
+  totalProfitLoss: number;
+  openTrades: number;
+  closedTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+}
+
 export interface JournalStatusData {
   hasJournalToday: boolean;
   journal: JournalSummary | null;
@@ -69,5 +93,10 @@ export interface JournalStatusResponse {
 
 export interface CreateTradeResponse {
   data: TradeSummary;
+  message: string;
+}
+
+export interface UserJournalsResponse {
+  data: JournalHistoryItem[];
   message: string;
 }

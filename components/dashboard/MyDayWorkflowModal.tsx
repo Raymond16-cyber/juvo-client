@@ -12,12 +12,16 @@ type MyDayWorkflowModalProps = {
   isOpen: boolean;
   initialPanel: WorkflowPanel;
   onClose: () => void;
+  onJournalUpdated?: () => void;
+  title?: string;
 };
 
 export default function MyDayWorkflowModal({
   isOpen,
   initialPanel,
   onClose,
+  onJournalUpdated,
+  title = "Create your trading journal",
 }: MyDayWorkflowModalProps) {
   const canUseDom = typeof document !== "undefined";
 
@@ -73,7 +77,7 @@ export default function MyDayWorkflowModal({
                   id="my-day-modal-title"
                   className="mt-1 text-2xl font-bold text-slate-950 dark:text-white"
                 >
-                  Create your trading journal
+                  {title}
                 </h2>
               </div>
               <button
@@ -90,6 +94,7 @@ export default function MyDayWorkflowModal({
               key={initialPanel}
               initialPanel={initialPanel}
               mode="modal"
+              onJournalUpdated={onJournalUpdated}
             />
           </motion.div>
           </div>

@@ -105,7 +105,7 @@ export default function ResetPasswordPage({
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-transparent">
+    <div className="dark-page-shell min-h-screen overflow-x-hidden">
       <Header />
 
       <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-10 lg:px-16">
