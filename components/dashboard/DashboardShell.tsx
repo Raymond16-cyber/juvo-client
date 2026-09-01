@@ -4,10 +4,11 @@ import Sidebar from "@/components/ui/Sidebar";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 type DashboardShellProps = {
   children: React.ReactNode;
+  fillViewport?: boolean;
 };
 
 const titles: Record<string, string> = {
@@ -27,9 +28,27 @@ const titles: Record<string, string> = {
   "/home/general/help": "Help",
 };
 
-export default function DashboardShell({ children }: DashboardShellProps) {
+export default function DashboardShell({
+  children,
+  fillViewport = false,
+}: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (!fillViewport) return;
+
+    const html = document.documentElement;
+    const { overflow: htmlOverflow } = html.style;
+    const { overflow: bodyOverflow } = document.body.style;
+    html.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      html.style.overflow = htmlOverflow;
+      document.body.style.overflow = bodyOverflow;
+    };
+  }, [fillViewport]);
   const title = useMemo(() => {
     const match = Object.keys(titles)
       .sort((a, b) => b.length - a.length)
@@ -38,7 +57,11 @@ export default function DashboardShell({ children }: DashboardShellProps) {
   }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-background dark:text-white">
+    <div
+      className={`bg-slate-50 text-slate-950 dark:bg-background dark:text-white ${
+        fillViewport ? "h-dvh overflow-hidden" : "min-h-screen"
+      }`}
+    >
       {sidebarOpen && (
         <button
           type="button"
@@ -48,11 +71,15 @@ export default function DashboardShell({ children }: DashboardShellProps) {
         />
       )}
 
-      <div className="flex min-h-screen">
+      <div className={`flex ${fillViewport ? "h-full overflow-hidden" : "min-h-screen"}`}>
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="min-w-0 flex-1">
-          <div className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/85 px-4 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-background/80 lg:hidden">
+        <main
+          className={`min-w-0 flex-1 ${
+            fillViewport ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
+          }`}
+        >
+          <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between border-b border-slate-200 bg-white/85 px-4 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-background/80 lg:hidden">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                 JUVO
@@ -72,7 +99,13 @@ export default function DashboardShell({ children }: DashboardShellProps) {
             </div>
           </div>
 
-          <div className="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+          <div
+            className={
+              fillViewport
+                ? "mx-auto flex min-h-0 w-full max-w-[1500px] flex-1 flex-col overflow-hidden px-3 py-3 sm:px-4 lg:px-6 lg:py-4"
+                : "mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8 lg:py-8"
+            }
+          >
             {children}
           </div>
         </main>
