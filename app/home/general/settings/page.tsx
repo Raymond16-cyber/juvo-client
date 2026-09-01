@@ -25,7 +25,9 @@ export default function SettingsPage() {
   const [country, setCountry] = useState(user?.profile?.country || "");
   const [timezone, setTimezone] = useState(user?.profile?.timezone || "UTC");
   const [currency, setCurrency] = useState(user?.preferences?.preferredCurrency || "USD");
-  const [weekStartsOn, setWeekStartsOn] = useState(user?.preferences?.weekStartsOn || "monday");
+  const [weekStartsOn, setWeekStartsOn] = useState<"sunday" | "monday">(
+    user?.preferences?.weekStartsOn || "monday",
+  );
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     user?.preferences?.notifications?.enabled ?? true,
   );
@@ -131,7 +133,9 @@ export default function SettingsPage() {
               <select
                 className={controlClassName}
                 value={weekStartsOn}
-                onChange={(event) => setWeekStartsOn(event.target.value)}
+                onChange={(event) =>
+                  setWeekStartsOn(event.target.value as "sunday" | "monday")
+                }
               >
                 {WEEK_START_OPTIONS.map((item) => (
                   <option key={item.value} value={item.value}>

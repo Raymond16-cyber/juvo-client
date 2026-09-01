@@ -23,6 +23,8 @@ export const chatWithJuvoService = async (payload: {
   message: string;
   conversationId?: string;
 }) => {
-  const response = await api.post<AiChatResponse>("/ai/chat", payload);
+  const response = await api.post<AiChatResponse>("/ai/chat", payload, {
+    timeout: 60000,
+  });
   return response.data;
 };

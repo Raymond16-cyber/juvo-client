@@ -3,6 +3,7 @@ import { AxiosError } from "axios";
 
 import type { OnboardingData } from "@/types/onboarding.types";
 import { saveOnboarding } from "@/services/onboarding.service";
+import { useAuthStore } from "@/stores/auth.store";
 
 interface OnboardingState extends OnboardingData {
   isLoading: boolean;
@@ -97,6 +98,8 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
         pushToken: state.pushToken,
         currentStep: state.currentStep,
       });
+
+      await useAuthStore.getState().fetchCurrentUser();
 
       set({
         isLoading: false,

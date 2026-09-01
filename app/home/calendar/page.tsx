@@ -93,7 +93,7 @@ export default function CalendarPage() {
 
               const inner = (
                 <div
-                  className={`min-h-24 rounded-2xl border p-3 text-left ${
+                  className={`min-h-24 rounded-2xl border p-3 text-left  border${
                     dayJournals.length
                       ? "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.04]"
                       : "border-transparent bg-transparent"

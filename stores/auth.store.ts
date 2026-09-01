@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { AxiosError } from "axios";
 
+import { getApiErrorMessage } from "@/lib/axios";
 import {
   loginUser,
   registerUser,
@@ -27,6 +27,7 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  hasCheckedAuth: boolean;
   error: string | null;
   message: string | null;
   token: string | null;
@@ -47,24 +48,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  hasCheckedAuth: false,
   error: null,
   message: null,
   token: null,
   resetPasswordToken: null,
 
   register: async (data) => {
-    try {
-      set({
-        isLoading: true,
-        error: null,
-      });
+    set({
+      isLoading: true,
+      error: null,
+      message: null,
+    });
 
+    try {
       const response = await registerUser(data);
 
       set({
         user: response.user,
         isAuthenticated: true,
         isLoading: false,
+        hasCheckedAuth: true,
         token: response.token,
         message: response.message,
         error: null,
@@ -72,24 +76,23 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       localStorage.setItem("token", response.token);
     } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-
+      const errorMessage = getApiErrorMessage(error, "Registration failed.");
       set({
         isLoading: false,
-        error: axiosError.response?.data?.message || "Registration failed.",
+        error: errorMessage,
       });
-
-      throw error;
+      throw new Error(errorMessage);
     }
   },
 
   login: async (data) => {
-    try {
-      set({
-        isLoading: true,
-        error: null,
-      });
+    set({
+      isLoading: true,
+      error: null,
+      message: null,
+    });
 
+    try {
       const response = await loginUser(data);
       localStorage.setItem("token", response.token);
 
@@ -97,19 +100,22 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: response.user,
         isAuthenticated: true,
         isLoading: false,
+        hasCheckedAuth: true,
         token: response.token,
+        error: null,
       });
 
       return response;
     } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-
+      const errorMessage = getApiErrorMessage(
+        error,
+        "Invalid email or password.",
+      );
       set({
         isLoading: false,
-        error: axiosError.response?.data?.message || "Login failed.",
+        error: errorMessage,
       });
-
-      throw error;
+      throw new Error(errorMessage);
     }
   },
   requestResetPassword: async (data: { email: string }) => {
@@ -127,17 +133,15 @@ export const useAuthStore = create<AuthState>((set) => ({
         resetPasswordToken: result.passwordToken,
       });
     } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-
       set({
         isLoading: false,
-        error:
-          axiosError.response?.data?.message ||
-          "Failed to request password reset.",
+        error: getApiErrorMessage(error, "Failed to request password reset."),
         message: null,
       });
 
-      throw error;
+      throw new Error(
+        getApiErrorMessage(error, "Failed to request password reset."),
+      );
     }
   },
   verifyOtpCode: async (data) => {
@@ -160,14 +164,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       return result;
     } catch (error) {
-      const axiosError = error as AxiosError<{
-        error?: string;
-        message?: string;
-      }>;
-      const errorMessage =
-        axiosError.response?.data?.error ||
-        axiosError.response?.data?.message ||
-        "Failed to verify OTP code.";
+      const errorMessage = getApiErrorMessage(
+        error,
+        "Failed to verify OTP code.",
+      );
 
       set({
         isLoading: false,
@@ -175,7 +175,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         message: null,
       });
 
-      throw error;
+      throw new Error(errorMessage);
     }
   },
 
@@ -195,22 +195,39 @@ export const useAuthStore = create<AuthState>((set) => ({
         error: null,
       });
     } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
+      const errorMessage = getApiErrorMessage(
+        error,
+        "Failed to reset password.",
+      );
 
       set({
         isLoading: false,
-        error:
-          axiosError.response?.data?.message || "Failed to reset password.",
+        error: errorMessage,
         message: null,
       });
 
-      throw error;
+      throw new Error(errorMessage);
     }
   },
   fetchCurrentUser: async () => {
     try {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+      if (!token) {
+        set({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+          hasCheckedAuth: true,
+          token: null,
+        });
+        return;
+      }
+
       set({
         isLoading: true,
+        token,
       });
 
       const user = await getCurrentUser();
@@ -219,12 +236,20 @@ export const useAuthStore = create<AuthState>((set) => ({
         user,
         isAuthenticated: true,
         isLoading: false,
+        hasCheckedAuth: true,
+        token,
       });
     } catch {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
+
       set({
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        hasCheckedAuth: true,
+        token: null,
       });
     }
   },
@@ -239,6 +264,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: null,
         isAuthenticated: false,
         token: null,
+        hasCheckedAuth: true,
       });
     }
   },
@@ -253,12 +279,15 @@ export const useAuthStore = create<AuthState>((set) => ({
         message: response.message,
       });
     } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
+      const errorMessage = getApiErrorMessage(
+        error,
+        "Failed to update settings.",
+      );
       set({
         isLoading: false,
-        error: axiosError.response?.data?.message || "Failed to update settings.",
+        error: errorMessage,
       });
-      throw error;
+      throw new Error(errorMessage);
     }
   },
 

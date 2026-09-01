@@ -3,51 +3,51 @@
 import Header from "@/components/Header";
 import Button from "@/components/ui/Button";
 import images from "@/constants/images.service";
+import { getApiErrorMessage } from "@/lib/axios";
 import { useAuthStore } from "@/stores/auth.store";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 
-function getAuthErrorMessage(error: unknown, fallback: string) {
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "response" in error &&
-    typeof error.response === "object" &&
-    error.response !== null &&
-    "data" in error.response &&
-    typeof error.response.data === "object" &&
-    error.response.data !== null &&
-    "message" in error.response.data &&
-    typeof error.response.data.message === "string"
-  ) {
-    return error.response.data.message;
-  }
-
-  return fallback;
-}
-
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const login = useAuthStore((state) => state.login);
+  const storeError = useAuthStore((state) => state.error);
+  const clearError = useAuthStore((state) => state.clearError);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
+
+  const visibleError = error || storeError;
+
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
+    clearError();
     setLoading(true);
 
     try {
       const response = await login({ email, password });
+      const nextPath = searchParams.get("next");
+      const safeNext =
+        nextPath?.startsWith("/home") && !nextPath.startsWith("/home/onboarding")
+          ? nextPath
+          : "/home/dashboard";
+
       router.push(
-        response.user?.onboarding?.completed ? "/home/dashboard" : "/home/onboarding",
+        response.user?.onboarding?.completed ? safeNext : "/home/onboarding",
       );
     } catch (loginError: unknown) {
-      setError(getAuthErrorMessage(loginError, "Login failed. Please try again."));
+      setError(
+        getApiErrorMessage(loginError, "Invalid email or password."),
+      );
     } finally {
       setLoading(false);
     }
@@ -60,15 +60,21 @@ export default function LoginPage() {
         <div className="grid w-full max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
           <section className="mx-auto w-full max-w-md">
             <div className="mb-8">
-              <h1 className="mb-3 text-3xl font-semibold text-white">Welcome back</h1>
+              <h1 className="mb-3 text-3xl font-semibold text-white">
+                Welcome back
+              </h1>
               <p className="text-sm leading-6 text-slate-400">
-                Sign in to continue tracking your trading discipline and performance.
+                Sign in to continue tracking your trading discipline and
+                performance.
               </p>
             </div>
 
-            {error ? (
-              <div className="mb-5 rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-                {error}
+            {visibleError ? (
+              <div
+                role="alert"
+                className="mb-5 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+              >
+                {visibleError}
               </div>
             ) : null}
 
@@ -82,13 +88,19 @@ export default function LoginPage() {
                   type="email"
                   required
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    if (error) setError("");
+                  }}
                   placeholder="Enter your email"
                   className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
                 />
               </div>
               <div>
-                <label htmlFor="password" className="mb-2 block text-sm text-slate-300">
+                <label
+                  htmlFor="password"
+                  className="mb-2 block text-sm text-slate-300"
+                >
                   Password
                 </label>
                 <input
@@ -96,7 +108,10 @@ export default function LoginPage() {
                   type="password"
                   required
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(event) => {
+                    setPassword(event.target.value);
+                    if (error) setError("");
+                  }}
                   placeholder="Enter your password"
                   className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
                 />
@@ -114,7 +129,10 @@ export default function LoginPage() {
 
             <p className="mt-6 text-center text-sm text-slate-400">
               Don&apos;t have an account?{" "}
-              <Link href="/auth/register" className="font-medium text-white hover:underline">
+              <Link
+                href="/auth/register"
+                className="font-medium text-white hover:underline"
+              >
                 Register
               </Link>
             </p>
@@ -136,5 +154,13 @@ export default function LoginPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

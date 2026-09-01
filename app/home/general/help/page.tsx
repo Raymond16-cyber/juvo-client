@@ -22,7 +22,7 @@ const faqs = [
   },
   {
     q: "How does Juvo AI work?",
-    a: "Chat and end-of-day reviews use your recent journals as context. Configure XAI_API_KEY on the server so Juvo can reply.",
+    a: "Chat and end-of-day reviews use your recent journals as context. Configure AI_API_KEY on the server so Juvo can reply with Gemini.",
   },
 ];
 

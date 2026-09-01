@@ -3,6 +3,7 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import { controlClassName } from "@/lib/ui";
+import { getApiErrorMessage } from "@/lib/axios";
 import {
   chatWithJuvoService,
   getConversationService,
@@ -78,9 +79,11 @@ export default function JuvoAIChatPage() {
       setMessages(response.data.messages);
       await loadConversations();
     } catch (sendError) {
-      void sendError;
       setError(
-        "Juvo could not reply. Check that the server has XAI_API_KEY configured.",
+        getApiErrorMessage(
+          sendError,
+          "Juvo could not reply. Try again in a moment.",
+        ),
       );
     } finally {
       setIsLoading(false);
