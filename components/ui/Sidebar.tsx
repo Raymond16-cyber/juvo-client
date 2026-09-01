@@ -1,5 +1,6 @@
 "use client";
 
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuthStore } from "@/stores/auth.store";
 import {
   BadgeDollarSign,
@@ -13,6 +14,7 @@ import {
   Gift,
   LineChart,
   Link2,
+  LogOut,
   Settings,
   Sparkles,
   Target,
@@ -20,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 type SidebarProps = {
@@ -62,7 +64,14 @@ const navigationGroups = [
 
 const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
   const pathname = usePathname();
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/auth/login");
+  };
 
   return (
     <aside
@@ -71,7 +80,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       }`}
     >
       <div className="mb-8 flex items-center justify-between">
-        <Link href="/home/dashboard" className="flex items-center gap-3">
+        <Link href="/home/dashboard" className="flex items-center gap-3" onClick={onClose}>
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-950 text-lg font-bold text-primary dark:bg-white dark:text-slate-950">
             J
           </span>
@@ -111,6 +120,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
                   <Link
                     key={item.name}
                     href={item.href}
+                    onClick={onClose}
                     className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition ${
                       isActive
                         ? "bg-slate-950 text-white shadow-lg shadow-slate-300/50 dark:bg-primary dark:text-slate-950 dark:shadow-primary/20"
@@ -127,18 +137,29 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
         ))}
       </nav>
 
-      <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/[0.04]">
-        <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/20 text-primary dark:bg-primary/15">
-            <UserRound size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-slate-950 dark:text-white">
-              { user?.fullName || "Trader"}
-            </p>
-            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-              { user?.email || "trader@juvo.com" }
-            </p>
+      <div className="mt-6 space-y-3">
+        <ThemeToggle />
+        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/[0.04]">
+          <div className="flex items-center gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/20 text-primary dark:bg-primary/15">
+              <UserRound size={20} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-slate-950 dark:text-white">
+                {user?.fullName || "Trader"}
+              </p>
+              <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                {user?.email || "trader@juvo.com"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="grid h-9 w-9 place-items-center rounded-full text-slate-500 transition hover:bg-white hover:text-rose-500 dark:hover:bg-white/10"
+              aria-label="Sign out"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </div>
       </div>

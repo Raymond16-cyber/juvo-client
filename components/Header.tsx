@@ -30,10 +30,6 @@ export default function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  function scrollToTarget(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  }
-
   return (
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
@@ -77,8 +73,15 @@ export default function Header() {
           </nav>
 
           <Button
+            variant="onDark"
+            onClick={() => router.push("/auth/login")}
+            className="min-w-[110px]"
+          >
+            Sign In
+          </Button>
+          <Button
             variant="primary"
-            onClick={() => router.push("/auth/register")} //let the get started lead to the auth page
+            onClick={() => router.push("/auth/register")}
             className="min-w-[138px]"
           >
             Get Started
@@ -87,9 +90,9 @@ export default function Header() {
         </div>
 
         <Button
-          variant="ghost"
+          variant="onDark"
           onClick={() => setMobileOpen((value) => !value)}
-          className="lg:hidden px-4 py-2"
+          className="px-4 py-2 lg:hidden"
           aria-label="Toggle navigation menu"
         >
           {mobileOpen ? (
@@ -124,12 +127,22 @@ export default function Header() {
               </nav>
 
               <Button
+                variant="onDark"
+                onClick={() => {
+                  setMobileOpen(false);
+                  router.push("/auth/login");
+                }}
+                className="mt-4 w-full"
+              >
+                Sign In
+              </Button>
+              <Button
                 variant="primary"
                 onClick={() => {
                   setMobileOpen(false);
-                  scrollToTarget("pricing");
+                  router.push("/auth/register");
                 }}
-                className="mt-4 w-full"
+                className="mt-3 w-full"
               >
                 Get Started
                 <ArrowRight className="h-4 w-4" />

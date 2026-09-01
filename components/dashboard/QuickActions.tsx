@@ -1,12 +1,14 @@
 import Button from "@/components/ui/Button";
 import { useJournalStore } from "@/stores/journal.store";
 import { Bot, FileDown, Link2, Plus, Rocket } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type QuickActionsProps = {
   onOpenMyDay?: (hasJournalToday?: boolean) => void;
 };
 
 export default function QuickActions({ onOpenMyDay }: QuickActionsProps) {
+  const router = useRouter();
   const journalStatus = useJournalStore((state) => state.journalStatus);
   const isLoadingJournalStatus = useJournalStore((state) => state.isLoading);
   const getTodayJournalStatus = useJournalStore(
@@ -25,14 +27,26 @@ export default function QuickActions({ onOpenMyDay }: QuickActionsProps) {
           const response = await getTodayJournalStatus();
           onOpenMyDay?.(response.data.hasJournalToday);
         } catch {
-          // The store owns the user-facing error state.
+          onOpenMyDay?.(false);
         }
       },
       disabled: isLoadingJournalStatus,
     },
-    { label: "Ask Juvo AI", icon: Bot },
-    { label: "Connect broker", icon: Link2 },
-    { label: "Export report", icon: FileDown },
+    {
+      label: "Ask Juvo AI",
+      icon: Bot,
+      onClick: () => router.push("/home/ai/chat"),
+    },
+    {
+      label: "Connect broker",
+      icon: Link2,
+      onClick: () => router.push("/home/accounts/broker"),
+    },
+    {
+      label: "Export report",
+      icon: FileDown,
+      onClick: () => router.push("/home/accounts/export"),
+    },
   ];
 
   return (
@@ -57,11 +71,7 @@ export default function QuickActions({ onOpenMyDay }: QuickActionsProps) {
               variant={index === 0 ? "primary" : "ghost"}
               onClick={action.onClick}
               disabled={action.disabled}
-              className={`w-full justify-start ${
-                index === 0
-                  ? ""
-                  : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-white/10"
-              }`}
+              className="w-full justify-start"
             >
               <Icon size={18} />
               {action.label}

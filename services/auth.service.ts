@@ -7,6 +7,7 @@ import {
   VerifyOtpData,
   ResetPasswordData,
   LoginResponse,
+  UpdatePreferencesPayload,
 } from "@/types/auth.types";
 
 export const registerUser = async (
@@ -53,6 +54,15 @@ export const getCurrentUser = async (): Promise<User> => {
 
 export const logoutUser = async () => {
   const response = await api.post("/auth/logout");
+
+  return response.data;
+};
+
+export const updatePreferences = async (data: UpdatePreferencesPayload) => {
+  const response = await api.patch<{ user: User; message: string }>(
+    "/auth/preferences",
+    { data },
+  );
 
   return response.data;
 };

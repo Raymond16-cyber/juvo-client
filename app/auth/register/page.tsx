@@ -120,11 +120,15 @@ function Register() {
     setLoading(true);
 
     try {
-      await login({
+      const response = await login({
         email: loginEmail,
         password: loginPassword,
       });
-      router.push("/home/dashboard");
+      router.push(
+        response.user?.onboarding?.completed
+          ? "/home/dashboard"
+          : "/home/onboarding",
+      );
     } catch (error: unknown) {
       console.error("Login error:", error);
 

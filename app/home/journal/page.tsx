@@ -21,6 +21,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 const formatDate = (value: string) =>
@@ -82,6 +83,11 @@ export default function JournalPage() {
 
     loadJournalPage();
   }, [getUserJournals]);
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search).get("q");
+    if (query) setSearchTerm(query);
+  }, []);
 
   const filteredJournals = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -369,7 +375,8 @@ function JournalRow({ journal }: { journal: JournalHistoryItem }) {
   const hasProfit = journal.totalProfitLoss >= 0;
 
   return (
-    <article className="p-5 transition hover:bg-slate-50 dark:hover:bg-white/[0.03]">
+    <Link href={`/home/journal/${journal._id}`} className="block p-5 transition hover:bg-slate-50 dark:hover:bg-white/[0.03]">
+      <article>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -420,7 +427,8 @@ function JournalRow({ journal }: { journal: JournalHistoryItem }) {
           )}
         </div>
       ) : null}
-    </article>
+      </article>
+    </Link>
   );
 }
 

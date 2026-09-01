@@ -24,3 +24,11 @@ export const createTradingAccountService = async (
 
   return response.data;
 };
+
+export const deleteTradingAccountService = async (accountId: string) => {
+  const response = await api.delete<{ message: string; accountId: string }>(
+    `/trading-account/delete-trading-account/${accountId}`,
+  );
+
+  return response.data;
+};

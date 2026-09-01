@@ -77,7 +77,63 @@ export interface JournalHistoryItem extends JournalSummary {
   closedTrades: number;
   winningTrades: number;
   losingTrades: number;
+  review?: {
+    biggestMistake?: string;
+    biggestWin?: string;
+    lessonLearned?: string;
+    improvementsTomorrow?: string;
+    overallThoughts?: string;
+  };
+  discipline?: {
+    followedTradingPlan?: boolean;
+    followedRiskManagement?: boolean;
+    revengeTraded?: boolean;
+    overTraded?: boolean;
+    respectedStopLoss?: boolean;
+    score?: number;
+  };
+  ai?: {
+    feedback?: string;
+    summary?: string;
+  };
 }
+
+export interface JournalDetailTrade extends JournalListTradeSummary {
+  entryPrice?: number;
+  exitPrice?: number;
+  stopLoss?: number;
+  takeProfit?: number;
+  lotSize?: number;
+  riskPercentage?: number;
+  notes?: string;
+}
+
+export interface JournalDetail extends JournalHistoryItem {
+  trades?: JournalDetailTrade[];
+}
+
+export type CompleteJournalPayload = {
+  afterTrading?: string;
+  confidenceAfter?: number;
+  biggestMistake?: string;
+  biggestWin?: string;
+  lessonLearned?: string;
+  improvementsTomorrow?: string;
+  overallThoughts?: string;
+  followedTradingPlan?: boolean;
+  followedRiskManagement?: boolean;
+  revengeTraded?: boolean;
+  overTraded?: boolean;
+  respectedStopLoss?: boolean;
+};
+
+export type CloseTradePayload = {
+  exitPrice: number;
+  status?: "Closed" | "Breakeven" | "Cancelled";
+  profitLoss?: number;
+  achievedRR?: number;
+  notes?: string;
+};
 
 export interface JournalStatusData {
   hasJournalToday: boolean;
@@ -98,5 +154,10 @@ export interface CreateTradeResponse {
 
 export interface UserJournalsResponse {
   data: JournalHistoryItem[];
+  message: string;
+}
+
+export interface JournalDetailResponse {
+  data: JournalDetail;
   message: string;
 }

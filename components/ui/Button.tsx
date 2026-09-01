@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import React from "react";
 
 type ButtonProps = React.ComponentPropsWithoutRef<typeof motion.button> & {
-  variant?: "primary" | "ghost";
+  variant?: "primary" | "ghost" | "onDark";
 };
 
 export default function Button({
@@ -20,9 +20,10 @@ export default function Button({
   const variants: Record<string, string> = {
     primary:
       "bg-primary text-slate-950 shadow-[0_12px_30px_rgba(0,212,255,0.22)] hover:-translate-y-0.5 hover:bg-secondary",
-
     ghost:
-      "border border-white/10 bg-white/5 text-text hover:-translate-y-0.5 hover:bg-white/10",
+      "border border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-white/10",
+    onDark:
+      "border border-white/10 bg-white/5 text-white hover:-translate-y-0.5 hover:bg-white/10",
   };
 
   return (

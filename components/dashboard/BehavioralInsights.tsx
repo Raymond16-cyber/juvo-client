@@ -3,36 +3,43 @@
 import { animateProgressGroup } from "@/animations/analytics";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import AnimatedProgress from "@/components/ui/AnimatedProgress";
+import { AnalyticsInsight } from "@/types/analytics.types";
 import { Brain, ShieldAlert, TrendingUp } from "lucide-react";
 import { useEffect, useRef } from "react";
 
-const insights = [
+const fallback = [
   {
     icon: Brain,
-    title: "Best trading window",
-    body: "Your highest quality trades came between 9:30 AM and 11:00 AM.",
-    score: 78,
-  },
-  {
-    icon: ShieldAlert,
-    title: "Risk warning",
-    body: "Losses increased after two consecutive wins. Keep position size fixed.",
-    score: 52,
-  },
-  {
-    icon: TrendingUp,
-    title: "Edge improving",
-    body: "Breakout retest setups are producing a 72% win rate this month.",
-    score: 72,
+    title: "Journal first",
+    body: "Juvo learns from your notes, not from a signal feed. Log a session to unlock behaviour review.",
+    score: 0,
   },
 ];
 
-export default function BehavioralInsights() {
+const iconMap = {
+  psychology: Brain,
+  risk: ShieldAlert,
+  session: TrendingUp,
+  edge: TrendingUp,
+  discipline: ShieldAlert,
+};
+
+type BehavioralInsightsProps = {
+  insights?: AnalyticsInsight[];
+};
+
+export default function BehavioralInsights({ insights = [] }: BehavioralInsightsProps) {
   const insightsRef = useRef<HTMLElement>(null);
+  const items = insights.length
+    ? insights.slice(0, 3).map((insight) => ({
+        ...insight,
+        icon: iconMap[insight.category as keyof typeof iconMap] || Brain,
+      }))
+    : fallback;
 
   useEffect(() => {
     return animateProgressGroup(insightsRef.current);
-  }, []);
+  }, [items.length]);
 
   return (
     <section
@@ -48,7 +55,7 @@ export default function BehavioralInsights() {
       </h2>
 
       <div className="mt-6 space-y-4">
-        {insights.map((insight) => {
+        {items.map((insight) => {
           const Icon = insight.icon;
 
           return (
@@ -70,11 +77,11 @@ export default function BehavioralInsights() {
                 </p>
                 <div className="mt-3 flex items-center gap-3">
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
-                    <AnimatedProgress value={insight.score} />
+                    <AnimatedProgress value={insight.score || 0} />
                   </div>
                   <span className="w-10 text-right text-xs font-bold text-slate-600 dark:text-slate-300">
                     <AnimatedCounter
-                      value={insight.score}
+                      value={insight.score || 0}
                       formatter={(value) => `${Math.round(value)}%`}
                       duration={720}
                     />

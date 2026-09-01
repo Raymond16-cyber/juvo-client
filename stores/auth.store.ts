@@ -9,6 +9,7 @@ import {
   requestResetPassword,
   verifyOtpCode,
   resetPassword,
+  updatePreferences,
 } from "@/services/auth.service";
 
 import type {
@@ -19,6 +20,7 @@ import type {
   VerifyOtpResponse,
   ResetPasswordData,
   LoginResponse,
+  UpdatePreferencesPayload,
 } from "@/types/auth.types";
 
 interface AuthState {
@@ -37,6 +39,7 @@ interface AuthState {
   resetPassword: (data: ResetPasswordData) => Promise<void>;
   fetchCurrentUser: () => Promise<void>;
   logout: () => Promise<void>;
+  updatePreferences: (data: UpdatePreferencesPayload) => Promise<void>;
   clearError: () => void;
 }
 
@@ -237,6 +240,25 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: false,
         token: null,
       });
+    }
+  },
+
+  updatePreferences: async (data) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await updatePreferences(data);
+      set({
+        user: response.user,
+        isLoading: false,
+        message: response.message,
+      });
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      set({
+        isLoading: false,
+        error: axiosError.response?.data?.message || "Failed to update settings.",
+      });
+      throw error;
     }
   },
 
