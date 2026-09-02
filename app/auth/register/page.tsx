@@ -1,11 +1,11 @@
 "use client";
 
+import AuthVisual from "@/components/auth/AuthVisual";
 import Header from "@/components/Header";
 import Button from "@/components/ui/Button";
-import images from "@/constants/images.service";
 import { getApiErrorMessage } from "@/lib/axios";
 import { useAuthStore } from "@/stores/auth.store";
-import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -117,16 +118,28 @@ export default function RegisterPage() {
                 >
                   Password
                 </label>
-                <input
-                  id="registerPassword"
-                  name="password"
-                  type="password"
-                  placeholder="Create a password"
-                  required
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
-                />
+                <div className="relative">
+                  <input
+                    id="registerPassword"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a password"
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((value) => !value)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">Use at least 8 characters.</p>
               </div>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? "Creating account..." : "Create Account"}
@@ -141,19 +154,7 @@ export default function RegisterPage() {
             </p>
           </section>
 
-          <section className="flex justify-center lg:justify-end">
-            <div className="relative flex w-full max-w-md items-center justify-center">
-              <div className="absolute h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
-              <Image
-                src={images.appLogo}
-                alt="JUVO Logo"
-                width={500}
-                height={500}
-                priority
-                className="relative z-10 h-auto w-full object-contain"
-              />
-            </div>
-          </section>
+          <AuthVisual />
         </div>
       </main>
     </div>

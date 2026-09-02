@@ -202,8 +202,8 @@ export default function JournalPage() {
           />
         </div>
 
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_410px]">
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-card">
+        <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
+          <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex flex-col gap-3 border-b border-slate-200 p-5 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-bold text-slate-950 dark:text-white">
@@ -239,7 +239,7 @@ export default function JournalPage() {
             </div>
           </div>
 
-          <aside className="space-y-4">
+          <aside className="min-w-0 space-y-4 xl:sticky xl:top-8">
             <form
               className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-card"
               onSubmit={handleCreateJournal}
@@ -312,7 +312,7 @@ export default function JournalPage() {
                 </label>
 
                 <Button
-                  className="w-full"
+                  className="w-full whitespace-nowrap"
                   type="submit"
                   disabled={isLoading || isLoadingAccounts || !accounts.length}
                 >
@@ -375,58 +375,69 @@ function JournalRow({ journal }: { journal: JournalHistoryItem }) {
   const hasProfit = journal.totalProfitLoss >= 0;
 
   return (
-    <Link href={`/home/journal/${journal._id}`} className="block p-5 transition hover:bg-slate-50 dark:hover:bg-white/[0.03]">
-      <article>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-bold text-slate-950 dark:text-white">
-              {formatDate(journal.journalDate)}
-            </h3>
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">
-              {journal.status}
-            </span>
-          </div>
-          <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
-            {getAccountName(journal)}
-          </p>
-          {journal.psychology?.beforeTrading && (
-            <p className="mt-3 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
-              {journal.psychology.beforeTrading}
+    <Link
+      href={`/home/journal/${journal._id}`}
+      className="block p-5 transition hover:bg-slate-50 dark:hover:bg-white/[0.03]"
+    >
+      <article className="min-w-0">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <h3 className="truncate text-base font-bold text-slate-950 dark:text-white">
+                {formatDate(journal.journalDate)}
+              </h3>
+              <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                {journal.status}
+              </span>
+            </div>
+            <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
+              {getAccountName(journal)}
             </p>
-          )}
+            {journal.psychology?.beforeTrading ? (
+              <p className="mt-3 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
+                {journal.psychology.beforeTrading}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 xl:w-[280px] xl:shrink-0">
+            <MiniMetric label="Trades" value={journal.tradesCount || 0} />
+            <MiniMetric label="Open" value={journal.openTrades} />
+            <MiniMetric label="Closed" value={journal.closedTrades} />
+            <MiniMetric
+              label="P/L"
+              value={formatMoney(journal.totalProfitLoss)}
+              className={
+                hasProfit
+                  ? "text-emerald-600 dark:text-emerald-300"
+                  : "text-rose-600 dark:text-rose-300"
+              }
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:min-w-[430px]">
-          <MiniMetric label="Trades" value={journal.tradesCount || 0} />
-          <MiniMetric label="Open" value={journal.openTrades} />
-          <MiniMetric label="Closed" value={journal.closedTrades} />
-          <MiniMetric
-            label="P/L"
-            value={formatMoney(journal.totalProfitLoss)}
-            className={hasProfit ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300"}
-          />
-        </div>
-      </div>
-
-      {journal.trades?.length ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {journal.trades.slice(0, 5).map((trade) => (
-            <span
-              key={trade._id}
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-white/10 dark:text-slate-300"
-            >
-              {trade.direction === "long" ? <ArrowUpRight size={13} /> : <TrendingDown size={13} />}
-              {trade.symbol}
-            </span>
-          ))}
-          {journal.trades.length > 5 && (
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-white/10 dark:text-slate-400">
-              +{journal.trades.length - 5} more
-            </span>
-          )}
-        </div>
-      ) : null}
+        {journal.trades?.length ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {journal.trades.slice(0, 5).map((trade) => (
+              <span
+                key={trade._id}
+                className="inline-flex max-w-full items-center gap-1 truncate rounded-full border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-white/10 dark:text-slate-300"
+              >
+                {trade.direction === "long" ? (
+                  <ArrowUpRight size={13} />
+                ) : (
+                  <TrendingDown size={13} />
+                )}
+                {trade.symbol}
+              </span>
+            ))}
+            {journal.trades.length > 5 ? (
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-white/10 dark:text-slate-400">
+                +{journal.trades.length - 5} more
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </article>
     </Link>
   );
@@ -442,9 +453,11 @@ function MiniMetric({
   className?: string;
 }) {
   return (
-    <div className="rounded-xl bg-slate-100 px-3 py-2 dark:bg-white/[0.05]">
-      <p className={`text-sm font-bold ${className}`}>{value}</p>
-      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{label}</p>
+    <div className="min-w-0 rounded-xl bg-slate-100 px-3 py-2 dark:bg-white/[0.05]">
+      <p className={`truncate text-sm font-bold ${className}`}>{value}</p>
+      <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+        {label}
+      </p>
     </div>
   );
 }

@@ -3,13 +3,12 @@
 import React, { useState } from "react";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { ShieldCheck, ArrowLeft, RefreshCw } from "lucide-react";
 
+import AuthVisual from "@/components/auth/AuthVisual";
 import Button from "@/components/ui/Button";
 import Header from "@/components/Header";
-import images from "@/constants/images.service";
 import { useAuthStore } from "@/stores/auth.store";
 
 interface VerifyOtpPageProps {
@@ -262,26 +261,7 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
             </div>
           </section>
 
-          {/* =====================================================
-              JUVO VISUAL
-          ====================================================== */}
-
-          <section className="hidden items-center justify-center lg:flex">
-            <div className="relative flex w-full max-w-md items-center justify-center">
-              {/* Glow */}
-
-              <div className="absolute h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-
-              <Image
-                src={images.appLogo}
-                alt="JUVO Logo"
-                width={400}
-                height={400}
-                priority
-                className="relative z-10 h-auto w-full object-contain"
-              />
-            </div>
-          </section>
+          <AuthVisual />
         </div>
       </main>
     </div>

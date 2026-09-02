@@ -71,7 +71,7 @@ export default function QuickActions({ onOpenMyDay }: QuickActionsProps) {
               variant={index === 0 ? "primary" : "ghost"}
               onClick={action.onClick}
               disabled={action.disabled}
-              className="w-full justify-start"
+              className="w-full justify-start whitespace-nowrap"
             >
               <Icon size={18} />
               {action.label}

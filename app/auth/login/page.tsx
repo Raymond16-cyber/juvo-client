@@ -1,11 +1,11 @@
 "use client";
 
+import AuthVisual from "@/components/auth/AuthVisual";
 import Header from "@/components/Header";
 import Button from "@/components/ui/Button";
-import images from "@/constants/images.service";
 import { getApiErrorMessage } from "@/lib/axios";
 import { useAuthStore } from "@/stores/auth.store";
-import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
@@ -18,6 +18,7 @@ function LoginForm() {
   const clearError = useAuthStore((state) => state.clearError);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -103,18 +104,28 @@ function LoginForm() {
                 >
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(event) => {
-                    setPassword(event.target.value);
-                    if (error) setError("");
-                  }}
-                  placeholder="Enter your password"
-                  className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(event.target.value);
+                      if (error) setError("");
+                    }}
+                    placeholder="Enter your password"
+                    className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((value) => !value)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
               <Link
                 href="/auth/forgot-password"
@@ -138,19 +149,7 @@ function LoginForm() {
             </p>
           </section>
 
-          <section className="flex justify-center lg:justify-end">
-            <div className="relative flex w-full max-w-md items-center justify-center">
-              <div className="absolute h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
-              <Image
-                src={images.appLogo}
-                alt="JUVO Logo"
-                width={500}
-                height={500}
-                priority
-                className="relative z-10 h-auto w-full object-contain"
-              />
-            </div>
-          </section>
+          <AuthVisual />
         </div>
       </main>
     </div>

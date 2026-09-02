@@ -96,18 +96,18 @@ export default function DashboardOverview() {
     <div ref={dashboardRef} data-dashboard-main>
       <DashboardHeader onOpenMyDay={openMyDayWorkflow} />
 
-      <div className="mb-6 lg:hidden">
+      <div className="mb-5 lg:hidden">
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
           Welcome back, {user?.fullName || "Trader"}!
         </p>
-        <h1 className="mt-1 text-3xl font-bold text-slate-950 dark:text-white">
+        <h1 className="mt-1 text-2xl font-bold text-slate-950 dark:text-white sm:text-3xl">
           Trading Dashboard
         </h1>
       </div>
 
       <div
         data-dashboard-card
-        className="dashboard-card mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white py-2 shadow-sm dark:border-white/10 dark:bg-card"
+        className="dashboard-card mb-5 overflow-hidden rounded-2xl border border-slate-200 bg-white py-2 shadow-sm dark:border-white/10 dark:bg-card lg:mb-6"
       >
         <div
           data-dashboard-ticker
@@ -132,26 +132,26 @@ export default function DashboardOverview() {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(340px,380px)]">
-        <div className="space-y-6">
-          <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-4">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,380px)] xl:gap-6">
+        <div className="order-2 space-y-5 xl:order-1 xl:space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
             {metrics.map((metric) => (
               <MetricCard key={metric.label} {...metric} />
             ))}
           </div>
 
-          <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.3fr)_minmax(340px,0.8fr)]">
+          <div className="grid gap-5 2xl:grid-cols-[minmax(0,1.3fr)_minmax(300px,0.8fr)]">
             <PerformanceChart curve={analytics?.equityCurve} />
             <RecentTrades journals={journals} />
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-2">
             <TradingGoals goals={goals} />
             <BehavioralInsights insights={analytics?.insights} />
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="order-1 space-y-5 xl:order-2 xl:space-y-6">
           <AccountSummary account={accounts[0]} />
           <QuickActions onOpenMyDay={openMyDayWorkflow} />
         </div>

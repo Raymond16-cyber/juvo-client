@@ -37,7 +37,7 @@ export default function PerformanceChart({ curve = [] }: PerformanceChartProps) 
   return (
     <section
       data-dashboard-card
-      className="dashboard-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card"
+      className="dashboard-card overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card sm:p-6"
     >
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -66,7 +66,7 @@ export default function PerformanceChart({ curve = [] }: PerformanceChartProps) 
         </div>
       </div>
 
-      <div className="h-80 min-h-80">
+      <div className="h-56 min-h-56 sm:h-80 sm:min-h-80">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ left: 0, right: 0 }}>
             <defs>

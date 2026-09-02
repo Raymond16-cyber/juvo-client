@@ -45,14 +45,14 @@ export default function MetricCard({
   return (
     <section
       data-dashboard-card
-      className="dashboard-card min-h-40 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg hover:shadow-slate-200/70 dark:border-white/10 dark:bg-card dark:hover:shadow-black/30"
+      className="dashboard-card rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/70 dark:border-white/10 dark:bg-card dark:hover:shadow-black/30 sm:min-h-40 sm:p-6"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
             {label}
           </p>
-          <p className="mt-4 text-3xl font-bold leading-none text-slate-950 dark:text-white">
+          <p className="mt-3 text-2xl font-bold leading-none text-slate-950 dark:text-white sm:mt-4 sm:text-3xl">
             {counter ? (
               <AnimatedCounter
                 value={counter.value}
@@ -67,7 +67,7 @@ export default function MetricCard({
           <Icon size={20} />
         </div>
       </div>
-      <p className={`mt-6 text-sm font-semibold ${toneClass}`}>{change}</p>
+      <p className={`mt-4 text-sm font-semibold sm:mt-6 ${toneClass}`}>{change}</p>
     </section>
   );
 }

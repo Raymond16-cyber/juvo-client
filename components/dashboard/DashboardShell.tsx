@@ -36,6 +36,10 @@ export default function DashboardShell({
   const pathname = usePathname();
 
   useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
     if (!fillViewport) return;
 
     const html = document.documentElement;
