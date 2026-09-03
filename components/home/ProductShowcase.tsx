@@ -389,7 +389,11 @@ export default function ProductShowcase() {
         }}
       >
         <div>
-          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+          <div
+            role="tablist"
+            aria-label="Product views"
+            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+          >
             {views.map((item, itemIndex) => {
               const Icon = item.icon;
               const on = itemIndex === index;
@@ -398,6 +402,8 @@ export default function ProductShowcase() {
                 <button
                   key={item.id}
                   type="button"
+                  role="tab"
+                  aria-selected={on}
                   onClick={() => setIndex(itemIndex)}
                   className={cn(
                     "relative shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors",
@@ -407,11 +413,15 @@ export default function ProductShowcase() {
                   )}
                 >
                   {on ? (
-                    <motion.span
-                      layoutId="showcase-tab"
-                      className="absolute inset-0 rounded-full bg-primary"
-                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                    />
+                    reduce ? (
+                      <span className="absolute inset-0 rounded-full bg-primary" />
+                    ) : (
+                      <motion.span
+                        layoutId="showcase-tab"
+                        className="absolute inset-0 rounded-full bg-primary"
+                        transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                      />
+                    )
                   ) : null}
                   <span className="relative z-10 inline-flex items-center gap-2">
                     <Icon className="h-3.5 w-3.5" />

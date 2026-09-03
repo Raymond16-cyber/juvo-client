@@ -124,7 +124,7 @@ export default function Pricing() {
             </ul>
 
             <Button
-              variant={plan.featured ? "primary" : "ghost"}
+              variant={plan.featured ? "primary" : "onDark"}
               className="mt-8 w-full"
               onClick={() => router.push("/auth/register")}
             >

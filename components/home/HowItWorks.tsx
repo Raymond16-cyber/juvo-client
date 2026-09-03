@@ -179,9 +179,10 @@ export default function HowItWorks() {
           <motion.div
             className="absolute left-[1.15rem] top-3 hidden w-px origin-top bg-gradient-to-b from-primary to-accent sm:block"
             aria-hidden
+            initial={false}
             animate={{ scaleY: (index + 1) / steps.length }}
-            style={{ height: "calc(100% - 1.5rem)", scaleY: (index + 1) / steps.length }}
             transition={{ duration: 0.45, ease: homeEase }}
+            style={{ height: "calc(100% - 1.5rem)" }}
           />
 
           <div className="space-y-2">

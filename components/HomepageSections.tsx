@@ -338,14 +338,7 @@ export default function HomepageSections() {
         </div>
       </SectionShell>
 
-      <SectionShell
-        id="showcase"
-        eyebrow="Product showcase"
-        title="A product preview that makes the platform feel real."
-        description="Use the carousel to introduce the different JUVO views without pretending the website is the app itself."
-      >
-        <ProductCarousel />
-      </SectionShell>
+      <ProductShowcase />
 
       <SectionShell
         id="calendar"
@@ -623,122 +616,9 @@ export default function HomepageSections() {
         </div>
       </SectionShell>
 
-      <SectionShell
-        id="analytics"
-        eyebrow="Analytics"
-        title="Understand your performance without turning the site into a spreadsheet."
-        description="These are marketing visuals, designed to make the product feel tangible while keeping the homepage focused on discipline and insight."
-      >
-        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-          <RevealCard>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {[
-                ["Win rate", 54, "%"],
-                ["Profit factor", 1.72, ""],
-                ["Average R", 1.8, ""],
-                ["P/L", 3240, "$"],
-              ].map(([label, value, suffix]) => (
-                <div
-                  key={label as string}
-                  className="rounded-[1.5rem] border border-white/10 bg-[#09111f]/85 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.28)]"
-                >
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
-                    {label}
-                  </p>
-                  <p className="mt-2 text-3xl font-semibold text-white">
-                    {typeof value === "number" ? (
-                      <CountUp
-                        end={value}
-                        duration={1.4}
-                        decimals={
-                          label === "Profit factor" || label === "Average R"
-                            ? 2
-                            : 0
-                        }
-                      />
-                    ) : (
-                      value
-                    )}
-                    {suffix}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </RevealCard>
+      <AnalyticsSection />
 
-          <RevealCard delay={0.08}>
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-5 shadow-[0_24px_80px_rgba(2,6,23,0.35)] backdrop-blur-xl">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-white">
-                    Illustrative performance chart
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    Session-level P/L preview
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-emerald-300">
-                  <TrendingUp className="h-4 w-4" />
-                  Positive trend
-                </div>
-              </div>
-
-              <div className="mt-6 h-56 rounded-[1.25rem] border border-white/8 bg-[#0b1425] p-4">
-                <PerformanceChart />
-              </div>
-            </div>
-          </RevealCard>
-        </div>
-      </SectionShell>
-
-      <SectionShell
-        id="how-it-works"
-        eyebrow="How it works"
-        title="Trade. Journal. Understand. Improve."
-        description="The experience should be simple enough to explain in seconds and clear enough to feel real."
-      >
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            [
-              Activity,
-              "Trade",
-              "Take your trades as you normally would, then log what happened.",
-            ],
-            [
-              BookOpenText,
-              "Journal",
-              "Record context, emotions, risk, outcome, and the lesson.",
-            ],
-            [
-              Brain,
-              "Understand",
-              "Review patterns and identify what drives strong or weak decisions.",
-            ],
-            [
-              Workflow,
-              "Improve",
-              "Use the insights and the plan to refine your process over time.",
-            ],
-          ].map(([Icon, title, desc], index) => (
-            <RevealCard key={title as string} delay={index * 0.04}>
-              <div className="h-full rounded-[1.5rem] border border-white/10 bg-[#09111f]/85 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.28)]">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-400/10 text-cyan-200">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <p className="mt-4 text-sm uppercase tracking-[0.22em] text-slate-500">
-                  Step {index + 1}
-                </p>
-                <h3 className="mt-2 text-lg font-semibold text-white">
-                  {title as string}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
-                  {desc as string}
-                </p>
-              </div>
-            </RevealCard>
-          ))}
-        </div>
-      </SectionShell>
+      <HowItWorks />
 
       <SectionShell
         id="why-juvo"
@@ -791,137 +671,11 @@ export default function HomepageSections() {
         </div>
       </SectionShell>
 
-      <SectionShell
-        id="journey"
-        eyebrow="Long-term progress"
-        title="Your edge is built over time."
-        description="The page should reinforce the idea that journaling is a long game, not a quick fix."
-        centered
-      >
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {[
-            {
-              label: "Month 1",
-              value: "Foundations",
-              detail: "Journal every trade and identify repeating behaviors.",
-            },
-            {
-              label: "Month 3",
-              value: "Patterns",
-              detail: "Start seeing which setups and habits repeat.",
-            },
-            {
-              label: "Month 6",
-              value: "Refinement",
-              detail: "Align your rules, review cadence, and risk process.",
-            },
-            {
-              label: "Year 1",
-              value: "A stronger process",
-              detail: "Build a long-term view of your trading development.",
-            },
-          ].map((item, index) => (
-            <RevealCard key={item.label} delay={index * 0.04}>
-              <div className="h-full rounded-[1.5rem] border border-white/10 bg-[#09111f]/85 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.28)]">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
-                  {item.label}
-                </p>
-                <p className="mt-2 text-xl font-semibold text-white">
-                  {item.value}
-                </p>
-                <p className="mt-3 text-sm leading-6 text-slate-300">
-                  {item.detail}
-                </p>
-              </div>
-            </RevealCard>
-          ))}
-        </div>
-      </SectionShell>
+      <LongTermProgress />
 
-      <SectionShell
-        id="testimonials"
-        eyebrow="Testimonials"
-        title="Placeholder testimonials for the marketing UI."
-        description="These are clearly marked placeholders so the structure can be replaced with real user quotes later."
-      >
-        <div className="grid gap-4 lg:grid-cols-3">
-          {testimonials.map((item, index) => (
-            <RevealCard key={item.name} delay={index * 0.05}>
-              <div className="h-full rounded-[1.5rem] border border-white/10 bg-[#09111f]/85 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.28)]">
-                <MessageSquareQuote className="h-5 w-5 text-cyan-300" />
-                <p className="mt-4 text-sm leading-6 text-slate-300">
-                  {item.quote}
-                </p>
-                <div className="mt-6 border-t border-white/8 pt-4">
-                  <p className="text-sm font-medium text-white">{item.name}</p>
-                  <p className="text-xs text-slate-500">{item.role}</p>
-                </div>
-              </div>
-            </RevealCard>
-          ))}
-        </div>
-      </SectionShell>
+      <Testimonials />
 
-      <SectionShell
-        id="pricing"
-        eyebrow="Pricing"
-        title="Clean pricing that can be updated when the product is ready."
-        description="The current structure keeps the tiers honest and flexible while still presenting a polished conversion path."
-      >
-        <div className="grid gap-6 lg:grid-cols-2">
-          {pricingPlans.map((plan, index) => (
-            <RevealCard key={plan.name} delay={index * 0.05}>
-              <div
-                className={`h-full rounded-[1.75rem] border p-6 shadow-[0_24px_80px_rgba(2,6,23,0.35)] ${
-                  plan.accent
-                    ? "border-cyan-400/25 bg-cyan-400/8"
-                    : "border-white/10 bg-[#09111f]/85"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-white">
-                      {plan.name}
-                    </p>
-                    <p className="mt-2 text-2xl font-semibold text-white">
-                      {plan.price}
-                    </p>
-                  </div>
-
-                  <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-slate-400">
-                    {plan.accent ? "Recommended" : "Starter"}
-                  </div>
-                </div>
-
-                <p className="mt-4 text-sm leading-6 text-slate-300">
-                  {plan.desc}
-                </p>
-
-                <div className="mt-6 space-y-3">
-                  {plan.features.map((feature) => (
-                    <div
-                      key={feature}
-                      className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-sm text-slate-300"
-                    >
-                      <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-                      {feature}
-                    </div>
-                  ))}
-                </div>
-
-                <Button
-                  variant={plan.accent ? "primary" : "ghost"}
-                  className="mt-6 w-full"
-                  onClick={() => scrollToTarget("top")}
-                >
-                  {plan.accent ? "Start Your Journey" : "Explore JUVO"}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </RevealCard>
-          ))}
-        </div>
-      </SectionShell>
+      <Pricing />
 
       <SectionShell
         id="faq"

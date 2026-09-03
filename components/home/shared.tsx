@@ -127,6 +127,7 @@ export function useAutoCycle(
   enabled: boolean,
 ) {
   const [index, setIndex] = useState(0);
+  const [generation, setGeneration] = useState(0);
 
   useEffect(() => {
     if (!enabled || length < 2) return;
@@ -136,7 +137,12 @@ export function useAutoCycle(
     }, intervalMs);
 
     return () => window.clearInterval(id);
-  }, [enabled, intervalMs, length]);
+  }, [enabled, generation, intervalMs, length]);
 
-  return [index, setIndex] as const;
+  const select = (next: number | ((current: number) => number)) => {
+    setIndex(next);
+    setGeneration((value) => value + 1);
+  };
+
+  return [index, select] as const;
 }

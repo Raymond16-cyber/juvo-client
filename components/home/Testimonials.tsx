@@ -56,7 +56,7 @@ export default function Testimonials() {
             <span className="block text-slate-300">After-action notes.</span>
           </>
         }
-        description="What it sounds like when someone actually used the journal — not a placeholder quote about ‘unlocking potential’."
+        description="Sample session notes, written like a trader actually talks. Swap in real names when you have them."
       />
 
       <div

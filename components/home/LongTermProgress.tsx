@@ -122,7 +122,7 @@ export default function LongTermProgress() {
 
         <motion.div
           layout
-          className="sticky top-28 overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#09111f]/90 p-5 shadow-[0_24px_80px_rgba(2,6,23,0.4)] sm:p-6"
+          className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#09111f]/90 p-5 shadow-[0_24px_80px_rgba(2,6,23,0.4)] sm:p-6 lg:sticky lg:top-28"
         >
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
             {chapter.when}

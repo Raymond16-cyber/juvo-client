@@ -1,5 +1,9 @@
 import { animate, createTimeline, stagger } from "animejs";
-import { cleanupAnime, getScopedElements, prefersReducedMotion } from "@/animations";
+import {
+  cleanupAnime,
+  getScopedElements,
+  prefersReducedMotion,
+} from "@/animations";
 
 export function animateAuthBricks(root: HTMLElement | null) {
   if (!root) return () => undefined;
@@ -11,15 +15,18 @@ export function animateAuthBricks(root: HTMLElement | null) {
   if (prefersReducedMotion()) {
     [...bricks, mark, label].forEach((element) => {
       if (!element) return;
+
       element.style.opacity = "1";
       element.style.transform = "none";
     });
+
     return () => undefined;
   }
 
   const scatter = bricks.map((_, index) => {
     const angle = (index / Math.max(bricks.length, 1)) * Math.PI * 2;
     const distance = 28 + (index % 4) * 14;
+
     return {
       x: Math.cos(angle) * distance,
       y: Math.sin(angle) * distance,
@@ -37,9 +44,9 @@ export function animateAuthBricks(root: HTMLElement | null) {
   timeline.add(
     bricks,
     {
-      x: (_, index) => scatter[index].x,
-      y: (_, index) => scatter[index].y,
-      rotate: (_, index) => scatter[index].rotate,
+      x: (_, index) => scatter[index ?? 0]?.x ?? 0,
+      y: (_, index) => scatter[index ?? 0]?.y ?? 0,
+      rotate: (_, index) => scatter[index ?? 0]?.rotate ?? 0,
       opacity: 0.4,
       duration: 680,
       delay: stagger(32),
