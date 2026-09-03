@@ -123,14 +123,21 @@ function CalendarMock({ reduce }: { reduce: boolean }) {
               key={`${cell.day}-${index}`}
               initial={reduce ? false : { opacity: 0, scale: 0.86 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.012, duration: 0.28, ease: homeEase }}
+              transition={{
+                delay: index * 0.012,
+                duration: 0.28,
+                ease: homeEase,
+              }}
               className={cn(
                 "flex h-9 flex-col items-center justify-center rounded-xl border sm:h-11",
                 cell.today && "ring-1 ring-primary/70",
-                win && "border-emerald-400/20 bg-emerald-400/10 text-emerald-200",
+                win &&
+                  "border-emerald-400/20 bg-emerald-400/10 text-emerald-200",
                 loss && "border-rose-400/20 bg-rose-400/10 text-rose-200",
-                !cell.pnl && cell.day && "border-white/5 bg-white/[0.02] text-slate-500",
-                !cell.day && "border-transparent text-transparent",
+                !cell.pnl &&
+                  cell.day !== null &&
+                  "border-white/5 bg-white/[0.02] text-slate-500",
+                cell.day === null && "border-transparent text-transparent",
               )}
             >
               <span className="text-[9px] leading-none text-slate-500 sm:text-[10px]">
