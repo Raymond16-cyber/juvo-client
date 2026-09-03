@@ -112,3 +112,49 @@ section {
 input[type="range"] {
   accent-color: #00d4ff;
 }
+
+.juvo-flow-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.juvo-flow-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 42%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  animation: juvo-flow 2.8s ease-in-out infinite;
+}
+
+@keyframes juvo-flow {
+  0% {
+    transform: translateX(-40%);
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(180%);
+    opacity: 0.15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juvo-flow-bar::after {
+    animation: none;
+    display: none;
+  }
+}
+
+@media (hover: none) {
+  .juvo-flow-bar::after {
+    animation: none;
+  }
+}

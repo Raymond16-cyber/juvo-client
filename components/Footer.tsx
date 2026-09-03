@@ -118,11 +118,11 @@ export default function Footer() {
               LinkedIn
             </a>
             <a
-              href="mailto:hello@juvo.app"
+              href="mailto:uchennaraymond74@gmail.com"
               className="flex items-center gap-2 transition hover:text-white"
             >
               <Mail className="h-4 w-4" />
-              hello@juvo.app
+              uchennaraymond74@gmail.com
             </a>
           </div>
         </div>

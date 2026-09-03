@@ -4,7 +4,8 @@ import { cleanupAnime, prefersReducedMotion } from "@/animations";
 export function animateNoticeIn(root: HTMLElement | null) {
   if (!root) return () => undefined;
 
-  const card = root.querySelector<HTMLElement>("[data-notice-card]");
+  const card = root.querySelector<HTMLElement>("[data-notice-card]") || root;
+
   const glow = root.querySelector<HTMLElement>("[data-notice-glow]");
   const icon = root.querySelector<HTMLElement>("[data-notice-icon]");
   const copy = root.querySelectorAll<HTMLElement>("[data-notice-copy]");
