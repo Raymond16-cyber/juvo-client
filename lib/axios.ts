@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+  // baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
+  baseURL: "https://juvo-server.onrender.com/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -27,9 +28,10 @@ api.interceptors.response.use(
   (error) => {
     if (typeof window !== "undefined" && error.response?.status === 401) {
       const requestUrl = String(error.config?.url || "");
-      const isAuthProbe = /\/auth\/(sign-in|sign-up|me|request-reset-password|verify-reset-password-code|reset-password)/.test(
-        requestUrl,
-      );
+      const isAuthProbe =
+        /\/auth\/(sign-in|sign-up|me|request-reset-password|verify-reset-password-code|reset-password)/.test(
+          requestUrl,
+        );
       const onAuthPage = window.location.pathname.startsWith("/auth");
 
       if (!isAuthProbe && !onAuthPage) {

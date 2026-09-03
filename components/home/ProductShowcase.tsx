@@ -472,7 +472,7 @@ export default function ProductShowcase() {
 
         <div className="min-w-0">
           <AppChrome active={view.id} title={view.label}>
-            <div className="min-h-[22rem] sm:min-h-[24rem]">
+            <div className="min-h-[26rem] sm:min-h-[28rem]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={view.id}
