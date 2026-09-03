@@ -1,5 +1,6 @@
 "use client";
 
+import { getRecordCurrency } from "@/lib/account";
 import { formatDate, formatMoney, pnlClass } from "@/lib/format";
 import { useJournalStore } from "@/stores/journal.store";
 import type { JournalHistoryItem } from "@/types/journal.types";
@@ -166,7 +167,10 @@ export default function JournalSearch() {
                           <span
                             className={`shrink-0 text-xs font-semibold ${pnlClass(journal.totalProfitLoss || 0)}`}
                           >
-                            {formatMoney(journal.totalProfitLoss || 0)}
+                            {formatMoney(
+                              journal.totalProfitLoss || 0,
+                              getRecordCurrency(journal),
+                            )}
                           </span>
                         </span>
                         <span className="mt-0.5 block truncate text-xs text-slate-500 dark:text-slate-400">

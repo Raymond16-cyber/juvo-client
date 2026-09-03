@@ -9,6 +9,7 @@ import {
 } from "@/services/journal.service";
 import {
   CloseTradePayload,
+  CloseTradeResponse,
   CompleteJournalPayload,
   CreateJournalPayload,
   CreateTradePayload,
@@ -35,13 +36,15 @@ interface JournalStore {
     journalId: string,
     tradeId: string,
     data: CloseTradePayload,
-  ) => Promise<TradeSummary>;
+  ) => Promise<CloseTradeResponse>;
   completeJournal: (
     journalId: string,
     data: CompleteJournalPayload,
   ) => Promise<JournalDetail>;
   getJournalById: (journalId: string) => Promise<JournalDetail>;
-  getTodayJournalStatus: () => Promise<JournalStatusResponse>;
+  getTodayJournalStatus: (
+    tradingAccountId?: string | null,
+  ) => Promise<JournalStatusResponse>;
   getUserJournals: () => Promise<UserJournalsResponse>;
   clearError: () => void;
 }
@@ -117,7 +120,7 @@ export const useJournalStore = create<JournalStore>((set) => ({
     try {
       const response = await closeJournalTradeService(journalId, tradeId, data);
       set({ message: response.message });
-      return response.data;
+      return response;
     } catch (error) {
       void error;
       set({ error: "Failed to close trade" });
@@ -160,10 +163,10 @@ export const useJournalStore = create<JournalStore>((set) => ({
       set({ isLoading: false });
     }
   },
-  getTodayJournalStatus: async () => {
+  getTodayJournalStatus: async (tradingAccountId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await getTodayJournalStatusService();
+      const response = await getTodayJournalStatusService(tradingAccountId);
       set({ journalStatus: response.data, message: response.message });
       return response;
     } catch (error) {

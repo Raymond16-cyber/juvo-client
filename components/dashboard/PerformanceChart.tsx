@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMoney } from "@/lib/format";
+import { formatCompactMoney, formatMoney } from "@/lib/format";
 import { AnalyticsData } from "@/types/analytics.types";
 import { useMemo, useState } from "react";
 import {
@@ -17,9 +17,13 @@ type Range = "7D" | "30D" | "1Y";
 
 type PerformanceChartProps = {
   curve?: AnalyticsData["equityCurve"];
+  currency?: string;
 };
 
-export default function PerformanceChart({ curve = [] }: PerformanceChartProps) {
+export default function PerformanceChart({
+  curve = [],
+  currency = "USD",
+}: PerformanceChartProps) {
   const [range, setRange] = useState<Range>("7D");
 
   const data = useMemo(() => {
@@ -80,7 +84,7 @@ export default function PerformanceChart({ curve = [] }: PerformanceChartProps) 
             <YAxis
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `$${Number(value) / 1000}k`}
+              tickFormatter={(value) => formatCompactMoney(Number(value), currency)}
               width={48}
             />
             <Tooltip
@@ -91,7 +95,7 @@ export default function PerformanceChart({ curve = [] }: PerformanceChartProps) 
                 color: "var(--text)",
               }}
               formatter={(value) => [
-                formatMoney(Number(value ?? 0)),
+                formatMoney(Number(value ?? 0), currency),
                 "Cumulative P/L",
               ]}
             />

@@ -1,5 +1,6 @@
 "use client";
 
+import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuthStore } from "@/stores/auth.store";
 import {
@@ -7,6 +8,7 @@ import {
   BarChart3,
   Bot,
   CalendarDays,
+  CandlestickChart,
   CircleHelp,
   CreditCard,
   FileDown,
@@ -36,6 +38,7 @@ const navigationGroups = [
     items: [
       { name: "Dashboard", href: "/home/dashboard", icon: Gauge },
       { name: "Journal", href: "/home/journal", icon: LineChart },
+      { name: "Charts", href: "/home/charts", icon: CandlestickChart },
       { name: "Juvo Calendar", href: "/home/calendar", icon: CalendarDays },
       { name: "Analytics", href: "/home/analytics", icon: BarChart3 },
       { name: "Behavioural Insights", href: "/home/insights", icon: Sparkles },
@@ -138,6 +141,7 @@ const Sidebar = ({ isOpen = false, onClose }: SidebarProps) => {
       </nav>
 
       <div className="mt-6 space-y-3">
+        <AccountSwitcher />
         <ThemeToggle />
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/[0.04]">
           <div className="flex items-center gap-3">

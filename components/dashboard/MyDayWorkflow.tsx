@@ -6,15 +6,17 @@ import {
   animateJournalStateChange,
 } from "@/animations/journal";
 import {
-  createTradingAccountService,
-  getTradingAccountsService,
-} from "@/services/trading-account.service";
+  getAccountStatusLabel,
+  getSelectedAccount,
+  getTradableAccounts,
+  isAccountInPlay,
+  needsNewAccount,
+} from "@/lib/account";
+import { getApiErrorMessage } from "@/lib/axios";
+import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { CreateTradePayload } from "@/types/journal.types";
-import {
-  CreateTradingAccountPayload,
-  TradingAccount,
-} from "@/types/trading-account.types";
+import { CreateTradingAccountPayload } from "@/types/trading-account.types";
 import {
   ArrowRight,
   CheckCircle2,
@@ -43,8 +45,8 @@ const defaultAccountForm: CreateTradingAccountPayload = {
   server: "",
   leverage: "1:100",
   currency: "USD",
-  maxDrawnDown: 0,
-  profitTarget: 0,
+  maxDrawnDown: 10,
+  profitTarget: 10,
 };
 
 const defaultTradeForm: CreateTradePayload = {
@@ -75,8 +77,12 @@ export default function MyDayWorkflow({
   const getTodayJournalStatus = useJournalStore(
     (state) => state.getTodayJournalStatus,
   );
+  const accounts = useAccountsStore((state) => state.accounts);
+  const storeSelectedAccountId = useAccountsStore((state) => state.selectedAccountId);
+  const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
+  const createAccount = useAccountsStore((state) => state.createAccount);
+  const selectAccount = useAccountsStore((state) => state.selectAccount);
 
-  const [accounts, setAccounts] = useState<TradingAccount[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [beforeTrading, setBeforeTrading] = useState("");
   const [confidenceBefore, setConfidenceBefore] = useState(7);
@@ -102,9 +108,17 @@ export default function MyDayWorkflow({
       ];
 
   const selectedAccount = useMemo(
-    () => accounts.find((account) => account._id === selectedAccountId),
-    [accounts, selectedAccountId],
+    () =>
+      accounts.find((account) => account._id === selectedAccountId) ||
+      getSelectedAccount(accounts, storeSelectedAccountId),
+    [accounts, selectedAccountId, storeSelectedAccountId],
   );
+  const tradableAccounts = useMemo(
+    () => getTradableAccounts(accounts),
+    [accounts],
+  );
+  const mustCreateAccount = needsNewAccount(accounts);
+  const canTradeOnSelected = isAccountInPlay(selectedAccount);
 
   useEffect(() => {
     const loadWorkflow = async () => {
@@ -112,16 +126,26 @@ export default function MyDayWorkflow({
       setAccountError(null);
 
       try {
-        const [accountResponse, statusResponse] = await Promise.all([
-          getTradingAccountsService(),
-          getTodayJournalStatus(),
-        ]);
-        setAccounts(accountResponse.data);
-        setSelectedAccountId((current) => current || accountResponse.data[0]?._id || "");
-        if (!accountResponse.data.length) {
+        const loadedAccounts = await fetchAccounts();
+        const preferred = getSelectedAccount(loadedAccounts, storeSelectedAccountId);
+        const nextAccountId = preferred?._id || "";
+        setSelectedAccountId(nextAccountId);
+        const statusResponse = await getTodayJournalStatus();
+        const hasToday = Boolean(statusResponse.data.hasJournalToday);
+
+        if (!loadedAccounts.length) {
           setPanel("account");
-        } else if (initialPanel === "trade" && !statusResponse.data.hasJournalToday) {
+        } else if (!isAccountInPlay(preferred)) {
+          setAccountError(
+            `${preferred?.accountName || "This account"} has ${
+              getAccountStatusLabel(preferred) === "Passed" ? "passed" : "been breached"
+            }. Create a new account before taking another trade. Today's journal stays open.`,
+          );
+          setPanel(hasToday ? "trade" : "account");
+        } else if (initialPanel === "trade" && !hasToday) {
           setPanel("start");
+        } else {
+          setPanel(initialPanel);
         }
       } catch (error) {
         void error;
@@ -132,7 +156,7 @@ export default function MyDayWorkflow({
     };
 
     loadWorkflow();
-  }, [getTodayJournalStatus, initialPanel]);
+  }, [fetchAccounts, getTodayJournalStatus, initialPanel, storeSelectedAccountId]);
 
   useEffect(() => {
     const handleOpenMyDay = (event: Event) => {
@@ -142,7 +166,16 @@ export default function MyDayWorkflow({
           ? event.detail.hasJournalToday
           : hasJournalToday;
 
-      setPanel(nextHasJournalToday ? "trade" : accounts.length ? "start" : "account");
+      if (nextHasJournalToday) {
+        setPanel("trade");
+        if (!canTradeOnSelected) {
+          setAccountError(
+            "Create a new account before taking another trade. Today's journal stays open.",
+          );
+        }
+        return;
+      }
+      setPanel(mustCreateAccount ? "account" : "start");
     };
 
     window.addEventListener("juvo:open-my-day", handleOpenMyDay);
@@ -150,7 +183,7 @@ export default function MyDayWorkflow({
     return () => {
       window.removeEventListener("juvo:open-my-day", handleOpenMyDay);
     };
-  }, [accounts.length, hasJournalToday]);
+  }, [canTradeOnSelected, hasJournalToday, mustCreateAccount]);
 
   useEffect(() => {
     return animateJournalSequence(workflowRef.current);
@@ -167,12 +200,17 @@ export default function MyDayWorkflow({
     setSuccessMessage(null);
 
     try {
-      const response = await createTradingAccountService(accountForm);
-      setAccounts((current) => [response.data, ...current]);
-      setSelectedAccountId(response.data._id);
+      const account = await createAccount(accountForm);
+      setSelectedAccountId(account._id);
       setAccountForm(defaultAccountForm);
-      setPanel("start");
-      setSuccessMessage("Trading account created.");
+      const status = await getTodayJournalStatus();
+      setPanel(status.data.hasJournalToday ? "trade" : "start");
+      setSuccessMessage(
+        status.data.hasJournalToday
+          ? "New account ready. Today's journal stays open — keep logging trades."
+          : "Trading account created. You can start today's journal.",
+      );
+      onJournalUpdated?.();
     } catch (error) {
       void error;
       setAccountError("Unable to create trading account.");
@@ -185,12 +223,27 @@ export default function MyDayWorkflow({
     event.preventDefault();
     setSuccessMessage(null);
 
-    if (!selectedAccountId) {
-      setAccountError("Select or create a trading account first.");
+    if (hasJournalToday) {
+      setPanel(canTradeOnSelected ? "trade" : "account");
+      if (!canTradeOnSelected) {
+        setAccountError(
+          "Create a new account before taking another trade. Today's journal stays open.",
+        );
+      }
+      return;
+    }
+
+    if (!selectedAccountId || !canTradeOnSelected) {
+      setAccountError(
+        mustCreateAccount
+          ? "Create a trading account before starting your day."
+          : "This account can no longer take trades. Create a new account first.",
+      );
       setPanel("account");
       return;
     }
 
+    await selectAccount(selectedAccountId);
     await createJournal({
       tradingAccount: selectedAccountId,
       beforeTrading,
@@ -207,10 +260,32 @@ export default function MyDayWorkflow({
 
     if (!journal?._id) return;
 
-    await createTrade(journal._id, tradeForm);
-    setTradeForm(defaultTradeForm);
-    setSuccessMessage("Trade added to today's journal.");
-    onJournalUpdated?.();
+    if (!selectedAccountId || !canTradeOnSelected) {
+      setAccountError(
+        mustCreateAccount
+          ? "Create a trading account before logging a trade."
+          : "This account has passed or been breached. Create a new account before taking another trade.",
+      );
+      setPanel("account");
+      return;
+    }
+
+    try {
+      await createTrade(journal._id, {
+        ...tradeForm,
+        tradingAccount: selectedAccountId,
+      });
+      setTradeForm(defaultTradeForm);
+      setSuccessMessage("Trade added to today's journal.");
+      onJournalUpdated?.();
+    } catch (error) {
+      setAccountError(
+        getApiErrorMessage(
+          error,
+          "Unable to create this trade. Create a new account if the current one has passed or been breached.",
+        ),
+      );
+    }
   };
 
   const updateAccountForm = (
@@ -299,8 +374,19 @@ export default function MyDayWorkflow({
         </button>
         <button
           type="button"
-          onClick={() => setPanel("trade")}
-          disabled={!hasJournalToday}
+          onClick={() => {
+            if (!canTradeOnSelected) {
+              setPanel("account");
+              setAccountError(
+                mustCreateAccount
+                  ? "Create a trading account before logging a trade."
+                  : "This account has passed or been breached. Create a new account before taking another trade.",
+              );
+              return;
+            }
+            setPanel("trade");
+          }}
+          disabled={!hasJournalToday || !canTradeOnSelected}
           className={`rounded-full px-3 py-2 disabled:opacity-40 ${
             panel === "trade"
               ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
@@ -343,16 +429,24 @@ export default function MyDayWorkflow({
             <select
               className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
               value={selectedAccountId}
-              onChange={(event) => setSelectedAccountId(event.target.value)}
+              onChange={(event) => {
+                const accountId = event.target.value;
+                setSelectedAccountId(accountId);
+                if (accountId) selectAccount(accountId).catch(() => undefined);
+              }}
               disabled={isLoadingAccounts || !accounts.length}
               required
             >
               <option value="">Select account</option>
-              {accounts.map((account) => (
-                <option key={account._id} value={account._id}>
-                  {account.accountName} - {account.broker}
-                </option>
-              ))}
+              {accounts.map((account) => {
+                const inPlay = isAccountInPlay(account);
+                return (
+                  <option key={account._id} value={account._id} disabled={!inPlay}>
+                    {account.accountName} - {account.broker} · {account.currency}
+                    {inPlay ? "" : ` · ${getAccountStatusLabel(account)}`}
+                  </option>
+                );
+              })}
             </select>
           </label>
 
@@ -366,9 +460,11 @@ export default function MyDayWorkflow({
               </span>
               <span>
                 <strong className="block text-slate-950 dark:text-white">
-                  {selectedAccount.accountType}
+                  {selectedAccount.status || "Active"}
                 </strong>
-                <small className="text-slate-500 dark:text-slate-400">Type</small>
+                <small className="text-slate-500 dark:text-slate-400">
+                  {selectedAccount.isActive ? "Active account" : "Status"}
+                </small>
               </span>
               <span>
                 <strong className="block text-slate-950 dark:text-white">
@@ -401,19 +497,44 @@ export default function MyDayWorkflow({
             />
           </label>
 
+          {mustCreateAccount ? (
+            <Button
+              className="w-full"
+              type="button"
+              onClick={() => setPanel("account")}
+            >
+              <WalletCards size={18} />
+              Create an account first
+            </Button>
+          ) : (
           <Button
             className="w-full"
             type="submit"
-            disabled={isJournalLoading || isLoadingAccounts}
+            disabled={isJournalLoading || isLoadingAccounts || !canTradeOnSelected}
           >
             <ArrowRight size={18} />
             {isJournalLoading ? "Starting..." : hasJournalToday ? "Refresh journal" : "Start My Day"}
           </Button>
+          )}
           </div>
         </form>
       )}
 
-      {panel === "trade" && (
+      {panel === "trade" && !canTradeOnSelected ? (
+        <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
+          <p>
+            {mustCreateAccount
+              ? "You need a trading account before you can log a trade."
+              : "This account has passed or been breached. Create a new account before taking another trade. Today's journal stays open and will keep recording every trade."}
+          </p>
+          <Button className="mt-4 w-full" type="button" onClick={() => setPanel("account")}>
+            <WalletCards size={18} />
+            Create new account
+          </Button>
+        </div>
+      ) : null}
+
+      {panel === "trade" && canTradeOnSelected && (
         <form className="mt-5 space-y-4" onSubmit={handleCreateTrade}>
           <div data-journal-body className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -504,8 +625,13 @@ export default function MyDayWorkflow({
           <div data-journal-body className="space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-200 pb-3 text-sm font-semibold text-slate-700 dark:border-white/10 dark:text-slate-200">
             <WalletCards size={17} />
-            Trading account
+            {mustCreateAccount ? "Create a trading account" : "Trading account"}
           </div>
+          {accounts.length && !tradableAccounts.length ? (
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Your last account has passed or been breached. Create a new one before taking another trade.
+            </p>
+          ) : null}
           <div className="grid grid-cols-2 gap-3">
             <input
               className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"

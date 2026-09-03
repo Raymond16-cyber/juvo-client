@@ -25,6 +25,15 @@ export interface AnalyticsInsight {
 }
 
 export interface AnalyticsData {
+  currency?: string;
+  tradingAccount?: {
+    _id: string;
+    accountName: string;
+    broker: string;
+    currency: string;
+    status?: "Active" | "Passed" | "Breached";
+    isActive?: boolean;
+  } | null;
   summary: AnalyticsSummary;
   equityCurve: Array<{
     date: string;
@@ -62,6 +71,9 @@ export interface AnalyticsData {
     profitTarget?: number;
     maxDrawnDown?: number;
     isConnected?: boolean;
+    isActive?: boolean;
+    status?: "Active" | "Passed" | "Breached";
+    tradesCount?: number;
   }>;
   startingBalance: number;
 }

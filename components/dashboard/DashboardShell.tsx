@@ -14,6 +14,7 @@ type DashboardShellProps = {
 const titles: Record<string, string> = {
   "/home/dashboard": "Dashboard",
   "/home/journal": "Journal",
+  "/home/charts": "Charts",
   "/home/calendar": "Calendar",
   "/home/analytics": "Analytics",
   "/home/insights": "Insights",

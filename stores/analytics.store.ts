@@ -6,17 +6,17 @@ interface AnalyticsStore {
   data: AnalyticsData | null;
   isLoading: boolean;
   error: string | null;
-  fetchAnalytics: () => Promise<AnalyticsData>;
+  fetchAnalytics: (tradingAccountId?: string | null) => Promise<AnalyticsData>;
 }
 
 export const useAnalyticsStore = create<AnalyticsStore>((set) => ({
   data: null,
   isLoading: false,
   error: null,
-  fetchAnalytics: async () => {
+  fetchAnalytics: async (tradingAccountId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await getAnalyticsService();
+      const response = await getAnalyticsService(tradingAccountId);
       set({ data: response.data, isLoading: false });
       return response.data;
     } catch (error) {

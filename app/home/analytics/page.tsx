@@ -5,7 +5,10 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
+import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
+import { getSelectedAccount } from "@/lib/account";
 import { formatMoney, formatNumber, pnlClass } from "@/lib/format";
+import { useAccountsStore } from "@/stores/accounts.store";
 import { useAnalyticsStore } from "@/stores/analytics.store";
 import { BarChart3 } from "lucide-react";
 import { useEffect } from "react";
@@ -14,10 +17,20 @@ export default function AnalyticsPage() {
   const data = useAnalyticsStore((state) => state.data);
   const isLoading = useAnalyticsStore((state) => state.isLoading);
   const fetchAnalytics = useAnalyticsStore((state) => state.fetchAnalytics);
+  const accounts = useAccountsStore((state) => state.accounts);
+  const selectedAccountId = useAccountsStore((state) => state.selectedAccountId);
+  const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
+  const selectedAccount = getSelectedAccount(accounts, selectedAccountId);
+  const currency = selectedAccount?.currency || data?.currency || "USD";
 
   useEffect(() => {
-    fetchAnalytics().catch(() => undefined);
-  }, [fetchAnalytics]);
+    fetchAccounts().catch(() => undefined);
+  }, [fetchAccounts]);
+
+  useEffect(() => {
+    if (!selectedAccount?._id) return;
+    fetchAnalytics(selectedAccount._id).catch(() => undefined);
+  }, [fetchAnalytics, selectedAccount?._id]);
 
   const summary = data?.summary;
 
@@ -27,12 +40,13 @@ export default function AnalyticsPage() {
         <PageHeader
           eyebrow="Analytics"
           title="Performance Review"
-          description="Built from your journals, not a demo equity curve. Empty numbers mean the work has not been logged yet."
+          description="Built from the selected trading account’s journals, not a demo equity curve."
+          actions={<AccountSwitcher compact />}
         />
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
-            ["Net P/L", formatMoney(summary?.netPnl || 0), pnlClass(summary?.netPnl || 0)],
+            ["Net P/L", formatMoney(summary?.netPnl || 0, currency), pnlClass(summary?.netPnl || 0)],
             ["Win rate", `${formatNumber(summary?.winRate || 0, 1)}%`, ""],
             ["Avg RR", formatNumber(summary?.avgRr || 0), ""],
             ["Avg risk", `${formatNumber(summary?.avgRisk || 0, 1)}%`, ""],
@@ -48,7 +62,7 @@ export default function AnalyticsPage() {
           ))}
         </div>
 
-        <PerformanceChart curve={data?.equityCurve} />
+        <PerformanceChart curve={data?.equityCurve} currency={currency} />
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="p-6">
@@ -66,7 +80,7 @@ export default function AnalyticsPage() {
                         {item.trades} trades · {item.winRate}% win
                       </p>
                     </div>
-                    <p className={`font-bold ${pnlClass(item.pnl)}`}>{formatMoney(item.pnl)}</p>
+                    <p className={`font-bold ${pnlClass(item.pnl)}`}>{formatMoney(item.pnl, currency)}</p>
                   </div>
                 ))
               ) : (
@@ -94,7 +108,7 @@ export default function AnalyticsPage() {
                         {item.trades} trades · {item.winRate}% win
                       </p>
                     </div>
-                    <p className={`font-bold ${pnlClass(item.pnl)}`}>{formatMoney(item.pnl)}</p>
+                    <p className={`font-bold ${pnlClass(item.pnl)}`}>{formatMoney(item.pnl, currency)}</p>
                   </div>
                 ))
               ) : (

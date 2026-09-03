@@ -1,11 +1,19 @@
 "use client";
 
+import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
-import { getTradingAccountsService } from "@/services/trading-account.service";
+import {
+  getRecordCurrency,
+  getSelectedAccount,
+  getTradableAccounts,
+  isAccountInPlay,
+  needsNewAccount,
+} from "@/lib/account";
+import { formatMoney as formatAccountMoney } from "@/lib/format";
+import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
 import type { JournalHistoryItem } from "@/types/journal.types";
-import type { TradingAccount } from "@/types/trading-account.types";
 import {
   Activity,
   ArrowUpRight,
@@ -31,12 +39,6 @@ const formatDate = (value: string) =>
     year: "numeric",
   }).format(new Date(value));
 
-const formatMoney = (value: number) =>
-  new Intl.NumberFormat("en", {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
-  }).format(value);
-
 const getAccountName = (journal: JournalHistoryItem) => {
   if (!journal.tradingAccount || typeof journal.tradingAccount === "string") {
     return "Trading account";
@@ -52,7 +54,13 @@ export default function JournalPage() {
   const createJournal = useJournalStore((state) => state.createJournal);
   const getUserJournals = useJournalStore((state) => state.getUserJournals);
 
-  const [accounts, setAccounts] = useState<TradingAccount[]>([]);
+  const accounts = useAccountsStore((state) => state.accounts);
+  const storeSelectedAccountId = useAccountsStore((state) => state.selectedAccountId);
+  const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
+  const selectAccount = useAccountsStore((state) => state.selectAccount);
+  const selectedAccount = getSelectedAccount(accounts, storeSelectedAccountId);
+  const tradableAccounts = getTradableAccounts(accounts);
+  const currency = selectedAccount?.currency || "USD";
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [beforeTrading, setBeforeTrading] = useState("");
   const [confidenceBefore, setConfidenceBefore] = useState(7);
@@ -67,12 +75,15 @@ export default function JournalPage() {
       setAccountError(null);
 
       try {
-        const [, accountsResponse] = await Promise.all([
+        const [, loadedAccounts] = await Promise.all([
           getUserJournals(),
-          getTradingAccountsService(),
+          fetchAccounts(),
         ]);
-        setAccounts(accountsResponse.data);
-        setSelectedAccountId((current) => current || accountsResponse.data[0]?._id || "");
+        const preferred = getSelectedAccount(loadedAccounts, storeSelectedAccountId);
+        setSelectedAccountId((current) => current || preferred?._id || "");
+        if (needsNewAccount(loadedAccounts)) {
+          setAccountError("Create a trading account before starting a journal.");
+        }
       } catch (loadError) {
         void loadError;
         setAccountError("Unable to load your journal workspace.");
@@ -82,7 +93,7 @@ export default function JournalPage() {
     };
 
     loadJournalPage();
-  }, [getUserJournals]);
+  }, [fetchAccounts, getUserJournals, storeSelectedAccountId]);
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search).get("q");
@@ -133,12 +144,18 @@ export default function JournalPage() {
     setSuccessMessage(null);
     setAccountError(null);
 
-    if (!selectedAccountId) {
-      setAccountError("Select a trading account before creating a journal.");
+    const account = accounts.find((item) => item._id === selectedAccountId);
+    if (!selectedAccountId || !isAccountInPlay(account)) {
+      setAccountError(
+        needsNewAccount(accounts)
+          ? "Create a trading account before starting a journal."
+          : "This account has passed or been breached. Create a new account first.",
+      );
       return;
     }
 
     try {
+      await selectAccount(selectedAccountId);
       await createJournal({
         tradingAccount: selectedAccountId,
         beforeTrading,
@@ -191,7 +208,7 @@ export default function JournalPage() {
           <StatCard
             icon={stats.totalProfitLoss >= 0 ? TrendingUp : TrendingDown}
             label="Net P/L"
-            value={formatMoney(stats.totalProfitLoss)}
+            value={formatAccountMoney(stats.totalProfitLoss, currency)}
             tone={stats.totalProfitLoss >= 0 ? "positive" : "negative"}
           />
           <StatCard
@@ -206,9 +223,12 @@ export default function JournalPage() {
           <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-card">
             <div className="flex flex-col gap-3 border-b border-slate-200 p-5 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-bold text-slate-950 dark:text-white">
-                  All Journals
-                </h2>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h2 className="text-lg font-bold text-slate-950 dark:text-white">
+                    Daily journals
+                  </h2>
+                  <AccountSwitcher compact />
+                </div>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   {filteredJournals.length} shown from {journals.length} total
                 </p>
@@ -281,11 +301,15 @@ export default function JournalPage() {
                     required
                   >
                     <option value="">Select account</option>
-                    {accounts.map((account) => (
-                      <option key={account._id} value={account._id}>
-                        {account.accountName} - {account.broker}
-                      </option>
-                    ))}
+                    {accounts.map((account) => {
+                      const inPlay = isAccountInPlay(account);
+                      return (
+                        <option key={account._id} value={account._id} disabled={!inPlay}>
+                          {account.accountName} - {account.broker} · {account.currency}
+                          {inPlay ? "" : ` · ${account.status}`}
+                        </option>
+                      );
+                    })}
                   </select>
                 </label>
 
@@ -314,7 +338,7 @@ export default function JournalPage() {
                 <Button
                   className="w-full whitespace-nowrap"
                   type="submit"
-                  disabled={isLoading || isLoadingAccounts || !accounts.length}
+                  disabled={isLoading || isLoadingAccounts || !tradableAccounts.length}
                 >
                   <Plus size={18} />
                   {isLoading ? "Creating..." : "Create Journal"}
@@ -373,6 +397,7 @@ function StatCard({ icon: Icon, label, value, helper, tone }: StatCardProps) {
 
 function JournalRow({ journal }: { journal: JournalHistoryItem }) {
   const hasProfit = journal.totalProfitLoss >= 0;
+  const currency = getRecordCurrency(journal);
 
   return (
     <Link
@@ -406,7 +431,7 @@ function JournalRow({ journal }: { journal: JournalHistoryItem }) {
             <MiniMetric label="Closed" value={journal.closedTrades} />
             <MiniMetric
               label="P/L"
-              value={formatMoney(journal.totalProfitLoss)}
+              value={formatAccountMoney(journal.totalProfitLoss, currency)}
               className={
                 hasProfit
                   ? "text-emerald-600 dark:text-emerald-300"

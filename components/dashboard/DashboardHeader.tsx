@@ -1,34 +1,49 @@
 import JournalSearch from "@/components/dashboard/JournalSearch";
 import Button from "@/components/ui/Button";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { getSelectedAccount, isAccountInPlay } from "@/lib/account";
+import { useAccountsStore } from "@/stores/accounts.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { Bell, CalendarDays, Plus, Rocket } from "lucide-react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { ReactNode, useEffect } from "react";
 
 type DashboardHeaderProps = {
   onOpenMyDay?: (hasJournalToday?: boolean) => void;
+  accountSwitcher?: ReactNode;
 };
 
-export default function DashboardHeader({ onOpenMyDay }: DashboardHeaderProps) {
+export default function DashboardHeader({
+  onOpenMyDay,
+}: DashboardHeaderProps) {
   const user = useAuthStore((state) => state.user);
+  const accounts = useAccountsStore((state) => state.accounts);
+  const selectedAccountId = useAccountsStore((state) => state.selectedAccountId);
+  const selectedAccount = getSelectedAccount(accounts, selectedAccountId);
   const journalStatus = useJournalStore((state) => state.journalStatus);
   const isLoadingJournalStatus = useJournalStore((state) => state.isLoading);
   const getTodayJournalStatus = useJournalStore(
     (state) => state.getTodayJournalStatus,
   );
+  const canTrade = isAccountInPlay(selectedAccount);
 
   const streak = user?.stats?.currentJournalStreak || 0;
-  const primaryJournalLabel = journalStatus?.hasJournalToday
-    ? "Add Trade"
-    : "Start My Day";
+  const primaryJournalLabel = !canTrade
+    ? "New Account"
+    : journalStatus?.hasJournalToday
+      ? "Add Trade"
+      : "Start My Day";
 
   useEffect(() => {
     getTodayJournalStatus().catch(() => undefined);
   }, [getTodayJournalStatus]);
 
   const handleGetTodayJournalStatus = async () => {
+    if (!canTrade) {
+      onOpenMyDay?.(false);
+      return;
+    }
     try {
       const response = await getTodayJournalStatus();
       onOpenMyDay?.(response.data.hasJournalToday);

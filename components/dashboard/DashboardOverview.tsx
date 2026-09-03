@@ -15,9 +15,10 @@ import { useAnalyticsStore } from "@/stores/analytics.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { useGoalsStore } from "@/stores/goals.store";
 import { useJournalStore } from "@/stores/journal.store";
+import { filterByAccount, getSelectedAccount, isAccountInPlay } from "@/lib/account";
 import { formatMoney, formatNumber } from "@/lib/format";
 import { Activity, Percent, TrendingDown, TrendingUp } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type WorkflowPanel = "start" | "trade" | "account";
 
@@ -32,39 +33,73 @@ export default function DashboardOverview() {
   const analytics = useAnalyticsStore((state) => state.data);
   const fetchAnalytics = useAnalyticsStore((state) => state.fetchAnalytics);
   const accounts = useAccountsStore((state) => state.accounts);
+  const selectedAccountId = useAccountsStore((state) => state.selectedAccountId);
+  const selectedAccount = getSelectedAccount(accounts, selectedAccountId);
   const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
   const goals = useGoalsStore((state) => state.goals);
   const fetchGoals = useGoalsStore((state) => state.fetchGoals);
+  const currency = selectedAccount?.currency || analytics?.currency || "USD";
+  const accountJournals = useMemo(
+    () => filterByAccount(journals, selectedAccount?._id),
+    [journals, selectedAccount?._id],
+  );
+  const accountGoals = useMemo(
+    () => filterByAccount(goals, selectedAccount?._id),
+    [goals, selectedAccount?._id],
+  );
 
   const openMyDayWorkflow = (hasJournalToday?: boolean) => {
-    setWorkflowPanel(hasJournalToday ? "trade" : "start");
+    if (hasJournalToday) {
+      setWorkflowPanel("trade");
+    } else if (!selectedAccount || !isAccountInPlay(selectedAccount)) {
+      setWorkflowPanel("account");
+    } else {
+      setWorkflowPanel("start");
+    }
     setIsMyDayOpen(true);
   };
 
   const refreshWorkspace = () => {
-    getUserJournals().catch(() => undefined);
-    fetchAnalytics().catch(() => undefined);
     fetchAccounts().catch(() => undefined);
+    getUserJournals().catch(() => undefined);
     fetchGoals().catch(() => undefined);
+    if (selectedAccount?._id) {
+      fetchAnalytics(selectedAccount._id).catch(() => undefined);
+    }
   };
 
   useEffect(() => {
-    refreshWorkspace();
-  }, []);
+    fetchAccounts().catch(() => undefined);
+    getUserJournals().catch(() => undefined);
+    fetchGoals().catch(() => undefined);
+  }, [fetchAccounts, fetchGoals, getUserJournals]);
+
+  useEffect(() => {
+    if (!selectedAccount?._id) return;
+    fetchAnalytics(selectedAccount._id).catch(() => undefined);
+  }, [fetchAnalytics, selectedAccount?._id]);
 
   useEffect(() => {
     return animateDashboardEntrance(dashboardRef.current);
   }, []);
 
   const summary = analytics?.summary;
+  const accountBalance = Number(selectedAccount?.currentBalance);
+  const netPnlValue =
+    Number.isFinite(accountBalance) && accountBalance < 0
+      ? accountBalance
+      : Number(summary?.netPnl || 0);
   const metrics = [
     {
       label: "Net P&L",
-      value: formatMoney(summary?.netPnl || 0),
-      change: summary?.journals
-        ? `${summary.journals} journaled days`
-        : "No journals yet",
-      tone: (summary?.netPnl || 0) >= 0 ? ("profit" as const) : ("loss" as const),
+      value: formatMoney(netPnlValue, currency),
+      change:
+        Number.isFinite(accountBalance) && accountBalance < 0
+          ? "Account balance below zero"
+          : summary?.journals
+            ? `${summary.journals} journaled days`
+            : "No journals yet",
+      tone: netPnlValue >= 0 ? ("profit" as const) : ("loss" as const),
       icon: TrendingUp,
     },
     {
@@ -94,7 +129,10 @@ export default function DashboardOverview() {
 
   return (
     <div ref={dashboardRef} data-dashboard-main>
-      <DashboardHeader onOpenMyDay={openMyDayWorkflow} />
+      <DashboardHeader
+        onOpenMyDay={openMyDayWorkflow}
+       
+      />
 
       <div className="mb-5 lg:hidden">
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -141,18 +179,18 @@ export default function DashboardOverview() {
           </div>
 
           <div className="grid gap-5 2xl:grid-cols-[minmax(0,1.3fr)_minmax(300px,0.8fr)]">
-            <PerformanceChart curve={analytics?.equityCurve} />
-            <RecentTrades journals={journals} />
+            <PerformanceChart curve={analytics?.equityCurve} currency={currency} />
+            <RecentTrades journals={accountJournals} currency={currency} />
           </div>
 
           <div className="grid gap-5 lg:grid-cols-2">
-            <TradingGoals goals={goals} />
+            <TradingGoals goals={accountGoals} />
             <BehavioralInsights insights={analytics?.insights} />
           </div>
         </div>
 
         <div className="order-1 space-y-5 xl:order-2 xl:space-y-6">
-          <AccountSummary account={accounts[0]} />
+          <AccountSummary account={selectedAccount} />
           <QuickActions onOpenMyDay={openMyDayWorkflow} />
         </div>
       </div>

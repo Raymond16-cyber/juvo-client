@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
+import { getRecordCurrency } from "@/lib/account";
 import { formatDate, formatMoney, pnlClass } from "@/lib/format";
 import { controlClassName, textareaClassName } from "@/lib/ui";
 import { useJournalStore } from "@/stores/journal.store";
@@ -79,17 +80,29 @@ export default function JournalDetailPage() {
     journal?.tradingAccount && typeof journal.tradingAccount !== "string"
       ? `${journal.tradingAccount.accountName} · ${journal.tradingAccount.broker}`
       : "Trading account";
+  const accountStatus =
+    journal?.tradingAccount && typeof journal.tradingAccount !== "string"
+      ? journal.tradingAccount.status
+      : undefined;
+  const journalCurrency = getRecordCurrency(journal);
 
   const handleCloseTrade = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!journal || !closingTradeId) return;
-    await closeTrade(journal._id, closingTradeId, {
+    const response = await closeTrade(journal._id, closingTradeId, {
       exitPrice: Number(exitPrice),
       status: closeStatus,
     });
     setClosingTradeId(null);
     setExitPrice("");
-    setMessage("Trade closed.");
+    const accountStatus = response.tradingAccount?.status;
+    setMessage(
+      accountStatus === "Passed"
+        ? "Trade closed. This trading account has passed its profit target."
+        : accountStatus === "Breached"
+          ? "Trade closed. This trading account has been breached."
+          : response.message || "Trade closed.",
+    );
     await getJournalById(journal._id);
   };
 
@@ -108,7 +121,7 @@ export default function JournalDetailPage() {
           title={journal ? formatDate(journal.journalDate) : "Session review"}
           description={
             journal
-              ? `${accountName} · ${journal.status} · ${journal.tradesCount || 0} trades`
+              ? `${accountName}${accountStatus ? ` · ${accountStatus}` : ""} · ${journal.status} · ${journal.tradesCount || 0} trades`
               : "Open a session to review psychology, execution, and Juvo feedback."
           }
           actions={
@@ -142,7 +155,7 @@ export default function JournalDetailPage() {
             <div className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-4">
                 {[
-                  ["P/L", formatMoney(journal.totalProfitLoss || 0), pnlClass(journal.totalProfitLoss || 0)],
+                  ["P/L", formatMoney(journal.totalProfitLoss || 0, journalCurrency), pnlClass(journal.totalProfitLoss || 0)],
                   ["Open", String(journal.openTrades || 0), ""],
                   ["Closed", String(journal.closedTrades || 0), ""],
                   ["Discipline", `${journal.discipline?.score ?? "—"}`, ""],
@@ -191,6 +204,10 @@ export default function JournalDetailPage() {
                           </p>
                           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                             {trade.instrument} · {trade.session || "No session"} · {trade.status}
+                            {trade.tradingAccount &&
+                            typeof trade.tradingAccount !== "string"
+                              ? ` · ${trade.tradingAccount.accountName}`
+                              : ""}
                           </p>
                           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
                             Entry {trade.entryPrice} · SL {trade.stopLoss} · TP {trade.takeProfit} · Size {trade.lotSize}
@@ -203,7 +220,10 @@ export default function JournalDetailPage() {
                         </div>
                         <div className="text-right">
                           <p className={`text-lg font-bold ${pnlClass(trade.profitLoss || 0)}`}>
-                            {formatMoney(trade.profitLoss || 0)}
+                            {formatMoney(
+                              trade.profitLoss || 0,
+                              getRecordCurrency(trade, journalCurrency),
+                            )}
                           </p>
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                             RR {trade.achievedRR || trade.plannedRR}

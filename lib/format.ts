@@ -8,17 +8,43 @@ export function formatDate(value?: string | Date, options?: Intl.DateTimeFormatO
   }).format(new Date(value));
 }
 
+export function normalizeCurrency(currency?: string | null) {
+  const code = String(currency || "USD").trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(code) ? code : "USD";
+}
+
 export function formatMoney(value: number, currency = "USD") {
+  const code = normalizeCurrency(currency);
   const absolute = Math.abs(value);
-  const formatted = new Intl.NumberFormat("en", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: absolute >= 1000 ? 0 : 2,
-  }).format(absolute);
+
+  let formatted: string;
+  try {
+    formatted = new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: code,
+      maximumFractionDigits: absolute >= 1000 ? 0 : 2,
+    }).format(absolute);
+  } catch {
+    formatted = `${code} ${absolute.toFixed(absolute >= 1000 ? 0 : 2)}`;
+  }
 
   if (value > 0) return `+${formatted}`;
   if (value < 0) return `-${formatted}`;
   return formatted;
+}
+
+export function formatCompactMoney(value: number, currency = "USD") {
+  const code = normalizeCurrency(currency);
+  try {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: code,
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(value);
+  } catch {
+    return `${code} ${value}`;
+  }
 }
 
 export function formatNumber(value: number, digits = 2) {

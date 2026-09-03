@@ -1,6 +1,7 @@
 import api from "@/lib/axios";
 import {
   CloseTradePayload,
+  CloseTradeResponse,
   CompleteJournalPayload,
   CreateJournalPayload,
   CreateTradePayload,
@@ -10,14 +11,20 @@ import {
   UserJournalsResponse,
 } from "@/types/journal.types";
 
-export const getTodayJournalStatusService =
-  async (): Promise<JournalStatusResponse> => {
-    const response = await api.get<JournalStatusResponse>(
+export const getTodayJournalStatusService = async (
+  tradingAccountId?: string | null,
+): Promise<JournalStatusResponse> => {
+  const response = await api.get<JournalStatusResponse>(
     "/journal/get-today-journal-status",
-    );
+    {
+      params: tradingAccountId
+        ? { tradingAccount: tradingAccountId }
+        : undefined,
+    },
+  );
 
-    return response.data;
-  };
+  return response.data;
+};
 
 export const getUserJournalsService =
   async (): Promise<UserJournalsResponse> => {
@@ -77,8 +84,8 @@ export const closeJournalTradeService = async (
   journalId: string,
   tradeId: string,
   data: CloseTradePayload,
-): Promise<CreateTradeResponse> => {
-  const response = await api.patch<CreateTradeResponse>(
+): Promise<CloseTradeResponse> => {
+  const response = await api.patch<CloseTradeResponse>(
     `/journal/${journalId}/trades/${tradeId}/close`,
     { data },
   );

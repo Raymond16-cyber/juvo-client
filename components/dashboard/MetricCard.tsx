@@ -12,19 +12,25 @@ type MetricCardProps = {
 };
 
 function getCounterConfig(value: string) {
-  const numericValue = Number(value.replace(/[^0-9.-]/g, ""));
-  const suffix = value.endsWith("%") ? "%" : "";
-  const prefix = value.includes("$") ? "$" : "";
-  const sign = value.trim().startsWith("+") ? "+" : "";
-
+  const trimmed = value.trim();
+  const numericValue = Number(trimmed.replace(/[^0-9.-]/g, ""));
   if (!Number.isFinite(numericValue)) {
     return null;
   }
 
+  const suffix = trimmed.endsWith("%") ? "%" : "";
+  const leadingSign = trimmed.startsWith("+")
+    ? "+"
+    : trimmed.startsWith("-")
+      ? "-"
+      : "";
+  const unsigned = leadingSign ? trimmed.slice(1) : trimmed;
+  const currencyPrefix = unsigned.match(/^[^0-9]+/)?.[0] ?? "";
+
   return {
-    value: numericValue,
+    value: Math.abs(numericValue),
     formatter: (next: number) =>
-      `${sign}${prefix}${Math.round(next).toLocaleString()}${suffix}`,
+      `${leadingSign}${currencyPrefix}${Math.round(Math.abs(next)).toLocaleString()}${suffix}`,
   };
 }
 
@@ -52,7 +58,7 @@ export default function MetricCard({
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
             {label}
           </p>
-          <p className="mt-3 text-2xl font-bold leading-none text-slate-950 dark:text-white sm:mt-4 sm:text-3xl">
+          <p className="mt-3 text-2xl font-bold leading-none text-slate-950 dark:text-white sm:mt-4 sm:text-2xl">
             {counter ? (
               <AnimatedCounter
                 value={counter.value}

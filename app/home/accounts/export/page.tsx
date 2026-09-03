@@ -4,6 +4,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
+import { getRecordCurrency } from "@/lib/account";
 import { formatDate, formatMoney } from "@/lib/format";
 import { useJournalStore } from "@/stores/journal.store";
 import { FileDown } from "lucide-react";
@@ -91,7 +92,10 @@ export default function ExportPage() {
           <Card className="p-5">
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Latest session {formatDate(journals[0].journalDate)} ·{" "}
-              {formatMoney(journals[0].totalProfitLoss || 0)}
+              {formatMoney(
+                journals[0].totalProfitLoss || 0,
+                getRecordCurrency(journals[0]),
+              )}
             </p>
           </Card>
         ) : null}

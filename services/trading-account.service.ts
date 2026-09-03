@@ -32,3 +32,23 @@ export const deleteTradingAccountService = async (accountId: string) => {
 
   return response.data;
 };
+
+export const getTradingAccountByIdService = async (
+  accountId: string,
+): Promise<CreateTradingAccountResponse> => {
+  const response = await api.get<CreateTradingAccountResponse>(
+    `/trading-account/${accountId}`,
+  );
+
+  return response.data;
+};
+
+export const activateTradingAccountService = async (
+  accountId: string,
+): Promise<CreateTradingAccountResponse> => {
+  const response = await api.patch<CreateTradingAccountResponse>(
+    `/trading-account/${accountId}/activate`,
+  );
+
+  return response.data;
+};

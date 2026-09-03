@@ -4,9 +4,13 @@ import Link from "next/link";
 
 type RecentTradesProps = {
   journals?: JournalHistoryItem[];
+  currency?: string;
 };
 
-export default function RecentTrades({ journals = [] }: RecentTradesProps) {
+export default function RecentTrades({
+  journals = [],
+  currency = "USD",
+}: RecentTradesProps) {
   const trades = journals
     .flatMap((journal) =>
       (journal.trades || []).map((trade) => ({
@@ -78,7 +82,7 @@ export default function RecentTrades({ journals = [] }: RecentTradesProps) {
                 </div>
                 <div className="shrink-0 text-right">
                   <p className={`font-bold ${pnlClass(trade.profitLoss || 0)}`}>
-                    {formatMoney(trade.profitLoss || 0)}
+                    {formatMoney(trade.profitLoss || 0, currency)}
                   </p>
                   <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                     RR {trade.achievedRR || trade.plannedRR}

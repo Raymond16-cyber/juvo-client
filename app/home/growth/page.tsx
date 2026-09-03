@@ -6,6 +6,7 @@ import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 import { controlClassName, textareaClassName } from "@/lib/ui";
+import { getSelectedAccount, getTradableAccounts } from "@/lib/account";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useGoalsStore } from "@/stores/goals.store";
 import { CreateGoalPayload } from "@/types/goal.types";
@@ -32,6 +33,7 @@ export default function GrowthPage() {
   const updateGoal = useGoalsStore((state) => state.updateGoal);
   const deleteGoal = useGoalsStore((state) => state.deleteGoal);
   const accounts = useAccountsStore((state) => state.accounts);
+  const selectedAccountId = useAccountsStore((state) => state.selectedAccountId);
   const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
   const [form, setForm] = useState(defaultGoal);
   const [error, setError] = useState<string | null>(null);
@@ -42,13 +44,16 @@ export default function GrowthPage() {
   }, [fetchAccounts, fetchGoals]);
 
   useEffect(() => {
-    if (accounts[0]?._id) {
+    const preferred =
+      getSelectedAccount(accounts, selectedAccountId) ||
+      getTradableAccounts(accounts)[0];
+    if (preferred?._id) {
       setForm((current) => ({
         ...current,
-        tradingAccount: current.tradingAccount || accounts[0]._id,
+        tradingAccount: current.tradingAccount || preferred._id,
       }));
     }
-  }, [accounts]);
+  }, [accounts, selectedAccountId]);
 
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

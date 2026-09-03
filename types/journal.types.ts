@@ -1,20 +1,30 @@
-import { TradingAccount } from "@/types/trading-account.types";
+import {
+  TradingAccount,
+  TradingAccountOutcome,
+} from "@/types/trading-account.types";
 
 export interface JournalSummary {
   _id: string;
   journalDate: string;
   status: "Started" | "Completed";
-  tradingAccount?: string | Pick<
-    TradingAccount,
-    | "_id"
-    | "accountName"
-    | "accountNumber"
-    | "broker"
-    | "accountType"
-    | "currency"
-    | "currentBalance"
-    | "currentEquity"
-  >;
+  tradingAccount?:
+    | string
+    | Pick<
+        TradingAccount,
+        | "_id"
+        | "accountName"
+        | "accountNumber"
+        | "broker"
+        | "accountType"
+        | "currency"
+        | "currentBalance"
+        | "currentEquity"
+        | "isActive"
+        | "status"
+        | "profitTarget"
+        | "maxDrawnDown"
+        | "initialBalance"
+      >;
   tradesCount?: number;
   psychology?: {
     beforeTrading?: string;
@@ -34,7 +44,13 @@ export type CreateJournalPayload = {
 
 export type CreateTradePayload = {
   symbol: string;
-  instrument: "forex" | "stocks" | "crypto" | "commodities" | "indices" | "others";
+  instrument:
+    | "forex"
+    | "stocks"
+    | "crypto"
+    | "commodities"
+    | "indices"
+    | "others";
   direction: "long" | "short";
   entryPrice: number;
   stopLoss: number;
@@ -44,6 +60,7 @@ export type CreateTradePayload = {
   plannedRR: number;
   session?: "Asian" | "Tokyo" | "London" | "New York";
   notes?: string;
+  tradingAccount?: string;
 };
 
 export interface TradeSummary extends CreateTradePayload {
@@ -68,6 +85,12 @@ export interface JournalListTradeSummary {
   openedAt?: string;
   closedAt?: string;
   createdAt?: string;
+  tradingAccount?:
+    | string
+    | Pick<
+        TradingAccount,
+        "_id" | "accountName" | "broker" | "currency" | "status" | "isActive"
+      >;
 }
 
 export interface JournalHistoryItem extends JournalSummary {
@@ -150,6 +173,13 @@ export interface JournalStatusResponse {
 export interface CreateTradeResponse {
   data: TradeSummary;
   message: string;
+  attachedToAccount?: boolean;
+}
+
+export interface CloseTradeResponse {
+  data: TradeSummary;
+  message: string;
+  tradingAccount?: TradingAccountOutcome | null;
 }
 
 export interface UserJournalsResponse {

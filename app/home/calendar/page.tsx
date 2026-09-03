@@ -3,7 +3,10 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
+import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
+import { getRecordCurrency, getSelectedAccount } from "@/lib/account";
 import { formatMoney, pnlClass } from "@/lib/format";
+import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -12,11 +15,17 @@ import { useEffect, useMemo, useState } from "react";
 export default function CalendarPage() {
   const journals = useJournalStore((state) => state.journals);
   const getUserJournals = useJournalStore((state) => state.getUserJournals);
+  const accounts = useAccountsStore((state) => state.accounts);
+  const selectedAccountId = useAccountsStore((state) => state.selectedAccountId);
+  const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
+  const selectedAccount = getSelectedAccount(accounts, selectedAccountId);
+  const currency = selectedAccount?.currency || "USD";
   const [cursor, setCursor] = useState(() => new Date());
 
   useEffect(() => {
+    fetchAccounts().catch(() => undefined);
     getUserJournals().catch(() => undefined);
-  }, [getUserJournals]);
+  }, [fetchAccounts, getUserJournals]);
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
@@ -46,8 +55,10 @@ export default function CalendarPage() {
         <PageHeader
           eyebrow="Calendar"
           title="Juvo Calendar"
-          description="See which days you actually journaled. Green and red are P/L, empty days are the real leak."
+          description="See which days you journaled on the selected trading account."
           actions={
+            <div className="flex flex-wrap items-center gap-3">
+              <AccountSwitcher compact />
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -68,6 +79,7 @@ export default function CalendarPage() {
               >
                 <ChevronRight size={18} />
               </button>
+            </div>
             </div>
           }
         />
@@ -103,7 +115,7 @@ export default function CalendarPage() {
                   {dayJournals.length ? (
                     <>
                       <p className={`mt-2 text-xs font-semibold ${pnlClass(pnl)}`}>
-                        {formatMoney(pnl)}
+                        {formatMoney(pnl, getRecordCurrency(first, currency))}
                       </p>
                       <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                         {dayJournals.reduce((total, journal) => total + (journal.tradesCount || 0), 0)} trades
