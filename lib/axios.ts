@@ -1,13 +1,17 @@
 import axios from "axios";
 
+const isProduction = process.env.NODE_ENV === "production";
+console.log(process.env.NEXT_PUBLIC_API_URL, process.env.NEXT_PUBLIC_API_ORIGIN);
+
 const api = axios.create({
-  // baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
-  baseURL: "https://juvo-server.onrender.com/api",
+  baseURL: isProduction
+    ? process.env.NEXT_PUBLIC_API_URL
+    : process.env.NEXT_PUBLIC_API_ORIGIN,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
-})
+});
 
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
