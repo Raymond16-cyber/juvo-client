@@ -7,6 +7,8 @@ import {
   getTodayJournalStatusService,
   getUserJournalsService,
 } from "@/services/journal.service";
+import { useAccountsStore } from "@/stores/accounts.store";
+import { showAccountOutcomeNotice } from "@/stores/notice.store";
 import {
   CloseTradePayload,
   CloseTradeResponse,
@@ -119,6 +121,18 @@ export const useJournalStore = create<JournalStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await closeJournalTradeService(journalId, tradeId, data);
+      if (
+        response.tradingAccount?.statusChanged &&
+        (response.tradingAccount.status === "Passed" ||
+          response.tradingAccount.status === "Breached")
+      ) {
+        showAccountOutcomeNotice({
+          _id: response.tradingAccount._id,
+          accountName: response.tradingAccount.accountName,
+          status: response.tradingAccount.status,
+        });
+      }
+      useAccountsStore.getState().fetchAccounts().catch(() => undefined);
       set({ message: response.message });
       return response;
     } catch (error) {

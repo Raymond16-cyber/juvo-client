@@ -1,5 +1,6 @@
 "use client";
 
+import JuvoNoticeHost from "@/components/ui/JuvoNotice";
 import Sidebar from "@/components/ui/Sidebar";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { Menu } from "lucide-react";
@@ -115,6 +116,7 @@ export default function DashboardShell({
           </div>
         </main>
       </div>
+      <JuvoNoticeHost />
     </div>
   );
 }

@@ -13,7 +13,7 @@ export default function ChartsPage() {
           title="Juvo Charts"
           description="Read price action inside Juvo. Keep your journal, risk, and market in one workspace."
         />
-        <div className="min-h-0 flex-1">
+        <div className="min-h-0 flex-1 overflow-hidden">
           <JuvoChart />
         </div>
       </div>
