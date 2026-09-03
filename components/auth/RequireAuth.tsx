@@ -1,6 +1,11 @@
 "use client";
 
 import AuthLoadingScreen from "@/components/auth/AuthLoadingScreen";
+import {
+  AUTH_ENTER_LABEL,
+  AUTH_SESSION_LABEL,
+  isEnteringApp,
+} from "@/lib/auth-entry";
 import { useAuthStore } from "@/stores/auth.store";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -27,7 +32,11 @@ export default function RequireAuth({
   }, [hasCheckedAuth, isAuthenticated, pathname, router]);
 
   if (!hasCheckedAuth) {
-    return <AuthLoadingScreen />;
+    return (
+      <AuthLoadingScreen
+        label={isEnteringApp() ? AUTH_ENTER_LABEL : AUTH_SESSION_LABEL}
+      />
+    );
   }
 
   if (!isAuthenticated) {

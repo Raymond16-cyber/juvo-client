@@ -1,6 +1,7 @@
 "use client";
 
 import AuthLoadingScreen from "@/components/auth/AuthLoadingScreen";
+import { AUTH_ENTER_LABEL } from "@/lib/auth-entry";
 import { useAuthStore } from "@/stores/auth.store";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -26,11 +27,11 @@ export default function GuestRoute({
   }, [destination, hasCheckedAuth, isAuthenticated, router]);
 
   if (!hasCheckedAuth) {
-    return <AuthLoadingScreen />;
+    return <AuthLoadingScreen label="Just a moment" />;
   }
 
   if (isAuthenticated) {
-    return <AuthLoadingScreen label="Taking you into JUVO" />;
+    return <AuthLoadingScreen label={AUTH_ENTER_LABEL} />;
   }
 
   return children;

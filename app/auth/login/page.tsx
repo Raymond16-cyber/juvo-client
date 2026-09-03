@@ -1,8 +1,10 @@
 "use client";
 
+import AuthLoadingScreen from "@/components/auth/AuthLoadingScreen";
 import AuthVisual from "@/components/auth/AuthVisual";
 import Header from "@/components/Header";
 import Button from "@/components/ui/Button";
+import { AUTH_ENTER_LABEL, markEnteringApp } from "@/lib/auth-entry";
 import { getApiErrorMessage } from "@/lib/axios";
 import { useAuthStore } from "@/stores/auth.store";
 import { Eye, EyeOff } from "lucide-react";
@@ -20,6 +22,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [entering, setEntering] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -42,17 +45,23 @@ function LoginForm() {
           ? nextPath
           : "/home/dashboard";
 
+      markEnteringApp();
+      setEntering(true);
       router.push(
         response.user?.onboarding?.completed ? safeNext : "/home/onboarding",
       );
+      return;
     } catch (loginError: unknown) {
       setError(
         getApiErrorMessage(loginError, "Invalid email or password."),
       );
-    } finally {
       setLoading(false);
     }
   };
+
+  if (entering) {
+    return <AuthLoadingScreen label={AUTH_ENTER_LABEL} />;
+  }
 
   return (
     <div className="dark-page-shell min-h-screen overflow-x-hidden">

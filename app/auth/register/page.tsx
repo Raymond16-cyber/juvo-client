@@ -1,8 +1,10 @@
 "use client";
 
+import AuthLoadingScreen from "@/components/auth/AuthLoadingScreen";
 import AuthVisual from "@/components/auth/AuthVisual";
 import Header from "@/components/Header";
 import Button from "@/components/ui/Button";
+import { AUTH_ENTER_LABEL, markEnteringApp } from "@/lib/auth-entry";
 import { getApiErrorMessage } from "@/lib/axios";
 import { useAuthStore } from "@/stores/auth.store";
 import { Eye, EyeOff } from "lucide-react";
@@ -21,6 +23,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [entering, setEntering] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -41,15 +44,21 @@ export default function RegisterPage() {
         email,
         password,
       });
+      markEnteringApp();
+      setEntering(true);
       router.push("/home/onboarding");
+      return;
     } catch (registerError: unknown) {
       setError(
         getApiErrorMessage(registerError, "Registration failed. Please try again."),
       );
-    } finally {
       setLoading(false);
     }
   };
+
+  if (entering) {
+    return <AuthLoadingScreen label={AUTH_ENTER_LABEL} />;
+  }
 
   return (
     <div className="dark-page-shell min-h-screen overflow-x-hidden">

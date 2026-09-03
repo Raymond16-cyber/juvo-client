@@ -2,6 +2,7 @@
 
 import AuthLoadingScreen from "@/components/auth/AuthLoadingScreen";
 import RequireAuth from "@/components/auth/RequireAuth";
+import { AUTH_ENTER_LABEL, clearEnteringApp } from "@/lib/auth-entry";
 import { useAuthStore } from "@/stores/auth.store";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -31,6 +32,10 @@ export default function ProtectedRoute({
     if (onboardingDone && isOnboardingPath) {
       router.replace("/home/dashboard");
     }
+
+    if (onboardingDone && !isOnboardingPath) {
+      clearEnteringApp();
+    }
   }, [
     hasCheckedAuth,
     isAuthenticated,
@@ -43,7 +48,7 @@ export default function ProtectedRoute({
   if (!onboardingDone && !isOnboardingPath) {
     return (
       <RequireAuth>
-        <AuthLoadingScreen label="Continue onboarding" />
+        <AuthLoadingScreen label={AUTH_ENTER_LABEL} />
       </RequireAuth>
     );
   }
@@ -51,7 +56,7 @@ export default function ProtectedRoute({
   if (onboardingDone && isOnboardingPath) {
     return (
       <RequireAuth>
-        <AuthLoadingScreen label="Opening your dashboard" />
+        <AuthLoadingScreen label={AUTH_ENTER_LABEL} />
       </RequireAuth>
     );
   }
