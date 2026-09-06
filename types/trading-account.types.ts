@@ -15,6 +15,10 @@ export interface TradingAccountTrade {
   profitLoss: number;
   plannedRR?: number;
   achievedRR?: number;
+  source?: "manual" | "ctrader";
+  externalId?: string;
+  externalPositionId?: string;
+  externalOrderId?: string;
   session?: "Asian" | "Tokyo" | "London" | "New York";
   notes?: string;
   openedAt?: string;

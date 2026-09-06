@@ -6,7 +6,8 @@ export type BrokerConnectionStatus =
   | "connecting"
   | "connected"
   | "disconnected"
-  | "error";
+  | "error"
+  | "reauthorization_required";
 
 export type BrokerAccountType = "demo" | "live";
 
@@ -26,6 +27,67 @@ export interface BrokerConnection {
   updatedAt?: string;
 }
 
+export type BrokerPositionStatus = "open" | "closed" | "unknown";
+
+export interface BrokerPosition {
+  _id: string;
+  userId?: string;
+  provider: "ctrader";
+  ctidTraderAccountId: string;
+  externalPositionId: string;
+  symbol: string;
+  symbolId?: string;
+  direction: "long" | "short";
+  volume?: number;
+  lotSize?: number;
+  entryPrice?: number;
+  stopLoss?: number;
+  takeProfit?: number;
+  swap?: number;
+  commission?: number;
+  usedMargin?: number;
+  status: BrokerPositionStatus;
+  openedAt?: string;
+  brokerUpdatedAt?: string;
+  syncedAt?: string;
+  closedAt?: string;
+  label?: string;
+  comment?: string;
+  tradingAccount?:
+    | string
+    | {
+        _id: string;
+        accountName: string;
+        accountNumber: string;
+        broker: string;
+        platform: string;
+        currency: string;
+      };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BrokerPositionsResponse {
+  message: string;
+  data: BrokerPosition[];
+}
+
+export interface CTraderSyncResult {
+  connection: BrokerConnection;
+  tradingAccountId: string;
+  importedTrades: number;
+  skippedDeals: number;
+  openPositions: number;
+  closedPositions: number;
+  pendingOrders: number;
+  hasMoreDeals: boolean;
+}
+
+export interface CTraderSyncResponse {
+  message: string;
+  data: CTraderSyncResult;
+}
+
 export interface CTraderConnectResponse {
   message: string;
   authorizationUrl: string;
@@ -38,5 +100,8 @@ export interface BrokerConnectionsResponse {
 
 export interface CompleteCTraderResponse {
   message: string;
-  data: BrokerConnection;
+  data: BrokerConnection & {
+    tradingAccountId?: string;
+    sync?: Omit<CTraderSyncResult, "connection" | "tradingAccountId">;
+  };
 }

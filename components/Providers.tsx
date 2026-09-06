@@ -5,6 +5,7 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import { AnimatePresence } from "framer-motion";
 import ThemeProvider from "@/components/theme/ThemeProvider";
+import RealtimeBridge from "@/components/realtime/RealtimeBridge";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -13,6 +14,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeProvider>
+      <RealtimeBridge />
       <AnimatePresence mode="wait">{children}</AnimatePresence>
     </ThemeProvider>
   );

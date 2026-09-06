@@ -67,6 +67,10 @@ export interface TradeSummary extends CreateTradePayload {
   _id: string;
   status: "Open" | "Closed" | "Breakeven" | "Cancelled";
   profitLoss: number;
+  source?: "manual" | "ctrader";
+  externalId?: string;
+  externalPositionId?: string;
+  externalOrderId?: string;
   openedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -81,6 +85,10 @@ export interface JournalListTradeSummary {
   profitLoss: number;
   plannedRR: number;
   achievedRR?: number;
+  source?: "manual" | "ctrader";
+  externalId?: string;
+  externalPositionId?: string;
+  externalOrderId?: string;
   session?: CreateTradePayload["session"];
   openedAt?: string;
   closedAt?: string;

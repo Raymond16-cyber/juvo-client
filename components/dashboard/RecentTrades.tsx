@@ -1,15 +1,19 @@
-import { formatMoney, pnlClass } from "@/lib/format";
+import { formatDate, formatMoney, formatNumber, pnlClass } from "@/lib/format";
+import { BrokerPosition } from "@/types/broker.types";
 import { JournalHistoryItem } from "@/types/journal.types";
+import { ArrowUpRight, RadioTower, TrendingDown } from "lucide-react";
 import Link from "next/link";
 
 type RecentTradesProps = {
   journals?: JournalHistoryItem[];
   currency?: string;
+  brokerPositions?: BrokerPosition[];
 };
 
 export default function RecentTrades({
   journals = [],
   currency = "USD",
+  brokerPositions = [],
 }: RecentTradesProps) {
   const trades = journals
     .flatMap((journal) =>
@@ -34,10 +38,10 @@ export default function RecentTrades({
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-            Journal
+            Trades
           </p>
           <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">
-            Recent Trades
+            Live & Recent
           </h2>
         </div>
         <Link href="/home/journal" className="text-sm font-bold text-primary">
@@ -46,6 +50,50 @@ export default function RecentTrades({
       </div>
 
       <div className="space-y-4">
+        {brokerPositions.length ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+              <RadioTower size={14} />
+              Live cTrader positions
+            </div>
+            {brokerPositions.slice(0, 3).map((position) => (
+              <div
+                key={position._id}
+                className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-2xl border border-cyan-200 bg-cyan-50/70 p-4 dark:border-cyan-400/20 dark:bg-cyan-400/10"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-bold text-slate-950 dark:text-white">
+                      {position.symbol}
+                    </p>
+                    <span className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-[11px] font-bold uppercase text-cyan-700 dark:text-cyan-200">
+                      Live
+                    </span>
+                  </div>
+                  <p className="mt-2 truncate text-sm text-slate-500 dark:text-slate-400">
+                    {position.direction} · {position.lotSize ? `${formatNumber(position.lotSize, 2)} lots` : "Lot size unavailable"}
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-bold text-slate-950 dark:text-white">
+                    {position.entryPrice
+                      ? formatNumber(position.entryPrice, 5)
+                      : "Open"}
+                  </p>
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    {position.openedAt
+                      ? formatDate(position.openedAt, {
+                          month: "short",
+                          day: "numeric",
+                        })
+                      : "Synced"}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         {trades.length ? (
           trades.map((trade) => {
             const isWin = Number(trade.profitLoss || 0) > 0;
@@ -62,6 +110,16 @@ export default function RecentTrades({
                     <p className="font-bold text-slate-950 dark:text-white">
                       {trade.symbol}
                     </p>
+                    {trade.direction === "long" ? (
+                      <ArrowUpRight size={14} className="text-emerald-500" />
+                    ) : (
+                      <TrendingDown size={14} className="text-rose-500" />
+                    )}
+                    {trade.source === "ctrader" ? (
+                      <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary">
+                        cTrader
+                      </span>
+                    ) : null}
                     <span
                       className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                         trade.status === "Open"
@@ -93,7 +151,7 @@ export default function RecentTrades({
           })
         ) : (
           <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">
-            No trades yet. Start your day and log the first execution.
+            No journal trades yet. Start your day or sync cTrader history.
           </p>
         )}
       </div>

@@ -1,7 +1,9 @@
 import api from "@/lib/axios";
 import {
   BrokerConnectionsResponse,
+  BrokerPositionsResponse,
   CompleteCTraderResponse,
+  CTraderSyncResponse,
   CTraderConnectResponse,
 } from "@/types/broker.types";
 
@@ -62,6 +64,40 @@ export const getBrokerConnectionsService = async () => {
     status: response.status,
     count: response.data?.data?.length || 0,
     connections: response.data?.data,
+  });
+
+  return response.data;
+};
+
+export const getBrokerPositionsService = async (status?: string) => {
+  brokerDebug("positions:request", { url: "/broker/positions", status });
+
+  const response = await api.get<BrokerPositionsResponse>("/broker/positions", {
+    params: status ? { status } : undefined,
+  });
+
+  brokerDebug("positions:response", {
+    status: response.status,
+    count: response.data?.data?.length || 0,
+  });
+
+  return response.data;
+};
+
+export const syncCTraderService = async (connectionId?: string) => {
+  brokerDebug("sync:request", {
+    url: "/broker/ctrader/sync",
+    connectionId,
+  });
+
+  const response = await api.post<CTraderSyncResponse>("/broker/ctrader/sync", {
+    connectionId,
+  });
+
+  brokerDebug("sync:response", {
+    status: response.status,
+    message: response.data?.message,
+    sync: response.data?.data,
   });
 
   return response.data;

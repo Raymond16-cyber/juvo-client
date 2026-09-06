@@ -13,6 +13,7 @@ import TradingGoals from "@/components/dashboard/TradingGoals";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useAnalyticsStore } from "@/stores/analytics.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { useBrokerStore } from "@/stores/broker.store";
 import { useGoalsStore } from "@/stores/goals.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { filterByAccount, getSelectedAccount, isAccountInPlay } from "@/lib/account";
@@ -38,6 +39,8 @@ export default function DashboardOverview() {
   const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
   const goals = useGoalsStore((state) => state.goals);
   const fetchGoals = useGoalsStore((state) => state.fetchGoals);
+  const brokerPositions = useBrokerStore((state) => state.positions);
+  const fetchBrokerPositions = useBrokerStore((state) => state.fetchPositions);
   const currency = selectedAccount?.currency || analytics?.currency || "USD";
   const accountJournals = useMemo(
     () => filterByAccount(journals, selectedAccount?._id),
@@ -46,6 +49,19 @@ export default function DashboardOverview() {
   const accountGoals = useMemo(
     () => filterByAccount(goals, selectedAccount?._id),
     [goals, selectedAccount?._id],
+  );
+  const accountBrokerPositions = useMemo(
+    () =>
+      brokerPositions.filter((position) => {
+        if (!selectedAccount?._id) return true;
+        const tradingAccount = position.tradingAccount;
+        if (!tradingAccount) return false;
+        if (typeof tradingAccount === "string") {
+          return tradingAccount === selectedAccount._id;
+        }
+        return tradingAccount._id === selectedAccount._id;
+      }),
+    [brokerPositions, selectedAccount],
   );
 
   const openMyDayWorkflow = (hasJournalToday?: boolean) => {
@@ -63,6 +79,7 @@ export default function DashboardOverview() {
     fetchAccounts().catch(() => undefined);
     getUserJournals().catch(() => undefined);
     fetchGoals().catch(() => undefined);
+    fetchBrokerPositions("open").catch(() => undefined);
     if (selectedAccount?._id) {
       fetchAnalytics(selectedAccount._id).catch(() => undefined);
     }
@@ -72,7 +89,8 @@ export default function DashboardOverview() {
     fetchAccounts().catch(() => undefined);
     getUserJournals().catch(() => undefined);
     fetchGoals().catch(() => undefined);
-  }, [fetchAccounts, fetchGoals, getUserJournals]);
+    fetchBrokerPositions("open").catch(() => undefined);
+  }, [fetchAccounts, fetchBrokerPositions, fetchGoals, getUserJournals]);
 
   useEffect(() => {
     if (!selectedAccount?._id) return;
@@ -121,7 +139,7 @@ export default function DashboardOverview() {
     {
       label: "Trades Logged",
       value: String(summary?.trades || 0),
-      change: `${summary?.openTrades || 0} still open`,
+      change: `${accountBrokerPositions.length} live cTrader positions`,
       tone: "neutral" as const,
       icon: Activity,
     },
@@ -180,7 +198,11 @@ export default function DashboardOverview() {
 
           <div className="grid gap-5 2xl:grid-cols-[minmax(0,1.3fr)_minmax(300px,0.8fr)]">
             <PerformanceChart curve={analytics?.equityCurve} currency={currency} />
-            <RecentTrades journals={accountJournals} currency={currency} />
+            <RecentTrades
+              journals={accountJournals}
+              currency={currency}
+              brokerPositions={accountBrokerPositions}
+            />
           </div>
 
           <div className="grid gap-5 lg:grid-cols-2">
