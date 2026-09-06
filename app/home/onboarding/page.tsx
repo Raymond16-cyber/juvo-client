@@ -103,8 +103,6 @@ export default function OnboardingPage() {
     const validationError = validateStep();
 
     if (validationError) {
-      // Ideally move this into Zustand
-      // so every component shares the error.
       alert(validationError);
       return;
     }
@@ -152,7 +150,6 @@ export default function OnboardingPage() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-background dark:text-white">
       <div className="mx-auto flex min-h-screen w-full max-w-6xl">
-        {/* Left visual */}
         <div className="hidden flex-1 items-center justify-center lg:flex">
           <div ref={brandRef} className="relative">
             <div className="absolute inset-0 rounded-full bg-primary/20 blur-[120px] dark:bg-primary/10" />
@@ -198,7 +195,6 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        {/* Form */}
         <div className="flex w-full max-w-xl flex-col justify-center px-6 py-12 lg:px-12">
           <div
             ref={panelRef}

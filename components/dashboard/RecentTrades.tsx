@@ -56,41 +56,71 @@ export default function RecentTrades({
               <RadioTower size={14} />
               Live cTrader positions
             </div>
-            {brokerPositions.slice(0, 3).map((position) => (
-              <div
-                key={position._id}
-                className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-2xl border border-cyan-200 bg-cyan-50/70 p-4 dark:border-cyan-400/20 dark:bg-cyan-400/10"
-              >
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-bold text-slate-950 dark:text-white">
-                      {position.symbol}
+            {brokerPositions.slice(0, 3).map((position) => {
+              const brokerPnl =
+                position.live?.netUnrealizedPnl ??
+                position.live?.grossUnrealizedPnl;
+              const fallbackPnl = position.live?.floatingProfitIndicative;
+              const displayPnl = brokerPnl ?? fallbackPnl;
+
+              return (
+                <div
+                  key={position._id}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-2xl border border-cyan-200 bg-cyan-50/70 p-4 dark:border-cyan-400/20 dark:bg-cyan-400/10"
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-bold text-slate-950 dark:text-white">
+                        {position.symbol}
+                      </p>
+                      <span className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-[11px] font-bold uppercase text-cyan-700 dark:text-cyan-200">
+                        Live
+                      </span>
+                    </div>
+                    <p className="mt-2 truncate text-sm text-slate-500 dark:text-slate-400">
+                      {position.direction} · {position.lotSize ? `${formatNumber(position.lotSize, 2)} lots` : "Lot size unavailable"}
                     </p>
-                    <span className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-[11px] font-bold uppercase text-cyan-700 dark:text-cyan-200">
-                      Live
-                    </span>
                   </div>
-                  <p className="mt-2 truncate text-sm text-slate-500 dark:text-slate-400">
-                    {position.direction} · {position.lotSize ? `${formatNumber(position.lotSize, 2)} lots` : "Lot size unavailable"}
-                  </p>
+                  <div className="shrink-0 text-right">
+                    <p
+                      className={`font-bold ${
+                        typeof displayPnl === "number"
+                          ? pnlClass(displayPnl)
+                          : "text-slate-950 dark:text-white"
+                      }`}
+                    >
+                      {typeof displayPnl === "number"
+                        ? formatMoney(
+                            displayPnl,
+                            typeof position.tradingAccount === "object"
+                              ? position.tradingAccount.currency
+                              : currency,
+                          )
+                        : position.live?.currentPrice
+                          ? formatNumber(position.live.currentPrice, 5)
+                          : "Live"}
+                    </p>
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                      {typeof brokerPnl === "number"
+                        ? "Broker P/L"
+                        : typeof fallbackPnl === "number"
+                          ? "Indicative"
+                          : position.openedAt
+                            ? formatDate(position.openedAt, {
+                                month: "short",
+                                day: "numeric",
+                              })
+                            : "Synced"}
+                    </p>
+                  </div>
+                  <div className="col-span-2 grid grid-cols-3 gap-2 text-xs">
+                    <PositionMini label="Entry" value={position.entryPrice} />
+                    <PositionMini label="Bid" value={position.live?.currentBid} />
+                    <PositionMini label="Ask" value={position.live?.currentAsk} />
+                  </div>
                 </div>
-                <div className="shrink-0 text-right">
-                  <p className="font-bold text-slate-950 dark:text-white">
-                    {position.entryPrice
-                      ? formatNumber(position.entryPrice, 5)
-                      : "Open"}
-                  </p>
-                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                    {position.openedAt
-                      ? formatDate(position.openedAt, {
-                          month: "short",
-                          day: "numeric",
-                        })
-                      : "Synced"}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : null}
 
@@ -156,5 +186,24 @@ export default function RecentTrades({
         )}
       </div>
     </section>
+  );
+}
+
+function PositionMini({
+  label,
+  value,
+}: {
+  label: string;
+  value?: number;
+}) {
+  return (
+    <div className="min-w-0 rounded-xl bg-white/70 px-2.5 py-2 dark:bg-white/[0.04]">
+      <p className="truncate font-bold text-slate-950 dark:text-white">
+        {typeof value === "number" ? formatNumber(value, 5) : "N/A"}
+      </p>
+      <p className="mt-0.5 truncate text-slate-500 dark:text-slate-400">
+        {label}
+      </p>
+    </div>
   );
 }

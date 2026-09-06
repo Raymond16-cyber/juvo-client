@@ -22,14 +22,11 @@ export default function ForgotPassword() {
     clearError();
     try {
       await requestResetPassword({ email });
-    } catch (error) {
-      console.error("Error requesting password reset:", error);
+    } catch {
+      // The auth store already exposes a user-facing error.
     }
   };
 
-  // =========================
-  //  USE-EFFECT STATES
-  // =========================
   useEffect(() => {
     if (message && resetPasswordToken) {
       router.push(`/auth/verify-otp-code/${resetPasswordToken}?email=${encodeURIComponent(email)}`);

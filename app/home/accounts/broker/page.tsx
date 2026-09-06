@@ -5,7 +5,6 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
 import { formatDate, formatMoney, formatNumber, pnlClass } from "@/lib/format";
-import { brokerDebug } from "@/services/broker.service";
 import { useBrokerStore } from "@/stores/broker.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { useNoticeStore } from "@/stores/notice.store";
@@ -108,13 +107,6 @@ export default function BrokerConnectionsPage() {
             ? `code:${code}`
             : null;
 
-    brokerDebug("page:query", {
-      connected,
-      error: errorParam,
-      hasCode: Boolean(code),
-      codeLength: code?.length || 0,
-    });
-
     async function hydrateBrokerPage() {
       if (callbackKey && processedCallbackRef.current === callbackKey) {
         return;
@@ -156,7 +148,6 @@ export default function BrokerConnectionsPage() {
       }
 
       if (code) {
-        brokerDebug("page:exchanging-code");
         try {
           await completeCTraderConnect(code);
           await Promise.all([
@@ -169,8 +160,13 @@ export default function BrokerConnectionsPage() {
             body: "Your cTrader account is linked. Juvo can now show imported trades and open positions.",
             tone: "success",
           });
-        } catch (completeError) {
-          brokerDebug("page:exchange-failed", completeError);
+        } catch {
+          showNotice({
+            id: "ctrader-connection-failed",
+            title: "cTrader connection failed",
+            body: "Juvo could not finish the cTrader connection.",
+            tone: "warning",
+          });
         }
         router.replace("/home/accounts/broker");
         return;
@@ -194,15 +190,10 @@ export default function BrokerConnectionsPage() {
   ]);
 
   const handleConnectCtrader = async () => {
-    brokerDebug("page:connect-clicked");
     await startCTraderConnect();
   };
 
   const handleSyncCtrader = async () => {
-    brokerDebug("page:sync-clicked", {
-      connectionId: cTraderConnection?.id,
-    });
-
     try {
       await syncCTrader(cTraderConnection?.id);
       await getUserJournals().catch(() => undefined);
@@ -211,8 +202,7 @@ export default function BrokerConnectionsPage() {
         body: "Open positions and imported trade history are up to date.",
         tone: "success",
       });
-    } catch (syncError) {
-      brokerDebug("page:sync-failed", syncError);
+    } catch {
       showNotice({
         title: "cTrader sync failed",
         body: "Juvo could not refresh cTrader data right now.",
@@ -532,6 +522,10 @@ function BrokerMetric({ label, value }: { label: string; value: string | number 
 
 function BrokerPositionRow({ position }: { position: BrokerPosition }) {
   const isLong = position.direction === "long";
+  const brokerPnl =
+    position.live?.netUnrealizedPnl ?? position.live?.grossUnrealizedPnl;
+  const fallbackPnl = position.live?.floatingProfitIndicative;
+  const displayPnl = brokerPnl ?? fallbackPnl;
 
   return (
     <div className="rounded-xl border border-slate-200 p-4 dark:border-white/10">
@@ -566,8 +560,53 @@ function BrokerPositionRow({ position }: { position: BrokerPosition }) {
           }
         />
         <BrokerMiniMetric
+          label="Live"
+          value={
+            position.live?.currentPrice
+              ? formatNumber(position.live.currentPrice, 5)
+              : "Waiting"
+          }
+        />
+        <BrokerMiniMetric
+          label="Broker P/L"
+          value={
+            typeof displayPnl === "number"
+              ? formatMoney(
+                  displayPnl,
+                  typeof position.tradingAccount === "object"
+                    ? position.tradingAccount.currency
+                    : "USD",
+                )
+              : "N/A"
+          }
+          className={
+            typeof displayPnl === "number"
+              ? pnlClass(displayPnl)
+              : undefined
+          }
+        />
+        <BrokerMiniMetric
           label="Lots"
           value={position.lotSize ? formatNumber(position.lotSize, 2) : "N/A"}
+        />
+      </div>
+
+      <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+        <BrokerMiniMetric
+          label="Bid"
+          value={
+            position.live?.currentBid
+              ? formatNumber(position.live.currentBid, 5)
+              : "N/A"
+          }
+        />
+        <BrokerMiniMetric
+          label="Ask"
+          value={
+            position.live?.currentAsk
+              ? formatNumber(position.live.currentAsk, 5)
+              : "N/A"
+          }
         />
         <BrokerMiniMetric
           label="SL"
@@ -580,7 +619,13 @@ function BrokerPositionRow({ position }: { position: BrokerPosition }) {
       </div>
 
       <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-        {position.openedAt ? `Opened ${formatDate(position.openedAt)}` : "Open time unavailable"}
+        {typeof brokerPnl === "number"
+          ? "P/L is provided by cTrader for the open position. Final realized P/L is still imported from the close deal."
+          : position.live?.floatingPnlIsIndicative
+          ? "Floating P/L is indicative until cTrader sends the final close result."
+          : position.openedAt
+            ? `Opened ${formatDate(position.openedAt)}`
+            : "Open time unavailable"}
       </p>
     </div>
   );
@@ -642,13 +687,15 @@ function ImportedTradeRow({ trade }: { trade: ImportedCTraderTrade }) {
 function BrokerMiniMetric({
   label,
   value,
+  className = "text-slate-950 dark:text-white",
 }: {
   label: string;
   value: string | number;
+  className?: string;
 }) {
   return (
     <div className="min-w-0 rounded-lg bg-slate-100 px-3 py-2 dark:bg-white/[0.05]">
-      <p className="truncate text-sm font-bold text-slate-950 dark:text-white">
+      <p className={`truncate text-sm font-bold ${className}`}>
         {value}
       </p>
       <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">

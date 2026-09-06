@@ -6,20 +6,28 @@ import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
 import { useAuthStore } from "@/stores/auth.store";
 import { Gift } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function ReferralsPage() {
   const user = useAuthStore((state) => state.user);
   const [copied, setCopied] = useState(false);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const code = useMemo(() => {
     const seed = (user?.email || user?.fullName || "juvo").replace(/[^a-z0-9]/gi, "").slice(0, 8);
     return `JUVO-${seed.toUpperCase() || "TRADER"}`;
   }, [user]);
 
+  useEffect(() => {
+    return () => {
+      if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    };
+  }, []);
+
   const copy = async () => {
     await navigator.clipboard.writeText(code);
     setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
+    if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    copiedTimerRef.current = setTimeout(() => setCopied(false), 1600);
   };
 
   return (

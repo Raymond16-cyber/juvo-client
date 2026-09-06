@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, ArrowLeft, RefreshCw } from "lucide-react";
+import { ShieldCheck, ArrowLeft } from "lucide-react";
 
 import AuthVisual from "@/components/auth/AuthVisual";
 import Button from "@/components/ui/Button";
@@ -22,21 +22,14 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
 
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState<string | null>(null);
 
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
 
-  // =========================
-  //  USE-AUTH-STORE STATES
-  // =========================
   const verifyOtp = useAuthStore((state) => state.verifyOtpCode);
 
-  /**
-   * Resolve the dynamic route parameter.
-   */
   React.useEffect(() => {
     params.then(({ token }) => {
       setToken(token);
@@ -49,7 +42,6 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
   const handleOtpChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.replace(/\D/g, "");
 
-    // Keep OTP at 6 digits
     if (value.length <= 6) {
       setOtp(value);
     }
@@ -88,7 +80,6 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
 
       setMessage(result.message);
 
-      // OTP is valid
       router.push(
         `/auth/reset-password/${result.resetPasswordToken}?email=${encodeURIComponent(email)}`,
       );
@@ -108,53 +99,16 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
     }
   };
 
-  const handleResendOtp = async () => {
-    if (!token) return;
-
-    try {
-      setIsResending(true);
-      setError("");
-      setMessage("");
-
-      /*
-       * Connect this to your resend OTP service.
-       *
-       * Example:
-       *
-       * await resendOtp(token);
-       */
-
-      setMessage("A new verification code has been sent.");
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-
-      setError(
-        axiosError.response?.data?.message ||
-          "Unable to resend the verification code.",
-      );
-    } finally {
-      setIsResending(false);
-    }
-  };
-
   return (
     <div className="dark-page-shell min-h-screen overflow-x-hidden">
       <Header />
 
       <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-10 lg:px-16">
         <div className="grid w-full max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
-          {/* =====================================================
-              OTP FORM
-          ====================================================== */}
-
           <section className="mx-auto w-full max-w-md">
-            {/* Icon */}
-
             <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
               <ShieldCheck className="h-7 w-7 text-primary" />
             </div>
-
-            {/* Heading */}
 
             <div className="mb-8">
               <h1 className="mb-3 text-3xl font-semibold text-white">
@@ -166,12 +120,7 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
                 the code below to continue your JUVO journey.
               </p>
             </div>
-
-            {/* Form */}
-
             <form onSubmit={handleVerifyOtp} className="space-y-6">
-              {/* OTP */}
-
               <div>
                 <label
                   htmlFor="otp"
@@ -197,23 +146,17 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
                 </p>
               </div>
 
-              {/* Error */}
-
               {error && (
                 <div className="rounded-md border border-red-500/20 bg-red-500/5 px-4 py-3">
                   <p className="text-sm text-red-400">{error}</p>
                 </div>
               )}
 
-              {/* Success */}
-
               {message && (
                 <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
                   <p className="text-sm text-emerald-400">{message}</p>
                 </div>
               )}
-
-              {/* Verify */}
 
               <Button
                 type="submit"
@@ -224,28 +167,18 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
               </Button>
             </form>
 
-            {/* Resend */}
-
             <div className="mt-6 text-center">
               <p className="text-sm text-slate-500">
                 Didn&apos;t receive the code?
               </p>
 
-              <button
-                type="button"
-                onClick={handleResendOtp}
-                disabled={isResending}
-                className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-white transition hover:text-primary disabled:opacity-50"
+              <Link
+                href="/auth/forgot-password"
+                className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-white transition hover:text-primary"
               >
-                <RefreshCw
-                  className={`h-4 w-4 ${isResending ? "animate-spin" : ""}`}
-                />
-
-                {isResending ? "Sending..." : "Resend code"}
-              </button>
+                Request a new reset link
+              </Link>
             </div>
-
-            {/* Back */}
 
             <div className="mt-8 border-t border-white/5 pt-6">
               <Link

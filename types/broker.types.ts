@@ -53,6 +53,20 @@ export interface BrokerPosition {
   closedAt?: string;
   label?: string;
   comment?: string;
+  live?: {
+    currentBid?: number;
+    currentAsk?: number;
+    currentPrice?: number;
+    grossUnrealizedPnl?: number;
+    netUnrealizedPnl?: number;
+    floatingProfitIndicative?: number;
+    quoteTimestamp?: number;
+    pnlTimestamp?: number;
+    symbolDigits?: number;
+    pipPosition?: number;
+    durationMs?: number;
+    floatingPnlIsIndicative?: boolean;
+  };
   tradingAccount?:
     | string
     | {
@@ -65,6 +79,27 @@ export interface BrokerPosition {
       };
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface BrokerPositionLiveUpdate {
+  positionId: string;
+  tradingAccountId: string;
+  provider: "ctrader";
+  symbol: string;
+  side: "long" | "short";
+  entryPrice?: number;
+  currentBid?: number;
+  currentAsk?: number;
+  currentPrice?: number;
+  grossUnrealizedPnl?: number;
+  netUnrealizedPnl?: number;
+  floatingProfitIndicative?: number;
+  quoteTimestamp?: number;
+  pnlTimestamp?: number;
+  symbolDigits?: number;
+  pipPosition?: number;
+  durationMs?: number;
+  floatingPnlIsIndicative?: boolean;
 }
 
 export interface BrokerPositionsResponse {

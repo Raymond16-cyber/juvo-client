@@ -6,12 +6,13 @@ import { useBrokerStore } from "@/stores/broker.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { useNoticeStore } from "@/stores/notice.store";
 import { formatMoney } from "@/lib/format";
+import { BrokerPositionLiveUpdate } from "@/types/broker.types";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 type RealtimeEnvelope = {
   event?: string;
-  payload?: {
+  payload?: BrokerPositionLiveUpdate & {
     trade?: {
       _id: string;
       symbol?: string;
@@ -33,6 +34,24 @@ export default function RealtimeBridge() {
     if (!token) return;
 
     const socket = new WebSocket(getRealtimeUrl(token));
+    const pendingPositionUpdates = new Map<string, BrokerPositionLiveUpdate>();
+    let positionUpdateFrame: number | null = null;
+
+    const flushPositionUpdates = () => {
+      positionUpdateFrame = null;
+      const updates = Array.from(pendingPositionUpdates.values());
+      pendingPositionUpdates.clear();
+
+      const brokerStore = useBrokerStore.getState();
+      updates.forEach((update) => brokerStore.applyPositionLiveUpdate(update));
+    };
+
+    const queuePositionUpdate = (update: BrokerPositionLiveUpdate) => {
+      pendingPositionUpdates.set(update.positionId, update);
+      if (positionUpdateFrame == null) {
+        positionUpdateFrame = window.requestAnimationFrame(flushPositionUpdates);
+      }
+    };
 
     socket.onmessage = (message) => {
       let envelope: RealtimeEnvelope;
@@ -44,6 +63,11 @@ export default function RealtimeBridge() {
 
       if (envelope.event === "position:updated") {
         useBrokerStore.getState().fetchPositions("open").catch(() => undefined);
+        return;
+      }
+
+      if (envelope.event === "position:update" && envelope.payload?.positionId) {
+        queuePositionUpdate(envelope.payload);
         return;
       }
 
@@ -63,6 +87,10 @@ export default function RealtimeBridge() {
     };
 
     return () => {
+      if (positionUpdateFrame != null) {
+        window.cancelAnimationFrame(positionUpdateFrame);
+      }
+      pendingPositionUpdates.clear();
       socket.close();
     };
   }, [pathname]);

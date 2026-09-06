@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AxiosError } from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -19,7 +19,6 @@ export default function ResetPasswordPage({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Get email from URL
   const email = searchParams.get("email");
 
   const [password, setPassword] = useState("");
@@ -32,11 +31,9 @@ export default function ResetPasswordPage({
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [token, setToken] = useState<string | null>(null);
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /**
-   * Resolve the dynamic route parameter.
-   */
-  React.useEffect(() => {
+  useEffect(() => {
     params.then(({ token }) => {
       setToken(token);
     });
@@ -50,11 +47,14 @@ export default function ResetPasswordPage({
     setError("");
     setMessage("");
 
-    // -------------------------
-    // Validation
-    // -------------------------
-
     if (!email) {
+      setError(
+        "Your password reset session is invalid. Please request a new reset link.",
+      );
+      return;
+    }
+
+    if (!token) {
       setError(
         "Your password reset session is invalid. Please request a new reset link.",
       );
@@ -87,8 +87,8 @@ export default function ResetPasswordPage({
 
       setMessage("Your password has been reset successfully.");
 
-      // Give user a moment to see success message
-      setTimeout(() => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+      redirectTimerRef.current = setTimeout(() => {
         router.push("/auth/login");
       }, 1500);
     } catch (error) {
@@ -103,24 +103,22 @@ export default function ResetPasswordPage({
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
+
   return (
     <div className="dark-page-shell min-h-screen overflow-x-hidden">
       <Header />
 
       <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-10 lg:px-16">
         <div className="grid w-full max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
-          {/* =========================================
-              RESET PASSWORD FORM
-          ========================================== */}
-
           <section className="mx-auto w-full max-w-md">
-            {/* Icon */}
-
             <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
               <LockKeyhole className="h-7 w-7 text-primary" />
             </div>
-
-            {/* Heading */}
 
             <div className="mb-8">
               <h1 className="mb-3 text-3xl font-semibold text-white">
@@ -140,11 +138,7 @@ export default function ResetPasswordPage({
               )}
             </div>
 
-            {/* Form */}
-
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* New Password */}
-
               <div>
                 <label
                   htmlFor="password"
@@ -179,8 +173,6 @@ export default function ResetPasswordPage({
                   </button>
                 </div>
               </div>
-
-              {/* Confirm Password */}
 
               <div>
                 <label
@@ -217,8 +209,6 @@ export default function ResetPasswordPage({
                 </div>
               </div>
 
-              {/* Password requirements */}
-
               <div className="rounded-md border border-white/5 bg-white/[0.02] px-4 py-3">
                 <p className="mb-2 text-xs font-medium text-slate-300">
                   Password requirements
@@ -245,23 +235,17 @@ export default function ResetPasswordPage({
                 </ul>
               </div>
 
-              {/* Error */}
-
               {error && (
                 <div className="rounded-md border border-red-500/20 bg-red-500/5 px-4 py-3">
                   <p className="text-sm text-red-400">{error}</p>
                 </div>
               )}
 
-              {/* Success */}
-
               {message && (
                 <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
                   <p className="text-sm text-emerald-400">{message}</p>
                 </div>
               )}
-
-              {/* Submit */}
 
               <Button
                 type="submit"
@@ -276,8 +260,6 @@ export default function ResetPasswordPage({
                 {isLoading ? "Resetting password..." : "Reset password"}
               </Button>
             </form>
-
-            {/* Back to login */}
 
             <div className="mt-8 border-t border-white/5 pt-6">
               <Link

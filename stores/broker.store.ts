@@ -1,6 +1,5 @@
 import { getApiErrorMessage } from "@/lib/axios";
 import {
-  brokerDebug,
   completeCTraderConnectService,
   getBrokerConnectionsService,
   getBrokerPositionsService,
@@ -10,6 +9,7 @@ import {
 import {
   BrokerConnection,
   BrokerPosition,
+  BrokerPositionLiveUpdate,
   CTraderSyncResult,
 } from "@/types/broker.types";
 import { create } from "zustand";
@@ -28,6 +28,7 @@ interface BrokerState {
   fetchConnections: () => Promise<BrokerConnection[]>;
   fetchPositions: (status?: string) => Promise<BrokerPosition[]>;
   syncCTrader: (connectionId?: string) => Promise<CTraderSyncResult>;
+  applyPositionLiveUpdate: (update: BrokerPositionLiveUpdate) => void;
   clearBrokerNotice: () => void;
 }
 
@@ -45,7 +46,6 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
   positions: [],
   lastSync: null,
   startCTraderConnect: async () => {
-    brokerDebug("store:startCTraderConnect");
     set({
       isConnecting: true,
       error: null,
@@ -63,13 +63,8 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
         message: result.message,
       });
 
-      brokerDebug("store:redirecting-to-ctrader", {
-        authorizationUrl: result.authorizationUrl,
-      });
-
       window.location.href = result.authorizationUrl;
     } catch (error) {
-      brokerDebug("store:startCTraderConnect:error", error);
       set({
         isConnecting: false,
         error: getApiErrorMessage(error, "Broker connection failed"),
@@ -79,9 +74,6 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
     }
   },
   completeCTraderConnect: async (code) => {
-    brokerDebug("store:completeCTraderConnect", {
-      codeLength: code?.length || 0,
-    });
     set({
       isConnecting: true,
       error: null,
@@ -103,7 +95,6 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
         connections,
       });
     } catch (error) {
-      brokerDebug("store:completeCTraderConnect:error", error);
       set({
         isConnecting: false,
         error: getApiErrorMessage(error, "Broker connection failed"),
@@ -113,7 +104,6 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
     }
   },
   fetchConnections: async () => {
-    brokerDebug("store:fetchConnections");
     set({ isLoading: true, error: null });
 
     try {
@@ -127,7 +117,6 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
       });
       return connections;
     } catch (error) {
-      brokerDebug("store:fetchConnections:error", error);
       set({
         isLoading: false,
         error: getApiErrorMessage(error, "Unable to load broker connections."),
@@ -136,7 +125,6 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
     }
   },
   fetchPositions: async (status) => {
-    brokerDebug("store:fetchPositions", { status });
     set({ isLoading: true, error: null });
 
     try {
@@ -149,7 +137,6 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
       });
       return positions;
     } catch (error) {
-      brokerDebug("store:fetchPositions:error", error);
       set({
         isLoading: false,
         error: getApiErrorMessage(error, "Unable to load broker positions."),
@@ -158,7 +145,6 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
     }
   },
   syncCTrader: async (connectionId) => {
-    brokerDebug("store:syncCTrader", { connectionId });
     set({ isConnecting: true, error: null, message: null });
 
     try {
@@ -177,13 +163,44 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
       });
       return result.data;
     } catch (error) {
-      brokerDebug("store:syncCTrader:error", error);
       set({
         isConnecting: false,
         error: getApiErrorMessage(error, "Unable to sync cTrader."),
       });
       throw error;
     }
+  },
+  applyPositionLiveUpdate: (update) => {
+    set((state) => ({
+      positions: state.positions.map((position) => {
+        if (position._id !== update.positionId) return position;
+
+        const live = position.live || {};
+        return {
+          ...position,
+          symbol: update.symbol || position.symbol,
+          direction: update.side || position.direction,
+          entryPrice: update.entryPrice ?? position.entryPrice,
+          live: {
+            currentBid: update.currentBid ?? live.currentBid,
+            currentAsk: update.currentAsk ?? live.currentAsk,
+            currentPrice: update.currentPrice ?? live.currentPrice,
+            grossUnrealizedPnl:
+              update.grossUnrealizedPnl ?? live.grossUnrealizedPnl,
+            netUnrealizedPnl: update.netUnrealizedPnl ?? live.netUnrealizedPnl,
+            floatingProfitIndicative:
+              update.floatingProfitIndicative ?? live.floatingProfitIndicative,
+            quoteTimestamp: update.quoteTimestamp ?? live.quoteTimestamp,
+            pnlTimestamp: update.pnlTimestamp ?? live.pnlTimestamp,
+            symbolDigits: update.symbolDigits ?? live.symbolDigits,
+            pipPosition: update.pipPosition ?? live.pipPosition,
+            durationMs: update.durationMs ?? live.durationMs,
+            floatingPnlIsIndicative:
+              update.floatingPnlIsIndicative ?? live.floatingPnlIsIndicative,
+          },
+        };
+      }),
+    }));
   },
   clearBrokerNotice: () => {
     set({ error: null, message: null });
