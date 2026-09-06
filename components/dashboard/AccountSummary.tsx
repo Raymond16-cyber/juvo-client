@@ -13,17 +13,10 @@ export default function AccountSummary({ account }: AccountSummaryProps) {
   const balance = account?.currentBalance ?? 0;
   const target = account?.profitTarget || 0;
   const maxDrawdown = account?.maxDrawnDown || 0;
-  const progress =
-    account && account.initialBalance
-      ? Math.min(
-          100,
-          Math.max(
-            0,
-            ((equity - account.initialBalance) / account.initialBalance) * 100,
-          ),
-        )
-      : 0;
-  const targetProgress = target ? Math.min(100, Math.max(0, (progress / target) * 100)) : progress;
+  const profitPercent = account?.profitPercent || 0;
+  const targetProgress = target
+    ? Math.min(100, Math.max(0, (profitPercent / target) * 100))
+    : Math.max(0, profitPercent);
   const drawdownProgress = maxDrawdown
     ? Math.min(100, Math.max(0, ((account?.drawdownPercent || 0) / maxDrawdown) * 100))
     : Math.max(0, account?.drawdownPercent || 0);

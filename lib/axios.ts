@@ -1,7 +1,6 @@
 import axios from "axios";
 
 const isProduction = process.env.NODE_ENV === "production";
-console.log(process.env.NEXT_PUBLIC_API_URL, process.env.NEXT_PUBLIC_API_ORIGIN);
 
 const api = axios.create({
   baseURL: isProduction
@@ -43,7 +42,9 @@ api.interceptors.response.use(
         const next = window.location.pathname.startsWith("/home")
           ? `?next=${encodeURIComponent(window.location.pathname)}`
           : "";
-        window.location.assign(`/auth/login${next}`);
+        // Axios interceptors run outside React components, so use a browser redirect here.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.href = `/auth/login${next}`;
       }
     }
 

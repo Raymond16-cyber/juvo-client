@@ -13,7 +13,7 @@ import {
   TradingAccount,
   TradingAccountStatus,
 } from "@/types/trading-account.types";
-import { WalletCards } from "lucide-react";
+import { Archive, RotateCcw, WalletCards } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
 const defaultForm: CreateTradingAccountPayload = {
@@ -89,17 +89,24 @@ function ProgressBar({
 
 export default function TradingAccountsPage() {
   const accounts = useAccountsStore((state) => state.accounts);
+  const archivedAccounts = useAccountsStore((state) => state.archivedAccounts);
   const isLoading = useAccountsStore((state) => state.isLoading);
   const error = useAccountsStore((state) => state.error);
   const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
+  const fetchArchivedAccounts = useAccountsStore(
+    (state) => state.fetchArchivedAccounts,
+  );
   const createAccount = useAccountsStore((state) => state.createAccount);
   const activateAccount = useAccountsStore((state) => state.activateAccount);
-  const deleteAccount = useAccountsStore((state) => state.deleteAccount);
+  const archiveAccount = useAccountsStore((state) => state.archiveAccount);
+  const restoreAccount = useAccountsStore((state) => state.restoreAccount);
   const [form, setForm] = useState(defaultForm);
+  const [view, setView] = useState<"active" | "archived">("active");
 
   useEffect(() => {
     fetchAccounts().catch(() => undefined);
-  }, [fetchAccounts]);
+    fetchArchivedAccounts().catch(() => undefined);
+  }, [fetchAccounts, fetchArchivedAccounts]);
 
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -113,12 +120,57 @@ export default function TradingAccountsPage() {
         <PageHeader
           eyebrow="Accounts"
           title="Trading Accounts"
-          description="Every journal is tied to an account. Demo, live, prop, or challenge — keep them separate, and only the active account collects new trades."
+          description="Every journal is tied to an account. Active accounts can collect new trades; archived accounts stay available for review."
+          actions={
+            <div className="grid grid-cols-2 gap-1 rounded-full bg-slate-100 p-1 text-sm font-semibold dark:bg-white/10">
+              <button
+                type="button"
+                className={`rounded-full px-4 py-2 ${
+                  view === "active"
+                    ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
+                    : "text-slate-500 dark:text-slate-300"
+                }`}
+                onClick={() => setView("active")}
+              >
+                Active {accounts.length}
+              </button>
+              <button
+                type="button"
+                className={`rounded-full px-4 py-2 ${
+                  view === "archived"
+                    ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
+                    : "text-slate-500 dark:text-slate-300"
+                }`}
+                onClick={() => setView("archived")}
+              >
+                Archived {archivedAccounts.length}
+              </button>
+            </div>
+          }
         />
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
           <div className="space-y-4">
-            {accounts.length ? (
+            {view === "archived" ? (
+              archivedAccounts.length ? (
+                archivedAccounts.map((account) => (
+                  <ArchivedAccountCard
+                    key={account._id}
+                    account={account}
+                    onRestore={() => restoreAccount(account._id)}
+                    isLoading={isLoading}
+                  />
+                ))
+              ) : (
+                <Card>
+                  <EmptyState
+                    icon={Archive}
+                    title={isLoading ? "Loading archive" : "No archived accounts"}
+                    body="Archived accounts will appear here with their old trades and account history."
+                  />
+                </Card>
+              )
+            ) : accounts.length ? (
               accounts.map((account) => {
                 const targetProgress = account.profitTarget
                   ? Math.min(
@@ -172,7 +224,7 @@ export default function TradingAccountsPage() {
                         <Button
                           variant="ghost"
                           className="h-9 px-3"
-                          onClick={() => deleteAccount(account._id)}
+                          onClick={() => archiveAccount(account._id)}
                         >
                           Archive
                         </Button>
@@ -268,7 +320,7 @@ export default function TradingAccountsPage() {
             )}
           </div>
 
-          <form onSubmit={handleCreate}>
+          <form onSubmit={handleCreate} className={view === "archived" ? "hidden xl:block" : ""}>
             <Card className="space-y-3 p-5">
               <h2 className="text-lg font-bold text-slate-950 dark:text-white">
                 Add account
@@ -402,5 +454,92 @@ export default function TradingAccountsPage() {
         </div>
       </div>
     </DashboardShell>
+  );
+}
+
+function ArchivedAccountCard({
+  account,
+  isLoading,
+  onRestore,
+}: {
+  account: TradingAccount;
+  isLoading: boolean;
+  onRestore: () => void;
+}) {
+  return (
+    <Card className="p-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-lg font-bold text-slate-950 dark:text-white">
+              {account.accountName}
+            </p>
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-white/10 dark:text-slate-300">
+              Archived
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {account.broker} · {account.platform} · {account.accountType}
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          className="h-9 px-3"
+          onClick={onRestore}
+          disabled={isLoading}
+        >
+          <RotateCcw size={16} />
+          Restore
+        </Button>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          ["Balance", formatMoney(account.currentBalance, account.currency)],
+          ["Equity", formatMoney(account.currentEquity, account.currency)],
+          ["Trades", String(account.tradesCount || 0)],
+          ["P/L", formatMoney(account.totalProfitLoss || 0, account.currency)],
+        ].map(([label, value]) => (
+          <div
+            key={label}
+            className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/[0.04]"
+          >
+            <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
+            <p className="mt-1 text-sm font-bold text-slate-950 dark:text-white">
+              {value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {account.trades?.length ? (
+        <div className="mt-5 border-t border-slate-200 pt-4 dark:border-white/10">
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+            Archived account trades
+          </p>
+          <div className="mt-3 space-y-2">
+            {account.trades.slice(0, 6).map((trade) => (
+              <div
+                key={trade._id}
+                className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm dark:bg-white/[0.04]"
+              >
+                <div>
+                  <p className="font-semibold text-slate-950 dark:text-white">
+                    {trade.symbol} · {trade.direction}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {trade.status}
+                    {trade.session ? ` · ${trade.session}` : ""}
+                  </p>
+                </div>
+                <p className={`font-bold ${pnlClass(trade.profitLoss || 0)}`}>
+                  {formatMoney(trade.profitLoss || 0, account.currency)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </Card>
   );
 }

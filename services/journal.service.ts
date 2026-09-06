@@ -11,20 +11,14 @@ import {
   UserJournalsResponse,
 } from "@/types/journal.types";
 
-export const getTodayJournalStatusService = async (
-  tradingAccountId?: string | null,
-): Promise<JournalStatusResponse> => {
-  const response = await api.get<JournalStatusResponse>(
-    "/journal/get-today-journal-status",
-    {
-      params: tradingAccountId
-        ? { tradingAccount: tradingAccountId }
-        : undefined,
-    },
-  );
+export const getTodayJournalStatusService =
+  async (): Promise<JournalStatusResponse> => {
+    const response = await api.get<JournalStatusResponse>(
+      "/journal/get-today-journal-status",
+    );
 
-  return response.data;
-};
+    return response.data;
+  };
 
 export const getUserJournalsService =
   async (): Promise<UserJournalsResponse> => {

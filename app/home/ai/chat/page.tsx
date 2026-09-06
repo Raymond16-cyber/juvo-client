@@ -59,7 +59,9 @@ export default function JuvoAIChatPage() {
   };
 
   useEffect(() => {
-    loadConversations();
+    queueMicrotask(() => {
+      void loadConversations();
+    });
   }, []);
 
   useEffect(() => {

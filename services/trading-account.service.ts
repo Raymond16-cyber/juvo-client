@@ -14,6 +14,15 @@ export const getTradingAccountsService =
     return response.data;
   };
 
+export const getArchivedTradingAccountsService =
+  async (): Promise<TradingAccountsResponse> => {
+    const response = await api.get<TradingAccountsResponse>(
+      "/trading-account/archived",
+    );
+
+    return response.data;
+  };
+
 export const createTradingAccountService = async (
   data: CreateTradingAccountPayload,
 ): Promise<CreateTradingAccountResponse> => {
@@ -25,13 +34,15 @@ export const createTradingAccountService = async (
   return response.data;
 };
 
-export const deleteTradingAccountService = async (accountId: string) => {
+export const archiveTradingAccountService = async (accountId: string) => {
   const response = await api.delete<{ message: string; accountId: string }>(
     `/trading-account/delete-trading-account/${accountId}`,
   );
 
   return response.data;
 };
+
+export const deleteTradingAccountService = archiveTradingAccountService;
 
 export const getTradingAccountByIdService = async (
   accountId: string,
@@ -48,6 +59,16 @@ export const activateTradingAccountService = async (
 ): Promise<CreateTradingAccountResponse> => {
   const response = await api.patch<CreateTradingAccountResponse>(
     `/trading-account/${accountId}/activate`,
+  );
+
+  return response.data;
+};
+
+export const restoreTradingAccountService = async (
+  accountId: string,
+): Promise<CreateTradingAccountResponse> => {
+  const response = await api.patch<CreateTradingAccountResponse>(
+    `/trading-account/${accountId}/restore`,
   );
 
   return response.data;

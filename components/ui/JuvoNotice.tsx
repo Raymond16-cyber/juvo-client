@@ -9,7 +9,7 @@ import {
 } from "@/stores/notice.store";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { ShieldAlert, Trophy, Info, CircleCheck, TriangleAlert, X } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 const toneStyles: Record<
   JuvoNoticeTone,
@@ -49,12 +49,12 @@ function NoticeCard({ notice }: { notice: JuvoNotice }) {
   const tone = toneStyles[notice.tone];
   const Icon = tone.Icon;
 
-  const dismiss = async () => {
+  const dismiss = useCallback(async () => {
     if (leavingRef.current) return;
     leavingRef.current = true;
     await animateNoticeOut(rootRef.current);
     dismissNotice(notice.id);
-  };
+  }, [dismissNotice, notice.id]);
 
   useEffect(() => {
     const stop = animateNoticeIn(rootRef.current);
@@ -69,7 +69,7 @@ function NoticeCard({ notice }: { notice: JuvoNotice }) {
       stop();
       if (timeout) window.clearTimeout(timeout);
     };
-  }, [notice.id]);
+  }, [dismiss, notice.duration, notice.id]);
 
   return (
     <div ref={rootRef} className="pointer-events-auto w-[min(92vw,420px)]">

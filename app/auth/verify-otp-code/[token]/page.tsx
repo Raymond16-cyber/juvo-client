@@ -85,7 +85,6 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
         otp,
         email,
       });
-      console.log("OTP verification result:", result); // Log the result for debugging
 
       setMessage(result.message);
 
@@ -124,8 +123,6 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
        *
        * await resendOtp(token);
        */
-
-      console.log("Resending OTP for token:", token);
 
       setMessage("A new verification code has been sent.");
     } catch (error) {

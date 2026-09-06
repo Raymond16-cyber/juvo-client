@@ -35,6 +35,48 @@ const defaultReview: CompleteJournalPayload = {
   respectedStopLoss: true,
 };
 
+function estimateCloseResult({
+  accountBalance,
+  direction,
+  entryPrice,
+  exitPrice,
+  riskPercentage,
+  status,
+  stopLoss,
+}: {
+  accountBalance: number;
+  direction?: "long" | "short";
+  entryPrice?: number;
+  exitPrice: number;
+  riskPercentage?: number;
+  status: "Closed" | "Breakeven" | "Cancelled";
+  stopLoss?: number;
+}) {
+  if (status === "Breakeven" || status === "Cancelled") {
+    return { achievedRR: 0, profitLoss: 0 };
+  }
+
+  const entry = Number(entryPrice || 0);
+  const stop = Number(stopLoss || 0);
+  const risk = Math.abs(entry - stop);
+
+  if (!entry || !stop || !risk || !exitPrice) {
+    return null;
+  }
+
+  const move =
+    direction === "short" ? entry - exitPrice : exitPrice - entry;
+  const achievedRR = Number((move / risk).toFixed(2));
+  const riskAmount = accountBalance
+    ? accountBalance * (Number(riskPercentage || 0) / 100)
+    : 0;
+  const profitLoss = Number(
+    (achievedRR * (riskAmount || Math.abs(move))).toFixed(2),
+  );
+
+  return { achievedRR, profitLoss };
+}
+
 export default function JournalDetailPage() {
   const params = useParams<{ id: string }>();
   const journalId = params.id;
@@ -60,19 +102,21 @@ export default function JournalDetailPage() {
 
   useEffect(() => {
     if (!journal) return;
-    setReview({
-      afterTrading: journal.psychology?.afterTrading || "",
-      confidenceAfter: journal.psychology?.confidenceAfter || 7,
-      biggestMistake: journal.review?.biggestMistake || "",
-      biggestWin: journal.review?.biggestWin || "",
-      lessonLearned: journal.review?.lessonLearned || "",
-      improvementsTomorrow: journal.review?.improvementsTomorrow || "",
-      overallThoughts: journal.review?.overallThoughts || "",
-      followedTradingPlan: journal.discipline?.followedTradingPlan ?? true,
-      followedRiskManagement: journal.discipline?.followedRiskManagement ?? true,
-      revengeTraded: journal.discipline?.revengeTraded ?? false,
-      overTraded: journal.discipline?.overTraded ?? false,
-      respectedStopLoss: journal.discipline?.respectedStopLoss ?? true,
+    queueMicrotask(() => {
+      setReview({
+        afterTrading: journal.psychology?.afterTrading || "",
+        confidenceAfter: journal.psychology?.confidenceAfter || 7,
+        biggestMistake: journal.review?.biggestMistake || "",
+        biggestWin: journal.review?.biggestWin || "",
+        lessonLearned: journal.review?.lessonLearned || "",
+        improvementsTomorrow: journal.review?.improvementsTomorrow || "",
+        overallThoughts: journal.review?.overallThoughts || "",
+        followedTradingPlan: journal.discipline?.followedTradingPlan ?? true,
+        followedRiskManagement: journal.discipline?.followedRiskManagement ?? true,
+        revengeTraded: journal.discipline?.revengeTraded ?? false,
+        overTraded: journal.discipline?.overTraded ?? false,
+        respectedStopLoss: journal.discipline?.respectedStopLoss ?? true,
+      });
     });
   }, [journal]);
 
@@ -85,6 +129,24 @@ export default function JournalDetailPage() {
       ? journal.tradingAccount.status
       : undefined;
   const journalCurrency = getRecordCurrency(journal);
+  const closingTrade = journal?.trades?.find(
+    (trade) => trade._id === closingTradeId,
+  );
+  const accountBalance =
+    journal?.tradingAccount && typeof journal.tradingAccount !== "string"
+      ? journal.tradingAccount.currentBalance
+      : 0;
+  const estimatedClose = closingTrade
+    ? estimateCloseResult({
+        accountBalance,
+        direction: closingTrade.direction,
+        entryPrice: closingTrade.entryPrice,
+        exitPrice: Number(exitPrice || 0),
+        riskPercentage: closingTrade.riskPercentage,
+        status: closeStatus,
+        stopLoss: closingTrade.stopLoss,
+      })
+    : null;
 
   const handleCloseTrade = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -283,6 +345,27 @@ export default function JournalDetailPage() {
                       Save close
                     </Button>
                   </form>
+                  <div className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
+                    {estimatedClose ? (
+                      <p>
+                        JUVO will calculate this close as RR{" "}
+                        <span className="font-bold text-slate-950 dark:text-white">
+                          {estimatedClose.achievedRR}
+                        </span>{" "}
+                        and{" "}
+                        <span className={pnlClass(estimatedClose.profitLoss)}>
+                          {formatMoney(estimatedClose.profitLoss, journalCurrency)}
+                        </span>
+                        . Broker-imported or manually supplied P/L can still override this
+                        later.
+                      </p>
+                    ) : (
+                      <p>
+                        Enter an exit price and JUVO will calculate the close from
+                        your entry, stop, risk, and account balance.
+                      </p>
+                    )}
+                  </div>
                 </Card>
               ) : null}
             </div>

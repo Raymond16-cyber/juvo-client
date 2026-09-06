@@ -73,7 +73,7 @@ export default function JournalSearch() {
   }, [journals, query]);
 
   useEffect(() => {
-    setActiveIndex(0);
+    queueMicrotask(() => setActiveIndex(0));
   }, [query, results.length]);
 
   const goToJournal = (journalId: string) => {

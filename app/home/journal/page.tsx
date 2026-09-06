@@ -64,7 +64,10 @@ export default function JournalPage() {
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [beforeTrading, setBeforeTrading] = useState("");
   const [confidenceBefore, setConfidenceBefore] = useState(7);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("q") || "";
+  });
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -94,11 +97,6 @@ export default function JournalPage() {
 
     loadJournalPage();
   }, [fetchAccounts, getUserJournals, storeSelectedAccountId]);
-
-  useEffect(() => {
-    const query = new URLSearchParams(window.location.search).get("q");
-    if (query) setSearchTerm(query);
-  }, []);
 
   const filteredJournals = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();

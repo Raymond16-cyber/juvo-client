@@ -44,9 +44,7 @@ interface JournalStore {
     data: CompleteJournalPayload,
   ) => Promise<JournalDetail>;
   getJournalById: (journalId: string) => Promise<JournalDetail>;
-  getTodayJournalStatus: (
-    tradingAccountId?: string | null,
-  ) => Promise<JournalStatusResponse>;
+  getTodayJournalStatus: () => Promise<JournalStatusResponse>;
   getUserJournals: () => Promise<UserJournalsResponse>;
   clearError: () => void;
 }
@@ -177,10 +175,10 @@ export const useJournalStore = create<JournalStore>((set) => ({
       set({ isLoading: false });
     }
   },
-  getTodayJournalStatus: async (tradingAccountId) => {
+  getTodayJournalStatus: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await getTodayJournalStatusService(tradingAccountId);
+      const response = await getTodayJournalStatusService();
       set({ journalStatus: response.data, message: response.message });
       return response;
     } catch (error) {

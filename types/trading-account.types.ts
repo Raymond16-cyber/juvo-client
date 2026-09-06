@@ -38,6 +38,7 @@ export interface TradingAccount {
   maxDrawnDown: number;
   profitTarget: number;
   isConnected: boolean;
+  isArchived?: boolean;
   isActive?: boolean;
   status?: TradingAccountStatus;
   statusUpdatedAt?: string | null;

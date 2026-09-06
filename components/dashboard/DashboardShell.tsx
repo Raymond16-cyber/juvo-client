@@ -38,7 +38,7 @@ export default function DashboardShell({
   const pathname = usePathname();
 
   useEffect(() => {
-    setSidebarOpen(false);
+    queueMicrotask(() => setSidebarOpen(false));
   }, [pathname]);
 
   useEffect(() => {

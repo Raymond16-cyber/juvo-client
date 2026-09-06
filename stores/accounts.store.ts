@@ -1,9 +1,11 @@
 import { getSelectedAccount, isAccountInPlay } from "@/lib/account";
 import {
   activateTradingAccountService,
+  archiveTradingAccountService,
   createTradingAccountService,
-  deleteTradingAccountService,
+  getArchivedTradingAccountsService,
   getTradingAccountsService,
+  restoreTradingAccountService,
 } from "@/services/trading-account.service";
 import {
   CreateTradingAccountPayload,
@@ -29,13 +31,17 @@ function persistAccountId(accountId: string | null) {
 
 interface AccountsStore {
   accounts: TradingAccount[];
+  archivedAccounts: TradingAccount[];
   selectedAccountId: string | null;
   isLoading: boolean;
   error: string | null;
   fetchAccounts: () => Promise<TradingAccount[]>;
+  fetchArchivedAccounts: () => Promise<TradingAccount[]>;
   createAccount: (data: CreateTradingAccountPayload) => Promise<TradingAccount>;
   selectAccount: (accountId: string) => Promise<TradingAccount | null>;
   activateAccount: (accountId: string) => Promise<TradingAccount>;
+  archiveAccount: (accountId: string) => Promise<void>;
+  restoreAccount: (accountId: string) => Promise<TradingAccount>;
   deleteAccount: (accountId: string) => Promise<void>;
 }
 
@@ -45,6 +51,7 @@ function resolveSelectedId(accounts: TradingAccount[], preferredId?: string | nu
 
 export const useAccountsStore = create<AccountsStore>((set, get) => ({
   accounts: [],
+  archivedAccounts: [],
   selectedAccountId: null,
   isLoading: false,
   error: null,
@@ -91,6 +98,18 @@ export const useAccountsStore = create<AccountsStore>((set, get) => ({
       throw error;
     }
   },
+  fetchArchivedAccounts: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await getArchivedTradingAccountsService();
+      set({ archivedAccounts: response.data, isLoading: false });
+      return response.data;
+    } catch (error) {
+      void error;
+      set({ error: "Unable to load archived accounts.", isLoading: false });
+      throw error;
+    }
+  },
   selectAccount: async (accountId) => {
     const account = get().accounts.find((item) => item._id === accountId);
     if (!account) return null;
@@ -123,23 +142,52 @@ export const useAccountsStore = create<AccountsStore>((set, get) => ({
     }
     return selected;
   },
-  deleteAccount: async (accountId) => {
+  archiveAccount: async (accountId) => {
     set({ isLoading: true, error: null });
     try {
-      await deleteTradingAccountService(accountId);
+      await archiveTradingAccountService(accountId);
       set((state) => {
+        const archivedAccount = state.accounts.find(
+          (account) => account._id === accountId,
+        );
         const accounts = state.accounts.filter((account) => account._id !== accountId);
         const selectedAccountId = resolveSelectedId(
           accounts,
           state.selectedAccountId === accountId ? null : state.selectedAccountId,
         );
         persistAccountId(selectedAccountId);
-        return { accounts, selectedAccountId, isLoading: false };
+        return {
+          accounts,
+          archivedAccounts: archivedAccount
+            ? [{ ...archivedAccount, isArchived: true, isActive: false }, ...state.archivedAccounts]
+            : state.archivedAccounts,
+          selectedAccountId,
+          isLoading: false,
+        };
       });
     } catch (error) {
       void error;
-      set({ error: "Unable to delete trading account.", isLoading: false });
+      set({ error: "Unable to archive trading account.", isLoading: false });
       throw error;
     }
   },
+  restoreAccount: async (accountId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await restoreTradingAccountService(accountId);
+      set((state) => ({
+        accounts: [response.data, ...state.accounts],
+        archivedAccounts: state.archivedAccounts.filter(
+          (account) => account._id !== accountId,
+        ),
+        isLoading: false,
+      }));
+      return response.data;
+    } catch (error) {
+      void error;
+      set({ error: "Unable to restore trading account.", isLoading: false });
+      throw error;
+    }
+  },
+  deleteAccount: async (accountId) => get().archiveAccount(accountId),
 }));

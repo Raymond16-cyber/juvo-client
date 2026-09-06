@@ -31,11 +31,10 @@ export default function ForgotPassword() {
   //  USE-EFFECT STATES
   // =========================
   useEffect(() => {
-    if (message) {
-      console.log(resetPasswordToken);
+    if (message && resetPasswordToken) {
       router.push(`/auth/verify-otp-code/${resetPasswordToken}?email=${encodeURIComponent(email)}`);
     }
-  });
+  }, [email, message, resetPasswordToken, router]);
 
   return (
     <div className="dark-page-shell min-h-screen overflow-x-hidden">

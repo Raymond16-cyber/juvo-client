@@ -48,10 +48,12 @@ export default function GrowthPage() {
       getSelectedAccount(accounts, selectedAccountId) ||
       getTradableAccounts(accounts)[0];
     if (preferred?._id) {
-      setForm((current) => ({
-        ...current,
-        tradingAccount: current.tradingAccount || preferred._id,
-      }));
+      queueMicrotask(() => {
+        setForm((current) => ({
+          ...current,
+          tradingAccount: current.tradingAccount || preferred._id,
+        }));
+      });
     }
   }, [accounts, selectedAccountId]);
 

@@ -102,4 +102,8 @@ export interface UpdatePreferencesPayload {
   fullName?: string;
   country?: string;
   timezone?: string;
+  experienceLevel?: "beginner" | "intermediate" | "advanced" | "professional";
+  tradingStyle?: "scalping" | "day_trading" | "swing_trading" | "position_trading";
+  instruments?: string[];
+  biggestChallenges?: string[];
 }
