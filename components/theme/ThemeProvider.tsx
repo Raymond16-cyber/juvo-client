@@ -11,7 +11,7 @@ export default function ThemeProvider({
 }) {
   const hydrate = useThemeStore((state) => state.hydrate);
   const preference = useThemeStore((state) => state.preference);
-  const setPreference = useThemeStore((state) => state.setPreference);
+  const refreshSystemTheme = useThemeStore((state) => state.refreshSystemTheme);
   const userTheme = useAuthStore((state) => state.user?.preferences?.theme);
 
   useEffect(() => {
@@ -22,10 +22,17 @@ export default function ThemeProvider({
     if (preference !== "system" || typeof window === "undefined") return;
 
     const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => hydrate("system");
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
-  }, [hydrate, preference, setPreference]);
+    const onChange = () => refreshSystemTheme();
+
+    refreshSystemTheme();
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", onChange);
+      return () => media.removeEventListener("change", onChange);
+    }
+
+    media.addListener(onChange);
+    return () => media.removeListener(onChange);
+  }, [preference, refreshSystemTheme]);
 
   return children;
 }

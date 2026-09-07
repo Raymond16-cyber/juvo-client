@@ -4,46 +4,46 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
-import { formatDate, formatMoney, formatNumber, pnlClass } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { useBrokerStore } from "@/stores/broker.store";
-import { useJournalStore } from "@/stores/journal.store";
 import { useNoticeStore } from "@/stores/notice.store";
+import { BrokerConnection } from "@/types/broker.types";
 import {
-  BrokerConnection,
-  BrokerPosition,
-} from "@/types/broker.types";
-import { JournalHistoryItem, JournalListTradeSummary } from "@/types/journal.types";
-import {
-  ArrowUpRight,
+  Activity,
+  AlertTriangle,
+  BarChart3,
   CheckCircle2,
+  Clock3,
+  Database,
   History,
   Link2,
   LoaderCircle,
   RefreshCw,
-  RadioTower,
-  TrendingDown,
+  ShieldCheck,
+  Unplug,
+  WalletCards,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 
-const brokers = [
-  {
-    id: "mt5",
-    name: "MetaTrader 5",
-    body: "Manual journal stays first. Direct MT5 sync will import history without replacing your notes.",
-    action: "coming-soon" as const,
-  },
+const brokerOptions = [
   {
     id: "ctrader",
     name: "cTrader",
-    body: "Keep executions honest. Connection will map fills to the journal you already started.",
+    body: "Read-only sync for account data, open positions, and closed deal history.",
     action: "ctrader" as const,
+  },
+  {
+    id: "mt5",
+    name: "MetaTrader 5",
+    body: "Planned integration for traders who want MT5 history imported into JUVO.",
+    action: "coming-soon" as const,
   },
   {
     id: "csv",
     name: "CSV / broker statement",
-    body: "Upload statements later. For now, log the trade while the decision is still warm.",
+    body: "Planned import path for broker statements and manual reconciliation.",
     action: "coming-soon" as const,
   },
 ];
@@ -55,6 +55,16 @@ const statusStyles: Record<BrokerConnection["status"], string> = {
   error: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
   reauthorization_required: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
 };
+
+const statusCopy: Record<BrokerConnection["status"], string> = {
+  connecting: "Authorization started",
+  connected: "Connected",
+  disconnected: "Disconnected",
+  error: "Needs attention",
+  reauthorization_required: "Reconnect required",
+};
+
+type IconType = React.ComponentType<{ size?: number; className?: string }>;
 
 export default function BrokerConnectionsPage() {
   const router = useRouter();
@@ -75,23 +85,24 @@ export default function BrokerConnectionsPage() {
   const isConnecting = useBrokerStore((state) => state.isConnecting);
   const isLoading = useBrokerStore((state) => state.isLoading);
   const error = useBrokerStore((state) => state.error);
-  const journals = useJournalStore((state) => state.journals);
-  const getUserJournals = useJournalStore((state) => state.getUserJournals);
 
   const cTraderConnection = useMemo(
-    () =>
-      connections.find(
-        (connection) =>
-          connection.provider === "ctrader" &&
-          connection.status === "connected",
-      ),
+    () => connections.find((connection) => connection.provider === "ctrader"),
     [connections],
   );
+  const connectedCTrader = cTraderConnection?.status === "connected";
+  const needsReauth = cTraderConnection?.status === "reauthorization_required";
 
-  const importedCTraderTrades = useMemo(
-    () => collectImportedCTraderTrades(journals),
-    [journals],
-  );
+  const lastSyncLabel = cTraderConnection?.lastSyncedAt
+    ? formatDate(cTraderConnection.lastSyncedAt, {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : lastSync
+      ? "Just now"
+      : "Not synced yet";
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -108,24 +119,19 @@ export default function BrokerConnectionsPage() {
             : null;
 
     async function hydrateBrokerPage() {
-      if (callbackKey && processedCallbackRef.current === callbackKey) {
-        return;
-      }
-      if (callbackKey) {
-        processedCallbackRef.current = callbackKey;
-      }
+      if (callbackKey && processedCallbackRef.current === callbackKey) return;
+      if (callbackKey) processedCallbackRef.current = callbackKey;
 
       if (connected === "1") {
         showNotice({
           id: "ctrader-connected",
           title: "cTrader connected",
-          body: "Your cTrader account is linked. Juvo can now show imported trades and open positions.",
+          body: "Your cTrader account is linked. JUVO can now sync broker data in read-only mode.",
           tone: "success",
         });
         await Promise.all([
           fetchConnections().catch(() => undefined),
           fetchPositions("open").catch(() => undefined),
-          getUserJournals().catch(() => undefined),
         ]);
         router.replace("/home/accounts/broker");
         return;
@@ -141,7 +147,6 @@ export default function BrokerConnectionsPage() {
         await Promise.all([
           fetchConnections().catch(() => undefined),
           fetchPositions("open").catch(() => undefined),
-          getUserJournals().catch(() => undefined),
         ]);
         router.replace("/home/accounts/broker");
         return;
@@ -150,21 +155,18 @@ export default function BrokerConnectionsPage() {
       if (code) {
         try {
           await completeCTraderConnect(code);
-          await Promise.all([
-            fetchPositions("open").catch(() => undefined),
-            getUserJournals().catch(() => undefined),
-          ]);
+          await fetchPositions("open").catch(() => undefined);
           showNotice({
             id: "ctrader-connected",
             title: "cTrader connected",
-            body: "Your cTrader account is linked. Juvo can now show imported trades and open positions.",
+            body: "Your cTrader account is linked. JUVO can now sync broker data in read-only mode.",
             tone: "success",
           });
         } catch {
           showNotice({
             id: "ctrader-connection-failed",
             title: "cTrader connection failed",
-            body: "Juvo could not finish the cTrader connection.",
+            body: "JUVO could not finish the cTrader connection.",
             tone: "warning",
           });
         }
@@ -175,7 +177,6 @@ export default function BrokerConnectionsPage() {
       await Promise.all([
         fetchConnections().catch(() => undefined),
         fetchPositions("open").catch(() => undefined),
-        getUserJournals().catch(() => undefined),
       ]);
     }
 
@@ -184,7 +185,6 @@ export default function BrokerConnectionsPage() {
     completeCTraderConnect,
     fetchConnections,
     fetchPositions,
-    getUserJournals,
     router,
     showNotice,
   ]);
@@ -194,18 +194,26 @@ export default function BrokerConnectionsPage() {
   };
 
   const handleSyncCtrader = async () => {
+    if (!connectedCTrader) {
+      showNotice({
+        title: "Connect cTrader first",
+        body: "JUVO needs an active cTrader connection before it can sync broker data.",
+        tone: "warning",
+      });
+      return;
+    }
+
     try {
       await syncCTrader(cTraderConnection?.id);
-      await getUserJournals().catch(() => undefined);
       showNotice({
         title: "cTrader synced",
-        body: "Open positions and imported trade history are up to date.",
+        body: "Broker data has been refreshed.",
         tone: "success",
       });
     } catch {
       showNotice({
         title: "cTrader sync failed",
-        body: "Juvo could not refresh cTrader data right now.",
+        body: "JUVO could not refresh cTrader data right now.",
         tone: "warning",
       });
     }
@@ -217,7 +225,7 @@ export default function BrokerConnectionsPage() {
         <PageHeader
           eyebrow="Accounts"
           title="Broker Connections"
-          description="Juvo is a journal, not a copy-trader. Broker sync is for importing fills — you still write the psychology."
+          description="Manage read-only broker access, sync health, and where broker data flows inside JUVO."
         />
 
         {error ? (
@@ -228,120 +236,150 @@ export default function BrokerConnectionsPage() {
           </Card>
         ) : null}
 
-        {connections.length > 0 ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {connections.map((connection) => (
-              <Card key={connection.id} className="p-6">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-                      {connection.provider === "ctrader" ? "cTrader" : "MetaAPI"}
-                    </p>
-                    <h2 className="mt-1 text-lg font-bold text-slate-950 dark:text-white">
-                      {connection.brokerName ||
-                        connection.accountNumber ||
-                        "Linked account"}
-                    </h2>
-                  </div>
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[connection.status]}`}
-                  >
-                    {connection.status}
-                  </span>
-                </div>
-                <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-                  {connection.connectedAt
-                    ? `Connected ${new Date(connection.connectedAt).toLocaleString()}`
-                    : "Waiting for cTrader to finish authorizing Juvo."}
-                </p>
-              </Card>
-            ))}
-          </div>
-        ) : null}
-
-        {cTraderConnection ? (
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
           <Card className="p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                  <RadioTower size={17} />
-                  cTrader sync
+                  <ShieldCheck size={17} />
+                  Read-only broker access
                 </div>
-                <h2 className="mt-2 text-xl font-bold text-slate-950 dark:text-white">
-                  Broker data visible in JUVO
+                <h2 className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">
+                  {connectedCTrader
+                    ? "cTrader is connected"
+                    : needsReauth
+                      ? "cTrader needs reconnecting"
+                      : "Connect a broker to JUVO"}
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  Closed cTrader deals appear as imported journal trades. Current
-                  open cTrader positions stay separate until they close or you
-                  decide to review them.
+                  JUVO reads account activity for journaling and analytics. It does
+                  not place, edit, or close broker trades.
                 </p>
               </div>
-              <Button
-                variant="ghost"
-                className="w-full whitespace-nowrap lg:w-auto"
-                disabled={isConnecting}
-                onClick={handleSyncCtrader}
-              >
-                {isConnecting ? (
-                  <>
-                    <LoaderCircle size={16} className="animate-spin" />
-                    Syncing
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw size={16} />
-                    Sync cTrader
-                  </>
-                )}
-              </Button>
+
+              <div className="flex flex-col gap-2 sm:flex-row lg:shrink-0">
+                <Button
+                  className="w-full sm:w-auto"
+                  disabled={isConnecting}
+                  onClick={handleConnectCtrader}
+                >
+                  {isConnecting ? (
+                    <>
+                      <LoaderCircle size={16} className="animate-spin" />
+                      Connecting
+                    </>
+                  ) : (
+                    <>
+                      <Link2 size={16} />
+                      {connectedCTrader ? "Reconnect cTrader" : "Connect cTrader"}
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full sm:w-auto"
+                  disabled={isConnecting || !connectedCTrader}
+                  onClick={handleSyncCtrader}
+                >
+                  {isConnecting ? (
+                    <>
+                      <LoaderCircle size={16} className="animate-spin" />
+                      Syncing
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={16} />
+                      Sync broker
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <BrokerMetric label="Open positions" value={positions.length} />
-              <BrokerMetric
-                label="Imported trades"
-                value={importedCTraderTrades.length}
-              />
-              <BrokerMetric
-                label="Last imported"
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <StatusMetric
+                icon={connectedCTrader ? CheckCircle2 : Unplug}
+                label="Connection"
                 value={
-                  importedCTraderTrades[0]?.closedAt
-                    ? formatDate(importedCTraderTrades[0].closedAt, {
-                        month: "short",
-                        day: "numeric",
-                      })
-                    : "None"
+                  cTraderConnection
+                    ? statusCopy[cTraderConnection.status]
+                    : "Not connected"
                 }
+                tone={connectedCTrader ? "good" : needsReauth ? "bad" : "muted"}
               />
-              <BrokerMetric
+              <StatusMetric
+                icon={Activity}
+                label="Live tracking"
+                value={
+                  connectedCTrader
+                    ? `${positions.length} open position${positions.length === 1 ? "" : "s"}`
+                    : "Offline"
+                }
+                tone={connectedCTrader ? "good" : "muted"}
+              />
+              <StatusMetric
+                icon={Clock3}
                 label="Last sync"
-                value={
-                  cTraderConnection.lastSyncedAt
-                    ? formatDate(cTraderConnection.lastSyncedAt, {
-                        month: "short",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })
-                    : lastSync
-                      ? "Just now"
-                      : "Pending"
-                }
+                value={lastSyncLabel}
+                tone={lastSync || cTraderConnection?.lastSyncedAt ? "good" : "muted"}
+              />
+              <StatusMetric
+                icon={Database}
+                label="Mode"
+                value="Read-only"
+                tone="good"
               />
             </div>
           </Card>
-        ) : null}
 
-        <section className="grid gap-4 xl:grid-cols-2">
+          <Card className="p-6">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
+              <AlertTriangle size={17} />
+              Permission boundary
+            </div>
+            <div className="mt-5 space-y-3">
+              <PermissionItem checked label="Read account profile" />
+              <PermissionItem checked label="Import closed deals" />
+              <PermissionItem checked label="Track open positions" />
+              <PermissionItem checked={false} label="Place or close trades" />
+            </div>
+          </Card>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-3">
+          <DestinationCard
+            icon={Activity}
+            title="Live positions"
+            body="Open cTrader positions appear on the dashboard trade section while they are active."
+            href="/home/dashboard"
+            action="Open dashboard"
+          />
+          <DestinationCard
+            icon={History}
+            title="Closed trades"
+            body="Closed cTrader deals are imported into journal history for review and analytics."
+            href="/home/journal"
+            action="Open journal"
+          />
+          <DestinationCard
+            icon={BarChart3}
+            title="Analytics"
+            body="Imported outcomes feed account stats, performance summaries, and behavior review."
+            href="/home/analytics"
+            action="Open analytics"
+          />
+        </section>
+
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
           <Card className="p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                  <RadioTower size={17} />
-                  Current cTrader
+                  <WalletCards size={17} />
+                  Linked accounts
                 </div>
                 <h2 className="mt-1 text-lg font-bold text-slate-950 dark:text-white">
-                  Open positions
+                  Broker access
                 </h2>
               </div>
               {isLoading ? (
@@ -353,71 +391,53 @@ export default function BrokerConnectionsPage() {
             </div>
 
             <div className="mt-5 space-y-3">
-              {positions.length ? (
-                positions.map((position) => (
-                  <BrokerPositionRow
-                    key={position._id}
-                    position={position}
+              {connections.length ? (
+                connections.map((connection) => (
+                  <ConnectionRow
+                    key={connection.id}
+                    connection={connection}
                   />
                 ))
               ) : (
                 <BrokerEmptyState
-                  title="No open cTrader positions"
-                  body={
-                    cTraderConnection
-                      ? "Sync cTrader after opening a position and it will appear here."
-                      : "Connect cTrader first to show live broker positions."
-                  }
+                  title="No broker linked yet"
+                  body="Connect cTrader to let JUVO import broker activity without giving trade execution access."
                 />
               )}
             </div>
           </Card>
 
           <Card className="p-6">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                  <History size={17} />
-                  Past cTrader
-                </div>
-                <h2 className="mt-1 text-lg font-bold text-slate-950 dark:text-white">
-                  Imported closed trades
-                </h2>
-              </div>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">
-                {importedCTraderTrades.length}
-              </span>
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
+              <Database size={17} />
+              Sync rules
             </div>
-
-            <div className="mt-5 space-y-3">
-              {importedCTraderTrades.length ? (
-                importedCTraderTrades.slice(0, 8).map((trade) => (
-                  <ImportedTradeRow key={trade._id} trade={trade} />
-                ))
-              ) : (
-                <BrokerEmptyState
-                  title="No imported cTrader trades"
-                  body={
-                    cTraderConnection
-                      ? "Sync cTrader to import closed deals into your journal history."
-                      : "Connect cTrader first to import closed deal history."
-                  }
-                />
-              )}
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <RuleItem
+                title="Open positions"
+                body="Kept separate from journal trades until cTrader reports the position as closed."
+              />
+              <RuleItem
+                title="Final P/L"
+                body="Realized P/L comes from cTrader close/deal data, not from JUVO's live quote display."
+              />
+              <RuleItem
+                title="User notes"
+                body="Imported broker records do not replace your journal notes, screenshots, or reviews."
+              />
+              <RuleItem
+                title="Manual sync"
+                body="Use Sync broker when you want to reconcile after reconnecting or testing broker data."
+              />
             </div>
           </Card>
         </section>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          {brokers.map((broker) => (
+        <section className="grid gap-4 lg:grid-cols-3">
+          {brokerOptions.map((broker) => (
             <Card key={broker.id} className="p-6">
               <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/15 text-primary">
-                {broker.action === "ctrader" &&
-                connections.some(
-                  (connection) =>
-                    connection.provider === "ctrader" &&
-                    connection.status === "connected",
-                ) ? (
+                {broker.action === "ctrader" && connectedCTrader ? (
                   <CheckCircle2 size={20} />
                 ) : (
                   <Link2 size={20} />
@@ -436,270 +456,188 @@ export default function BrokerConnectionsPage() {
                   disabled={isConnecting}
                   onClick={handleConnectCtrader}
                 >
-                  {isConnecting ? (
-                    <>
-                      <LoaderCircle size={16} className="animate-spin" />
-                      Connecting
-                    </>
-                  ) : connections.some(
-                      (connection) =>
-                        connection.provider === "ctrader" &&
-                        connection.status === "connected",
-                    ) ? (
-                    "Reconnect cTrader"
-                  ) : (
-                    "Connect cTrader"
-                  )}
+                  {connectedCTrader ? "Manage connection" : "Connect cTrader"}
                 </Button>
               ) : (
                 <Button variant="ghost" className="mt-5" disabled>
-                  Sync coming next
+                  Coming soon
                 </Button>
               )}
             </Card>
           ))}
-        </div>
+        </section>
+
         <Card className="p-6">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Broker sync is read-only. JUVO imports cTrader history and shows
-            current positions without placing trades.
-          </p>
-          <Link href="/home/accounts/trading" className="mt-4 inline-block">
-            <Button>Add trading account</Button>
-          </Link>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm leading-6 text-slate-500 dark:text-slate-400">
+              Broker connections are the data pipe. Journals, live trades, and
+              performance review live in their own workspaces.
+            </p>
+            <Link href="/home/accounts/trading" className="shrink-0">
+              <Button variant="ghost">Manage trading accounts</Button>
+            </Link>
+          </div>
         </Card>
       </div>
     </DashboardShell>
   );
 }
 
-type ImportedCTraderTrade = JournalListTradeSummary & {
-  journalId: string;
-  journalDate: string;
-  accountLabel: string;
-};
+function StatusMetric({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: IconType;
+  label: string;
+  value: string;
+  tone: "good" | "bad" | "muted";
+}) {
+  const toneClass =
+    tone === "good"
+      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+      : tone === "bad"
+        ? "bg-rose-500/10 text-rose-700 dark:text-rose-300"
+        : "bg-slate-500/10 text-slate-600 dark:text-slate-300";
 
-function collectImportedCTraderTrades(journals: JournalHistoryItem[]) {
-  return journals
-    .flatMap((journal) => {
-      const accountLabel =
-        journal.tradingAccount && typeof journal.tradingAccount !== "string"
-          ? `${journal.tradingAccount.accountName} · ${journal.tradingAccount.broker}`
-          : "cTrader account";
-
-      return (journal.trades || [])
-        .filter(
-          (trade) =>
-            trade.source === "ctrader" ||
-            Boolean(trade.externalId || trade.externalPositionId),
-        )
-        .map((trade) => ({
-          ...trade,
-          journalId: journal._id,
-          journalDate: journal.journalDate,
-          accountLabel,
-        }));
-    })
-    .sort(
-      (first, second) =>
-        new Date(second.closedAt || second.openedAt || second.journalDate).getTime() -
-        new Date(first.closedAt || first.openedAt || first.journalDate).getTime(),
-    );
+  return (
+    <div className="min-w-0 rounded-xl bg-slate-100 px-4 py-3 dark:bg-white/[0.05]">
+      <div className="flex items-center gap-2">
+        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${toneClass}`}>
+          <Icon size={16} />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-slate-950 dark:text-white">
+            {value}
+          </p>
+          <p className="mt-0.5 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
+            {label}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function BrokerMetric({ label, value }: { label: string; value: string | number }) {
+function PermissionItem({
+  checked,
+  label,
+}: {
+  checked: boolean;
+  label: string;
+}) {
   return (
-    <div className="rounded-xl bg-slate-100 px-4 py-3 dark:bg-white/[0.05]">
-      <p className="truncate text-lg font-bold text-slate-950 dark:text-white">
-        {value}
-      </p>
-      <p className="mt-1 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
+    <div className="flex items-center gap-3 rounded-xl bg-slate-100 px-3 py-2.5 dark:bg-white/[0.05]">
+      <span
+        className={`grid h-7 w-7 shrink-0 place-items-center rounded-full ${
+          checked
+            ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+            : "bg-rose-500/10 text-rose-700 dark:text-rose-300"
+        }`}
+      >
+        {checked ? <CheckCircle2 size={15} /> : <Unplug size={15} />}
+      </span>
+      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
         {label}
       </p>
     </div>
   );
 }
 
-function BrokerPositionRow({ position }: { position: BrokerPosition }) {
-  const isLong = position.direction === "long";
-  const brokerPnl =
-    position.live?.netUnrealizedPnl ?? position.live?.grossUnrealizedPnl;
-  const fallbackPnl = position.live?.floatingProfitIndicative;
-  const displayPnl = brokerPnl ?? fallbackPnl;
+function DestinationCard({
+  icon: Icon,
+  title,
+  body,
+  href,
+  action,
+}: {
+  icon: IconType;
+  title: string;
+  body: string;
+  href: string;
+  action: string;
+}) {
+  return (
+    <Card className="p-6">
+      <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/15 text-primary">
+        <Icon size={20} />
+      </div>
+      <h2 className="mt-4 text-lg font-bold text-slate-950 dark:text-white">
+        {title}
+      </h2>
+      <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+        {body}
+      </p>
+      <Link href={href} className="mt-5 inline-flex">
+        <Button variant="ghost">{action}</Button>
+      </Link>
+    </Card>
+  );
+}
 
+function ConnectionRow({ connection }: { connection: BrokerConnection }) {
   return (
     <div className="rounded-xl border border-slate-200 p-4 dark:border-white/10">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            {isLong ? (
-              <ArrowUpRight size={16} className="text-emerald-500" />
-            ) : (
-              <TrendingDown size={16} className="text-rose-500" />
-            )}
-            <h3 className="truncate text-sm font-bold text-slate-950 dark:text-white">
-              {position.symbol}
-            </h3>
-          </div>
-          <p className="mt-1 text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">
-            {position.direction} · {position.status}
+          <p className="text-sm font-bold text-slate-950 dark:text-white">
+            {connection.provider === "ctrader" ? "cTrader" : "MetaAPI"}
+          </p>
+          <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
+            {connection.brokerName ||
+              connection.accountNumber ||
+              connection.externalAccountId ||
+              "Linked broker account"}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-          Open
+        <span
+          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[connection.status]}`}
+        >
+          {statusCopy[connection.status]}
         </span>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-        <BrokerMiniMetric
-          label="Entry"
-          value={
-            position.entryPrice
-              ? formatNumber(position.entryPrice, 5)
-              : "N/A"
-          }
+      <div className="mt-4 grid gap-2 text-xs sm:grid-cols-2">
+        <ConnectionMini
+          label="Type"
+          value={connection.accountType ? connection.accountType : "Unknown"}
         />
-        <BrokerMiniMetric
-          label="Live"
+        <ConnectionMini
+          label="Connected"
           value={
-            position.live?.currentPrice
-              ? formatNumber(position.live.currentPrice, 5)
-              : "Waiting"
+            connection.connectedAt
+              ? formatDate(connection.connectedAt, {
+                  month: "short",
+                  day: "numeric",
+                })
+              : "Pending"
           }
-        />
-        <BrokerMiniMetric
-          label="Broker P/L"
-          value={
-            typeof displayPnl === "number"
-              ? formatMoney(
-                  displayPnl,
-                  typeof position.tradingAccount === "object"
-                    ? position.tradingAccount.currency
-                    : "USD",
-                )
-              : "N/A"
-          }
-          className={
-            typeof displayPnl === "number"
-              ? pnlClass(displayPnl)
-              : undefined
-          }
-        />
-        <BrokerMiniMetric
-          label="Lots"
-          value={position.lotSize ? formatNumber(position.lotSize, 2) : "N/A"}
         />
       </div>
+    </div>
+  );
+}
 
-      <div className="mt-2 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-        <BrokerMiniMetric
-          label="Bid"
-          value={
-            position.live?.currentBid
-              ? formatNumber(position.live.currentBid, 5)
-              : "N/A"
-          }
-        />
-        <BrokerMiniMetric
-          label="Ask"
-          value={
-            position.live?.currentAsk
-              ? formatNumber(position.live.currentAsk, 5)
-              : "N/A"
-          }
-        />
-        <BrokerMiniMetric
-          label="SL"
-          value={position.stopLoss ? formatNumber(position.stopLoss, 5) : "N/A"}
-        />
-        <BrokerMiniMetric
-          label="TP"
-          value={position.takeProfit ? formatNumber(position.takeProfit, 5) : "N/A"}
-        />
-      </div>
-
-      <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-        {typeof brokerPnl === "number"
-          ? "P/L is provided by cTrader for the open position. Final realized P/L is still imported from the close deal."
-          : position.live?.floatingPnlIsIndicative
-          ? "Floating P/L is indicative until cTrader sends the final close result."
-          : position.openedAt
-            ? `Opened ${formatDate(position.openedAt)}`
-            : "Open time unavailable"}
+function ConnectionMini({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-lg bg-slate-100 px-3 py-2 dark:bg-white/[0.05]">
+      <p className="truncate font-bold capitalize text-slate-950 dark:text-white">
+        {value}
+      </p>
+      <p className="mt-0.5 truncate text-slate-500 dark:text-slate-400">
+        {label}
       </p>
     </div>
   );
 }
 
-function ImportedTradeRow({ trade }: { trade: ImportedCTraderTrade }) {
-  const profitLoss = Number(trade.profitLoss || 0);
-  const isLong = trade.direction === "long";
-
+function RuleItem({ title, body }: { title: string; body: string }) {
   return (
-    <Link
-      href={`/home/journal/${trade.journalId}`}
-      className="block rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/[0.03]"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            {isLong ? (
-              <ArrowUpRight size={16} className="text-emerald-500" />
-            ) : (
-              <TrendingDown size={16} className="text-rose-500" />
-            )}
-            <h3 className="truncate text-sm font-bold text-slate-950 dark:text-white">
-              {trade.symbol}
-            </h3>
-          </div>
-          <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
-            {trade.accountLabel}
-          </p>
-        </div>
-        <span className={`shrink-0 text-sm font-bold ${pnlClass(profitLoss)}`}>
-          {formatMoney(profitLoss)}
-        </span>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-        <BrokerMiniMetric label="Side" value={trade.direction} />
-        <BrokerMiniMetric label="Status" value={trade.status} />
-        <BrokerMiniMetric
-          label="RR"
-          value={
-            typeof trade.achievedRR === "number"
-              ? formatNumber(trade.achievedRR, 2)
-              : "N/A"
-          }
-        />
-        <BrokerMiniMetric
-          label="Closed"
-          value={formatDate(trade.closedAt || trade.journalDate, {
-            month: "short",
-            day: "numeric",
-          })}
-        />
-      </div>
-    </Link>
-  );
-}
-
-function BrokerMiniMetric({
-  label,
-  value,
-  className = "text-slate-950 dark:text-white",
-}: {
-  label: string;
-  value: string | number;
-  className?: string;
-}) {
-  return (
-    <div className="min-w-0 rounded-lg bg-slate-100 px-3 py-2 dark:bg-white/[0.05]">
-      <p className={`truncate text-sm font-bold ${className}`}>
-        {value}
-      </p>
-      <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
-        {label}
+    <div className="rounded-xl border border-slate-200 p-4 dark:border-white/10">
+      <p className="text-sm font-bold text-slate-950 dark:text-white">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+        {body}
       </p>
     </div>
   );

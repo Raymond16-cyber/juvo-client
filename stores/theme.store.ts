@@ -4,6 +4,13 @@ export type ThemePreference = "light" | "dark" | "system";
 
 const STORAGE_KEY = "juvo-theme";
 
+function normalizeThemePreference(value?: string | null): ThemePreference {
+  const normalized = String(value || "").toLowerCase();
+  return normalized === "light" || normalized === "dark" || normalized === "system"
+    ? normalized
+    : "system";
+}
+
 function getSystemTheme() {
   if (typeof window === "undefined") return "light";
   return window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -27,7 +34,8 @@ interface ThemeState {
   preference: ThemePreference;
   resolved: "light" | "dark";
   setPreference: (preference: ThemePreference) => void;
-  hydrate: (preference?: ThemePreference | null) => void;
+  hydrate: (preference?: string | null) => void;
+  refreshSystemTheme: () => void;
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
@@ -44,14 +52,18 @@ export const useThemeStore = create<ThemeState>((set) => ({
     const stored =
       preference ||
       (typeof window !== "undefined"
-        ? (localStorage.getItem(STORAGE_KEY) as ThemePreference | null)
+        ? localStorage.getItem(STORAGE_KEY)
         : null) ||
       "system";
-    const next =
-      stored === "light" || stored === "dark" || stored === "system"
-        ? stored
-        : "system";
+    const next = normalizeThemePreference(stored);
     applyThemeClass(next);
     set({ preference: next, resolved: resolveTheme(next) });
+  },
+  refreshSystemTheme: () => {
+    set((state) => {
+      if (state.preference !== "system") return state;
+      applyThemeClass("system");
+      return { ...state, resolved: resolveTheme("system") };
+    });
   },
 }));
