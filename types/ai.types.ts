@@ -29,3 +29,23 @@ export interface AiChatResponse {
   };
   message: string;
 }
+
+export interface AiAccessTrial {
+  status: "available" | "active" | "expired";
+  used: boolean;
+  startedAt: string | null;
+  expiresAt: string | null;
+}
+
+export interface AiAccess {
+  feature: "juvo_ai";
+  plan: "free" | "pro" | "super";
+  hasAccess: boolean;
+  source: "subscription" | "trial" | null;
+  trial: AiAccessTrial;
+}
+
+export interface AiAccessResponse {
+  data: AiAccess;
+  message: string;
+}

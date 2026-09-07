@@ -6,11 +6,24 @@ import { getApiErrorMessage } from "@/lib/axios";
 import { controlClassName } from "@/lib/ui";
 import {
   chatWithJuvoService,
+  getAiAccessService,
   getConversationService,
   listConversationsService,
+  startAiTrialService,
 } from "@/services/ai.service";
-import { AiConversationSummary, AiMessage } from "@/types/ai.types";
-import { Bot, ChevronDown, MessageSquare, Plus, Send, Sparkles, X } from "lucide-react";
+import { AiAccess, AiConversationSummary, AiMessage } from "@/types/ai.types";
+import {
+  Bot,
+  ChevronDown,
+  Clock3,
+  LockKeyhole,
+  MessageSquare,
+  Plus,
+  Send,
+  Sparkles,
+  X,
+} from "lucide-react";
+import Link from "next/link";
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 
 const prompts = [
@@ -26,7 +39,33 @@ function isNearBottom(element: HTMLElement) {
   return element.scrollHeight - element.scrollTop - element.clientHeight < NEAR_BOTTOM_PX;
 }
 
+function getTrialTimeLeft(expiresAt?: string | null) {
+  if (!expiresAt) return "";
+  const remaining = new Date(expiresAt).getTime() - Date.now();
+  if (remaining <= 0) return "Trial ended";
+  const hours = Math.ceil(remaining / (60 * 60 * 1000));
+  if (hours < 24) return `${hours}h left`;
+  return `${Math.ceil(hours / 24)} days left`;
+}
+
+function getApiErrorCode(error: unknown) {
+  if (typeof error !== "object" || error === null || !("response" in error)) {
+    return null;
+  }
+
+  const data = (error as { response?: { data?: unknown } }).response?.data;
+  if (typeof data !== "object" || data === null) {
+    return null;
+  }
+
+  const code = (data as { code?: unknown }).code;
+  return typeof code === "string" ? code : null;
+}
+
 export default function JuvoAIChatPage() {
+  const [access, setAccess] = useState<AiAccess | null>(null);
+  const [accessLoading, setAccessLoading] = useState(true);
+  const [trialStarting, setTrialStarting] = useState(false);
   const [conversations, setConversations] = useState<AiConversationSummary[]>([]);
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [messages, setMessages] = useState<AiMessage[]>([]);
@@ -37,13 +76,53 @@ export default function JuvoAIChatPage() {
   const [threadsOpen, setThreadsOpen] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
+  const canUseAi = Boolean(access?.hasAccess);
+  const trialStatus = access?.trial.status || "available";
+  const trialLabel =
+    access?.source === "trial" ? getTrialTimeLeft(access.trial.expiresAt) : "";
 
   const loadConversations = async () => {
+    if (!canUseAi) return;
     try {
       const response = await listConversationsService();
       setConversations(response.data);
     } catch {
       // Empty history is a valid first-run state.
+    }
+  };
+
+  const loadAccess = async () => {
+    setAccessLoading(true);
+    try {
+      const response = await getAiAccessService();
+      setAccess(response.data);
+    } catch (accessError) {
+      setError(
+        getApiErrorMessage(
+          accessError,
+          "Juvo could not check AI access. Try again in a moment.",
+        ),
+      );
+    } finally {
+      setAccessLoading(false);
+    }
+  };
+
+  const startTrial = async () => {
+    setTrialStarting(true);
+    setError(null);
+    try {
+      const response = await startAiTrialService();
+      setAccess(response.data);
+    } catch (trialError) {
+      setError(
+        getApiErrorMessage(
+          trialError,
+          "Juvo could not start your trial. Try again in a moment.",
+        ),
+      );
+    } finally {
+      setTrialStarting(false);
     }
   };
 
@@ -60,9 +139,14 @@ export default function JuvoAIChatPage() {
 
   useEffect(() => {
     queueMicrotask(() => {
-      void loadConversations();
+      void loadAccess();
     });
   }, []);
+
+  useEffect(() => {
+    if (!canUseAi) return;
+    void loadConversations();
+  }, [canUseAi]);
 
   useEffect(() => {
     if (!stickToBottomRef.current) {
@@ -90,6 +174,7 @@ export default function JuvoAIChatPage() {
   };
 
   const openConversation = async (id: string) => {
+    if (!canUseAi) return;
     setConversationId(id);
     setThreadsOpen(false);
     stickToBottomRef.current = true;
@@ -99,7 +184,7 @@ export default function JuvoAIChatPage() {
 
   const sendMessage = async (text: string) => {
     const content = text.trim();
-    if (!content || isLoading) return;
+    if (!content || isLoading || !canUseAi) return;
 
     setInput("");
     setError(null);
@@ -118,6 +203,9 @@ export default function JuvoAIChatPage() {
       setMessages(response.data.messages);
       await loadConversations();
     } catch (sendError) {
+      if (getApiErrorCode(sendError) === "JUVO_AI_ACCESS_REQUIRED") {
+        await loadAccess();
+      }
       setError(
         getApiErrorMessage(
           sendError,
@@ -128,6 +216,47 @@ export default function JuvoAIChatPage() {
       setIsLoading(false);
     }
   };
+
+  const accessPanel = (
+    <div className="flex min-h-0 flex-1 items-center justify-center p-4">
+      <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.04]">
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
+          {trialStatus === "expired" ? (
+            <LockKeyhole size={22} />
+          ) : (
+            <Sparkles size={22} />
+          )}
+        </div>
+        <h2 className="mt-4 text-xl font-bold text-slate-950 dark:text-white">
+          {trialStatus === "expired"
+            ? "Juvo AI is locked"
+            : "Try Juvo AI for 3 days"}
+        </h2>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
+          {trialStatus === "expired"
+            ? "Your free JUVO AI trial has ended. Upgrade to Pro or Super to keep using the process coach."
+            : "Start a one-time trial when you are ready. It only unlocks JUVO AI, not the full Pro plan."}
+        </p>
+        <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
+          {trialStatus === "available" ? (
+            <Button onClick={startTrial} disabled={trialStarting}>
+              <Sparkles size={16} />
+              {trialStarting ? "Starting..." : "Start 3-Day Free Trial"}
+            </Button>
+          ) : null}
+          <Link
+            href="/home/general/subscriptions"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-white/10"
+          >
+            Upgrade
+          </Link>
+        </div>
+        {error ? (
+          <p className="mt-4 text-sm text-rose-700 dark:text-rose-300">{error}</p>
+        ) : null}
+      </div>
+    </div>
+  );
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -226,7 +355,9 @@ export default function JuvoAIChatPage() {
                   Process coach
                 </h1>
                 <p className="truncate text-sm text-slate-500 dark:text-slate-400">
-                  Juvo reads your journals. It will not give trade signals.
+                  {access?.source === "trial" && trialLabel
+                    ? `Trial active - ${trialLabel}`
+                    : "Juvo reads your journals. It will not give trade signals."}
                 </p>
               </div>
             </div>
@@ -239,6 +370,21 @@ export default function JuvoAIChatPage() {
               Chats
             </Button>
           </div>
+
+          {accessLoading ? (
+            <div className="flex min-h-0 flex-1 items-center justify-center p-4 text-sm text-slate-500 dark:text-slate-400">
+              Checking JUVO AI access...
+            </div>
+          ) : !canUseAi ? (
+            accessPanel
+          ) : (
+          <>
+          {access?.source === "trial" ? (
+            <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 px-4 py-2 text-xs font-semibold text-slate-500 dark:border-white/10 dark:text-slate-400">
+              <Clock3 size={14} className="text-primary" />
+              3-day trial active{trialLabel ? ` - ${trialLabel}` : ""}
+            </div>
+          ) : null}
 
           <div className="relative min-h-0 flex-1 overflow-hidden">
             <div
@@ -320,6 +466,8 @@ export default function JuvoAIChatPage() {
               </Button>
             </div>
           </form>
+          </>
+          )}
         </section>
       </div>
     </DashboardShell>

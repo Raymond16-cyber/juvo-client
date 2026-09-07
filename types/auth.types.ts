@@ -33,6 +33,14 @@ export interface User {
     expiresAt?: string;
     trialEndsAt?: string;
   };
+  entitlements?: {
+    aiTrial?: {
+      status?: "available" | "active" | "expired";
+      used?: boolean;
+      startedAt?: string;
+      expiresAt?: string;
+    };
+  };
   stats?: {
     currentJournalStreak?: number;
     longestJournalStreak?: number;
