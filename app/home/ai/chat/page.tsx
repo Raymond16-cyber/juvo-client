@@ -24,7 +24,14 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
+import {
+  FormEvent,
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 const prompts = [
   "What process leak shows up most in my last journals?",
@@ -81,7 +88,7 @@ export default function JuvoAIChatPage() {
   const trialLabel =
     access?.source === "trial" ? getTrialTimeLeft(access.trial.expiresAt) : "";
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     if (!canUseAi) return;
     try {
       const response = await listConversationsService();
@@ -89,7 +96,7 @@ export default function JuvoAIChatPage() {
     } catch {
       // Empty history is a valid first-run state.
     }
-  };
+  }, [canUseAi]);
 
   const loadAccess = async () => {
     setAccessLoading(true);
@@ -145,8 +152,10 @@ export default function JuvoAIChatPage() {
 
   useEffect(() => {
     if (!canUseAi) return;
-    void loadConversations();
-  }, [canUseAi]);
+    queueMicrotask(() => {
+      void loadConversations();
+    });
+  }, [canUseAi, loadConversations]);
 
   useEffect(() => {
     if (!stickToBottomRef.current) {

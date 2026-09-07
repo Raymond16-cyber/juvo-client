@@ -3,13 +3,19 @@ import { cleanupAnime, prefersReducedMotion } from "@/animations";
 
 type CounterOptions = {
   value: number;
+  fromValue?: number;
   formatter?: (value: number) => string;
   duration?: number;
 };
 
 export function animateCounter(
   element: HTMLElement | null,
-  { value, formatter = (next) => String(Math.round(next)), duration = 900 }: CounterOptions,
+  {
+    value,
+    fromValue = 0,
+    formatter = (next) => String(Math.round(next)),
+    duration = 900,
+  }: CounterOptions,
 ) {
   if (!element) return () => undefined;
 
@@ -18,7 +24,7 @@ export function animateCounter(
     return () => undefined;
   }
 
-  const state = { value: 0 };
+  const state = { value: fromValue };
   const animation = animate(state, {
     value,
     duration,
@@ -33,4 +39,3 @@ export function animateCounter(
 
   return () => cleanupAnime([animation]);
 }
-

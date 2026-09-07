@@ -113,6 +113,32 @@ input[type="range"] {
   accent-color: #00d4ff;
 }
 
+select {
+  color-scheme: light;
+}
+
+select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+select option:disabled {
+  color: #94a3b8;
+}
+
+.dark select {
+  color-scheme: dark;
+}
+
+.dark select option {
+  background: #0b1220;
+  color: #ffffff;
+}
+
+.dark select option:disabled {
+  color: #64748b;
+}
+
 .juvo-flow-bar {
   position: relative;
   overflow: hidden;

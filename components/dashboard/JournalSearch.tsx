@@ -2,8 +2,14 @@
 
 import { getRecordCurrency } from "@/lib/account";
 import { formatDate, formatMoney, pnlClass } from "@/lib/format";
+import {
+  dropdownTransition,
+  subtleListContainer,
+  subtleListItem,
+} from "@/lib/motion";
 import { useJournalStore } from "@/stores/journal.store";
 import type { JournalHistoryItem } from "@/types/journal.types";
+import { AnimatePresence, motion } from "framer-motion";
 import { BookOpenText, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -132,65 +138,85 @@ export default function JournalSearch() {
         />
       </label>
 
-      {open ? (
-        <div
-          id="journal-search-results"
-          role="listbox"
-          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[22rem] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 dark:border-white/10 dark:bg-card dark:shadow-black/40"
-        >
-          {results.length ? (
-            <ul className="max-h-80 overflow-y-auto py-1">
-              {results.map((journal, index) => {
-                const isActive = index === activeIndex;
-                return (
-                  <li key={journal._id}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={isActive}
-                      onMouseEnter={() => setActiveIndex(index)}
-                      onClick={() => goToJournal(journal._id)}
-                      className={`flex w-full items-start gap-3 px-3 py-2.5 text-left transition ${
-                        isActive
-                          ? "bg-slate-100 dark:bg-white/10"
-                          : "hover:bg-slate-50 dark:hover:bg-white/[0.04]"
-                      }`}
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            id="journal-search-results"
+            role="listbox"
+            className="absolute right-0 top-[calc(100%+8px)] z-50 w-[22rem] origin-top overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 dark:border-white/10 dark:bg-card dark:shadow-black/40"
+            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            transition={dropdownTransition}
+          >
+            {results.length ? (
+              <motion.ul
+                className="max-h-80 overflow-y-auto py-1"
+                initial="hidden"
+                animate="shown"
+                variants={subtleListContainer}
+              >
+                {results.map((journal, index) => {
+                  const isActive = index === activeIndex;
+                  return (
+                    <motion.li
+                      key={journal._id}
+                      variants={subtleListItem}
+                      transition={{ duration: 0.16 }}
                     >
-                      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
-                        <BookOpenText size={15} />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-center justify-between gap-2">
-                          <span className="truncate text-sm font-bold text-slate-950 dark:text-white">
-                            {formatDate(journal.journalDate)}
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={isActive}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        onClick={() => goToJournal(journal._id)}
+                        className={`flex w-full items-start gap-3 px-3 py-2.5 text-left transition ${
+                          isActive
+                            ? "bg-slate-100 dark:bg-white/10"
+                            : "hover:bg-slate-50 dark:hover:bg-white/[0.04]"
+                        }`}
+                      >
+                        <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+                          <BookOpenText size={15} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center justify-between gap-2">
+                            <span className="truncate text-sm font-bold text-slate-950 dark:text-white">
+                              {formatDate(journal.journalDate)}
+                            </span>
+                            <span
+                              className={`shrink-0 text-xs font-semibold ${pnlClass(journal.totalProfitLoss || 0)}`}
+                            >
+                              {formatMoney(
+                                journal.totalProfitLoss || 0,
+                                getRecordCurrency(journal),
+                              )}
+                            </span>
                           </span>
-                          <span
-                            className={`shrink-0 text-xs font-semibold ${pnlClass(journal.totalProfitLoss || 0)}`}
-                          >
-                            {formatMoney(
-                              journal.totalProfitLoss || 0,
-                              getRecordCurrency(journal),
-                            )}
+                          <span className="mt-0.5 block truncate text-xs text-slate-500 dark:text-slate-400">
+                            {journalLabel(journal)}
                           </span>
                         </span>
-                        <span className="mt-0.5 block truncate text-xs text-slate-500 dark:text-slate-400">
-                          {journalLabel(journal)}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-              {query.trim()
-                ? "No journals match that search."
-                : "No journals yet. Start your day to create one."}
-            </p>
-          )}
-        </div>
-      ) : null}
+                      </button>
+                    </motion.li>
+                  );
+                })}
+              </motion.ul>
+            ) : (
+              <motion.p
+                className="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.16 }}
+              >
+                {query.trim()
+                  ? "No journals match that search."
+                  : "No journals yet. Start your day to create one."}
+              </motion.p>
+            )}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </form>
   );
 }

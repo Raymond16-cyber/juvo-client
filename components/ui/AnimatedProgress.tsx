@@ -1,5 +1,8 @@
 "use client";
 
+import { panelTransition } from "@/lib/motion";
+import { motion } from "framer-motion";
+
 type AnimatedProgressProps = {
   value: number;
   className?: string;
@@ -10,14 +13,12 @@ export default function AnimatedProgress({
   className = "h-full rounded-full bg-primary",
 }: AnimatedProgressProps) {
   return (
-    <div
+    <motion.div
       data-progress-bar
       className={className}
-      style={{
-        width: `${value}%`,
-        transform: "scaleX(0)",
-        transformOrigin: "left center",
-      }}
+      initial={false}
+      animate={{ width: `${value}%` }}
+      transition={panelTransition}
     />
   );
 }

@@ -1,14 +1,17 @@
 import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
 import { formatMoney, formatNumber } from "@/lib/format";
+import { panelTransition } from "@/lib/motion";
 import { TradingAccount } from "@/types/trading-account.types";
+import { motion } from "framer-motion";
 import { WalletCards } from "lucide-react";
 import Link from "next/link";
 
 type AccountSummaryProps = {
   account?: TradingAccount | null;
+  livePnl?: number;
 };
 
-export default function AccountSummary({ account }: AccountSummaryProps) {
+export default function AccountSummary({ account, livePnl = 0 }: AccountSummaryProps) {
   const equity = account?.currentEquity ?? account?.currentBalance ?? 0;
   const balance = account?.currentBalance ?? 0;
   const target = account?.profitTarget || 0;
@@ -53,7 +56,10 @@ export default function AccountSummary({ account }: AccountSummaryProps) {
         {[
           ["Balance", account ? formatMoney(balance, account.currency) : "—"],
           ["Equity", account ? formatMoney(equity, account.currency) : "—"],
-          ["Type", account?.accountType || "—"],
+          [
+            "Floating P/L",
+            account ? formatMoney(livePnl, account.currency) : "—",
+          ],
         ].map(([label, value]) => (
           <div key={label} className="rounded-2xl bg-white/[0.06] p-4">
             <p className="text-xs text-slate-400">{label}</p>
@@ -71,9 +77,11 @@ export default function AccountSummary({ account }: AccountSummaryProps) {
             <span className="font-bold text-primary">{Math.round(targetProgress)}%</span>
           </div>
           <div className="mt-2 h-2 rounded-full bg-white/10">
-            <div
+            <motion.div
               className="h-full rounded-full bg-primary"
-              style={{ width: `${targetProgress}%` }}
+              initial={false}
+              animate={{ width: `${targetProgress}%` }}
+              transition={panelTransition}
             />
           </div>
         </div>
@@ -86,9 +94,11 @@ export default function AccountSummary({ account }: AccountSummaryProps) {
               </span>
             </div>
             <div className="mt-2 h-2 rounded-full bg-white/10">
-              <div
+              <motion.div
                 className="h-full rounded-full bg-rose-400"
-                style={{ width: `${drawdownProgress}%` }}
+                initial={false}
+                animate={{ width: `${drawdownProgress}%` }}
+                transition={panelTransition}
               />
             </div>
           </div>

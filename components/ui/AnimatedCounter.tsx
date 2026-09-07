@@ -17,10 +17,23 @@ export default function AnimatedCounter({
   duration,
 }: AnimatedCounterProps) {
   const valueRef = useRef<HTMLSpanElement>(null);
+  const previousValueRef = useRef<number | null>(null);
+  const formatterRef = useRef(formatter);
 
   useEffect(() => {
-    return animateCounter(valueRef.current, { value, formatter, duration });
-  }, [duration, formatter, value]);
+    formatterRef.current = formatter;
+  }, [formatter]);
+
+  useEffect(() => {
+    const fromValue = previousValueRef.current ?? 0;
+    previousValueRef.current = value;
+    return animateCounter(valueRef.current, {
+      value,
+      fromValue,
+      formatter: (next) => formatterRef.current?.(next) ?? Math.round(next).toString(),
+      duration,
+    });
+  }, [duration, value]);
 
   return (
     <span ref={valueRef} className={className}>
@@ -28,4 +41,3 @@ export default function AnimatedCounter({
     </span>
   );
 }
-

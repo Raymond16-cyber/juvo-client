@@ -3,6 +3,8 @@
 import JuvoNoticeHost from "@/components/ui/JuvoNotice";
 import Sidebar from "@/components/ui/Sidebar";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { pageTransition, panelTransition, motionDuration } from "@/lib/motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
@@ -30,11 +32,17 @@ const titles: Record<string, string> = {
   "/home/general/help": "Help",
 };
 
+const SIDEBAR_COLLAPSED_KEY = "juvo.sidebarCollapsed";
+
 export default function DashboardShell({
   children,
   fillViewport = false,
 }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+  });
   const pathname = usePathname();
 
   useEffect(() => {
@@ -55,6 +63,17 @@ export default function DashboardShell({
       document.body.style.overflow = bodyOverflow;
     };
   }, [fillViewport]);
+
+  const toggleSidebarCollapsed = () => {
+    setSidebarCollapsed((current) => {
+      const next = !current;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+      }
+      return next;
+    });
+  };
+
   const title = useMemo(() => {
     const match = Object.keys(titles)
       .sort((a, b) => b.length - a.length)
@@ -68,17 +87,28 @@ export default function DashboardShell({
         fillViewport ? "h-dvh overflow-hidden" : "min-h-screen"
       }`}
     >
-      {sidebarOpen && (
-        <button
-          type="button"
-          aria-label="Close sidebar overlay"
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm lg:hidden"
-        />
-      )}
+      <AnimatePresence>
+        {sidebarOpen ? (
+          <motion.button
+            type="button"
+            aria-label="Close sidebar overlay"
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: motionDuration.fast }}
+          />
+        ) : null}
+      </AnimatePresence>
 
       <div className={`flex ${fillViewport ? "h-full overflow-hidden" : "min-h-screen"}`}>
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar
+          isOpen={sidebarOpen}
+          isCollapsed={sidebarCollapsed}
+          onClose={() => setSidebarOpen(false)}
+          onToggleCollapse={toggleSidebarCollapsed}
+        />
 
         <main
           className={`min-w-0 flex-1 ${
@@ -112,7 +142,19 @@ export default function DashboardShell({
                 : "mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8 lg:py-8"
             }
           >
-            {children}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                className={fillViewport ? "flex min-h-0 flex-1 flex-col" : ""}
+                variants={pageTransition}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={panelTransition}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       </div>

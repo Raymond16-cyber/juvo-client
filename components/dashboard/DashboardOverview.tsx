@@ -41,7 +41,6 @@ export default function DashboardOverview() {
   const fetchGoals = useGoalsStore((state) => state.fetchGoals);
   const brokerPositions = useBrokerStore((state) => state.positions);
   const fetchBrokerPositions = useBrokerStore((state) => state.fetchPositions);
-  const currency = selectedAccount?.currency || analytics?.currency || "USD";
   const accountJournals = useMemo(
     () => filterByAccount(journals, selectedAccount?._id),
     [journals, selectedAccount?._id],
@@ -63,6 +62,28 @@ export default function DashboardOverview() {
       }),
     [brokerPositions, selectedAccount],
   );
+  const liveBrokerPnl = useMemo(
+    () =>
+      accountBrokerPositions.reduce((total, position) => {
+        const pnl =
+          position.live?.netUnrealizedPnl ??
+          position.live?.grossUnrealizedPnl ??
+          position.live?.floatingProfitIndicative ??
+          0;
+        return total + Number(pnl || 0);
+      }, 0),
+    [accountBrokerPositions],
+  );
+  const dashboardAccount = useMemo(() => {
+    if (!selectedAccount) return null;
+
+    const balance = Number(selectedAccount.currentBalance || 0);
+    return {
+      ...selectedAccount,
+      currentEquity: Number((balance + liveBrokerPnl).toFixed(2)),
+    };
+  }, [liveBrokerPnl, selectedAccount]);
+  const currency = dashboardAccount?.currency || analytics?.currency || "USD";
 
   const openMyDayWorkflow = (hasJournalToday?: boolean) => {
     if (hasJournalToday) {
@@ -102,7 +123,7 @@ export default function DashboardOverview() {
   }, []);
 
   const summary = analytics?.summary;
-  const accountBalance = Number(selectedAccount?.currentBalance);
+  const accountBalance = Number(dashboardAccount?.currentBalance);
   const netPnlValue =
     Number.isFinite(accountBalance) && accountBalance < 0
       ? accountBalance
@@ -212,7 +233,7 @@ export default function DashboardOverview() {
         </div>
 
         <div className="order-1 space-y-5 xl:order-2 xl:space-y-6">
-          <AccountSummary account={selectedAccount} />
+          <AccountSummary account={dashboardAccount} livePnl={liveBrokerPnl} />
           <QuickActions onOpenMyDay={openMyDayWorkflow} />
         </div>
       </div>

@@ -5,6 +5,11 @@ export interface AnalyticsSummary {
   closedTrades: number;
   netPnl: number;
   winRate: number;
+  profitFactor: number;
+  recoveryFactor: number;
+  grossProfit: number;
+  grossLoss: number;
+  maxDrawdown: number;
   avgRr: number;
   avgRisk: number;
   avgDiscipline: number;
@@ -12,6 +17,18 @@ export interface AnalyticsSummary {
   losses: number;
   revengeDays: number;
   overtradeDays: number;
+  bestSession: {
+    session: string;
+    trades: number;
+    pnl: number;
+    winRate: number;
+  } | null;
+  worstSession: {
+    session: string;
+    trades: number;
+    pnl: number;
+    winRate: number;
+  } | null;
 }
 
 export interface AnalyticsInsight {
@@ -26,6 +43,7 @@ export interface AnalyticsInsight {
 
 export interface AnalyticsData {
   currency?: string;
+  currencyMode?: "single" | "mixed";
   tradingAccount?: {
     _id: string;
     accountName: string;
@@ -57,8 +75,22 @@ export interface AnalyticsData {
     winRate: number;
   }>;
   byDirection: {
-    long: { trades: number; pnl: number };
-    short: { trades: number; pnl: number };
+    long: {
+      trades: number;
+      closedTrades: number;
+      pnl: number;
+      wins: number;
+      losses: number;
+      winRate: number;
+    };
+    short: {
+      trades: number;
+      closedTrades: number;
+      pnl: number;
+      wins: number;
+      losses: number;
+      winRate: number;
+    };
   };
   insights: AnalyticsInsight[];
   accounts: Array<{
