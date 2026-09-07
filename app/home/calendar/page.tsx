@@ -3,14 +3,16 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
-import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
 import { filterByAccount, getRecordCurrency, getSelectedAccount } from "@/lib/account";
 import { formatMoney, pnlClass } from "@/lib/format";
+import { controlClassName } from "@/lib/ui";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+
+const ALL_ACCOUNTS = "all";
 
 function toDateKey(value: Date) {
   const year = value.getFullYear();
@@ -25,7 +27,11 @@ export default function CalendarPage() {
   const accounts = useAccountsStore((state) => state.accounts);
   const selectedAccountId = useAccountsStore((state) => state.selectedAccountId);
   const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
-  const selectedAccount = getSelectedAccount(accounts, selectedAccountId);
+  const [accountFilter, setAccountFilter] = useState(ALL_ACCOUNTS);
+  const selectedAccount =
+    accountFilter === ALL_ACCOUNTS
+      ? null
+      : getSelectedAccount(accounts, accountFilter || selectedAccountId);
   const currency = selectedAccount?.currency || "USD";
   const [cursor, setCursor] = useState(() => new Date());
 
@@ -42,14 +48,19 @@ export default function CalendarPage() {
 
   const byDate = useMemo(() => {
     const map = new Map<string, typeof journals>();
-    filterByAccount(journals, selectedAccountId).forEach((journal) => {
+    const scopedJournals =
+      accountFilter === ALL_ACCOUNTS
+        ? journals
+        : filterByAccount(journals, accountFilter);
+
+    scopedJournals.forEach((journal) => {
       const key = toDateKey(new Date(journal.journalDate));
       const current = map.get(key) || [];
       current.push(journal);
       map.set(key, current);
     });
     return map;
-  }, [journals, selectedAccountId]);
+  }, [journals, accountFilter]);
 
   const cells = Array.from({ length: startWeekday + daysInMonth }, (_, index) => {
     if (index < startWeekday) return null;
@@ -62,11 +73,26 @@ export default function CalendarPage() {
         <PageHeader
           eyebrow="Calendar"
           title="Juvo Calendar"
-          description="See which days you journaled on the selected trading account."
+          description="See which days you journaled across all accounts, or filter to one account."
           actions={
             <div className="flex flex-wrap items-center gap-3">
-              <AccountSwitcher compact />
-            <div className="flex items-center gap-2">
+              <label className="block min-w-[190px]">
+                <span className="sr-only">Calendar account filter</span>
+                <select
+                  className={`${controlClassName} h-10 text-xs`}
+                  value={accountFilter}
+                  onChange={(event) => setAccountFilter(event.target.value)}
+                  aria-label="Filter calendar by account"
+                >
+                  <option value={ALL_ACCOUNTS}>All accounts</option>
+                  {accounts.map((account) => (
+                    <option key={account._id} value={account._id}>
+                      {account.accountName} · {account.currency}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="flex items-center gap-2">
               <button
                 type="button"
                 className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 dark:border-white/10"
@@ -86,7 +112,7 @@ export default function CalendarPage() {
               >
                 <ChevronRight size={18} />
               </button>
-            </div>
+              </div>
             </div>
           }
         />
