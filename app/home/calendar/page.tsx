@@ -4,13 +4,20 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
 import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
-import { getRecordCurrency, getSelectedAccount } from "@/lib/account";
+import { filterByAccount, getRecordCurrency, getSelectedAccount } from "@/lib/account";
 import { formatMoney, pnlClass } from "@/lib/format";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+
+function toDateKey(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 export default function CalendarPage() {
   const journals = useJournalStore((state) => state.journals);
@@ -35,14 +42,14 @@ export default function CalendarPage() {
 
   const byDate = useMemo(() => {
     const map = new Map<string, typeof journals>();
-    journals.forEach((journal) => {
-      const key = new Date(journal.journalDate).toISOString().slice(0, 10);
+    filterByAccount(journals, selectedAccountId).forEach((journal) => {
+      const key = toDateKey(new Date(journal.journalDate));
       const current = map.get(key) || [];
       current.push(journal);
       map.set(key, current);
     });
     return map;
-  }, [journals]);
+  }, [journals, selectedAccountId]);
 
   const cells = Array.from({ length: startWeekday + daysInMonth }, (_, index) => {
     if (index < startWeekday) return null;
@@ -95,7 +102,7 @@ export default function CalendarPage() {
           <div className="mt-2 grid grid-cols-7 gap-2">
             {cells.map((day, index) => {
               if (!day) return <div key={`empty-${index}`} />;
-              const key = new Date(year, month, day).toISOString().slice(0, 10);
+              const key = toDateKey(new Date(year, month, day));
               const dayJournals = byDate.get(key) || [];
               const pnl = dayJournals.reduce(
                 (total, journal) => total + (journal.totalProfitLoss || 0),
@@ -105,7 +112,7 @@ export default function CalendarPage() {
 
               const inner = (
                 <div
-                  className={`min-h-24 rounded-2xl border p-3 text-left  border${
+                  className={`min-h-24 rounded-2xl border p-3 text-left ${
                     dayJournals.length
                       ? "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.04]"
                       : "border-transparent bg-transparent"
