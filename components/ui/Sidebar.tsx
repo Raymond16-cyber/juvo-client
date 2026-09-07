@@ -92,12 +92,12 @@ const Sidebar = ({
       layout
       transition={panelTransition}
       className={`fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 transform flex-col border-r border-slate-200 bg-white px-4 py-5 text-slate-700 shadow-2xl shadow-slate-200/60 transition-[transform,width] duration-300 dark:border-white/10 dark:bg-[#070b14] dark:text-slate-200 dark:shadow-black/40 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:shadow-none ${
-        isCollapsed ? "lg:w-20 lg:px-3" : "lg:w-72"
+        isCollapsed ? "lg:w-24 lg:px-4" : "lg:w-72"
       } ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
-      <div className="mb-8 flex items-center justify-between">
+      <div className={`flex items-center justify-between ${isCollapsed ? "mb-10 lg:flex-col lg:gap-4" : "mb-8"}`}>
         <Link
           href="/home/dashboard"
           className={`flex min-w-0 items-center gap-3 ${isCollapsed ? "lg:justify-center" : ""}`}
@@ -138,7 +138,11 @@ const Sidebar = ({
         </div>
       </div>
 
-      <nav className="flex-1 space-y-7 overflow-y-auto pr-1">
+      <nav
+        className={`flex-1 overflow-y-auto ${
+          isCollapsed ? "space-y-9 pr-0" : "space-y-7 pr-1"
+        }`}
+      >
         {navigationGroups.map((group) => (
           <div key={group.label}>
             <p
@@ -148,7 +152,7 @@ const Sidebar = ({
             >
               {group.label}
             </p>
-            <div className="space-y-1">
+            <div className={isCollapsed ? "space-y-2" : "space-y-1"}>
               {group.items.map((item) => {
                 const Icon = item.icon;
                 const isActive =
@@ -161,7 +165,7 @@ const Sidebar = ({
                     onClick={onClose}
                     title={isCollapsed ? item.name : undefined}
                     className={`group relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition ${
-                      isCollapsed ? "lg:justify-center lg:px-2.5" : ""
+                      isCollapsed ? "lg:h-12 lg:justify-center lg:px-0 lg:py-0" : ""
                     } ${
                       isActive
                         ? "bg-slate-950 text-white shadow-lg shadow-slate-300/50 dark:bg-primary dark:text-slate-950 dark:shadow-primary/20"
@@ -190,13 +194,17 @@ const Sidebar = ({
         ))}
       </nav>
 
-      <div className="mt-6 space-y-3">
+      <div className={`mt-6 ${isCollapsed ? "space-y-4" : "space-y-3"}`}>
         <div className={isCollapsed ? "lg:hidden" : ""}>
           <AccountSwitcher />
         </div>
         <ThemeToggle compact={isCollapsed} />
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/[0.04]">
-          <div className="flex items-center gap-3">
+        <div
+          className={`rounded-3xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] ${
+            isCollapsed ? "p-2" : "p-3"
+          }`}
+        >
+          <div className={`flex items-center gap-3 ${isCollapsed ? "lg:justify-center" : ""}`}>
             <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/20 text-primary dark:bg-primary/15">
               <UserRound size={20} />
             </div>
