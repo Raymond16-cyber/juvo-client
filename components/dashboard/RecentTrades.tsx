@@ -27,6 +27,14 @@ export default function RecentTrades({
         ...trade,
         journalId: journal._id,
         journalDate: journal.journalDate,
+        displayCurrency:
+          trade.profitLossCurrency ||
+          (typeof trade.tradingAccount === "object"
+            ? trade.tradingAccount.accountCurrency ||
+              trade.tradingAccount.currency
+            : null) ||
+          journal.reportingCurrency ||
+          currency,
       })),
     )
     .sort((a, b) => {
@@ -134,7 +142,10 @@ export default function RecentTrades({
                     </div>
                     <div className="shrink-0 text-right">
                       <p className={`font-bold ${pnlClass(trade.profitLoss || 0)}`}>
-                        {formatMoney(trade.profitLoss || 0, currency)}
+                        {formatMoney(
+                          trade.profitLoss || 0,
+                          trade.displayCurrency,
+                        )}
                       </p>
                       <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                         RR {trade.achievedRR || trade.plannedRR}

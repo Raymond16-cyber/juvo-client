@@ -185,11 +185,18 @@ export default function JournalSearch() {
                               {formatDate(journal.journalDate)}
                             </span>
                             <span
-                              className={`shrink-0 text-xs font-semibold ${pnlClass(journal.totalProfitLoss || 0)}`}
+                              className={`shrink-0 text-xs font-semibold ${pnlClass(
+                                journal.totalProfitLossReporting ??
+                                  journal.totalProfitLoss ??
+                                  0,
+                              )}`}
                             >
                               {formatMoney(
-                                journal.totalProfitLoss || 0,
-                                getRecordCurrency(journal),
+                                journal.totalProfitLossReporting ??
+                                  journal.totalProfitLoss ??
+                                  0,
+                                journal.reportingCurrency ||
+                                  getRecordCurrency(journal),
                               )}
                             </span>
                           </span>

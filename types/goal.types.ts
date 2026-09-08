@@ -26,6 +26,7 @@ export interface Goal {
         accountName: string;
         broker: string;
         currency?: string;
+        accountCurrency?: string;
       };
 }
 

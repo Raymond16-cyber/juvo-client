@@ -38,7 +38,7 @@ export default function ExportPage() {
 
   const exportCsv = () => {
     const rows = [
-      ["Date", "Status", "Trades", "Open", "Closed", "P/L", "Note"].join(","),
+      ["Date", "Status", "Trades", "Open", "Closed", "P/L", "Currency", "Note"].join(","),
       ...journals.map((journal) =>
         [
           formatDate(journal.journalDate),
@@ -46,7 +46,8 @@ export default function ExportPage() {
           journal.tradesCount || 0,
           journal.openTrades,
           journal.closedTrades,
-          journal.totalProfitLoss,
+          journal.totalProfitLossReporting ?? journal.totalProfitLoss,
+          journal.reportingCurrency || getRecordCurrency(journal),
           `"${(journal.psychology?.beforeTrading || "").replace(/"/g, "'")}"`,
         ].join(","),
       ),
@@ -93,8 +94,10 @@ export default function ExportPage() {
             <p className="text-sm text-slate-500 dark:text-slate-400">
               Latest session {formatDate(journals[0].journalDate)} ·{" "}
               {formatMoney(
-                journals[0].totalProfitLoss || 0,
-                getRecordCurrency(journals[0]),
+                journals[0].totalProfitLossReporting ??
+                  journals[0].totalProfitLoss ??
+                  0,
+                journals[0].reportingCurrency || getRecordCurrency(journals[0]),
               )}
             </p>
           </Card>

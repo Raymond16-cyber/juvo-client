@@ -129,6 +129,9 @@ export default function JournalDetailPage() {
       ? journal.tradingAccount.status
       : undefined;
   const journalCurrency = getRecordCurrency(journal);
+  const journalDisplayProfitLoss =
+    journal?.totalProfitLossReporting ?? journal?.totalProfitLoss ?? 0;
+  const journalDisplayCurrency = journal?.reportingCurrency || journalCurrency;
   const closingTrade = journal?.trades?.find(
     (trade) => trade._id === closingTradeId,
   );
@@ -217,7 +220,11 @@ export default function JournalDetailPage() {
             <div className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-4">
                 {[
-                  ["P/L", formatMoney(journal.totalProfitLoss || 0, journalCurrency), pnlClass(journal.totalProfitLoss || 0)],
+                  [
+                    "P/L",
+                    formatMoney(journalDisplayProfitLoss, journalDisplayCurrency),
+                    pnlClass(journalDisplayProfitLoss),
+                  ],
                   ["Open", String(journal.openTrades || 0), ""],
                   ["Closed", String(journal.closedTrades || 0), ""],
                   ["Discipline", `${journal.discipline?.score ?? "—"}`, ""],
@@ -284,7 +291,8 @@ export default function JournalDetailPage() {
                           <p className={`text-lg font-bold ${pnlClass(trade.profitLoss || 0)}`}>
                             {formatMoney(
                               trade.profitLoss || 0,
-                              getRecordCurrency(trade, journalCurrency),
+                              trade.profitLossCurrency ||
+                                getRecordCurrency(trade, journalCurrency),
                             )}
                           </p>
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">

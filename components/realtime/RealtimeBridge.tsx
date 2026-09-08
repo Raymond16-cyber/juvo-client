@@ -18,6 +18,7 @@ type RealtimeEnvelope = {
       symbol?: string;
       direction?: string;
       profitLoss?: number;
+      profitLossCurrency?: string;
       journal?: string;
     };
   };
@@ -75,7 +76,10 @@ export default function RealtimeBridge() {
         const trade = envelope.payload?.trade;
         useNoticeStore.getState().showNotice({
           title: "Trade closed",
-          body: `${trade?.symbol || "cTrader"} ${trade?.direction || ""} ${formatMoney(Number(trade?.profitLoss || 0))}`.trim(),
+          body: `${trade?.symbol || "cTrader"} ${trade?.direction || ""} ${formatMoney(
+            Number(trade?.profitLoss || 0),
+            trade?.profitLossCurrency || "USD",
+          )}`.trim(),
           tone: "success",
         });
 

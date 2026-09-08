@@ -60,7 +60,8 @@ export default function JournalPage() {
   const selectAccount = useAccountsStore((state) => state.selectAccount);
   const selectedAccount = getSelectedAccount(accounts, storeSelectedAccountId);
   const tradableAccounts = getTradableAccounts(accounts);
-  const currency = selectedAccount?.currency || "USD";
+  const currency = selectedAccount?.accountCurrency || selectedAccount?.currency || "USD";
+  const reportingCurrency = journals[0]?.reportingCurrency || currency;
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [beforeTrading, setBeforeTrading] = useState("");
   const [confidenceBefore, setConfidenceBefore] = useState(7);
@@ -120,7 +121,9 @@ export default function JournalPage() {
           trades: summary.trades + (journal.tradesCount || 0),
           openTrades: summary.openTrades + journal.openTrades,
           closedTrades: summary.closedTrades + journal.closedTrades,
-          totalProfitLoss: summary.totalProfitLoss + journal.totalProfitLoss,
+          totalProfitLoss:
+            summary.totalProfitLoss +
+            (journal.totalProfitLossReporting ?? journal.totalProfitLoss),
           winningTrades: summary.winningTrades + journal.winningTrades,
           losingTrades: summary.losingTrades + journal.losingTrades,
         }),
@@ -206,7 +209,7 @@ export default function JournalPage() {
           <StatCard
             icon={stats.totalProfitLoss >= 0 ? TrendingUp : TrendingDown}
             label="Net P/L"
-            value={formatAccountMoney(stats.totalProfitLoss, currency)}
+            value={formatAccountMoney(stats.totalProfitLoss, reportingCurrency)}
             tone={stats.totalProfitLoss >= 0 ? "positive" : "negative"}
           />
           <StatCard
@@ -303,7 +306,7 @@ export default function JournalPage() {
                       const inPlay = isAccountInPlay(account);
                       return (
                         <option key={account._id} value={account._id} disabled={!inPlay}>
-                          {account.accountName} - {account.broker} · {account.currency}
+                          {account.accountName} - {account.broker} · {account.accountCurrency || account.currency}
                           {inPlay ? "" : ` · ${account.status}`}
                         </option>
                       );
@@ -394,8 +397,9 @@ function StatCard({ icon: Icon, label, value, helper, tone }: StatCardProps) {
 }
 
 function JournalRow({ journal }: { journal: JournalHistoryItem }) {
-  const hasProfit = journal.totalProfitLoss >= 0;
-  const currency = getRecordCurrency(journal);
+  const displayPnl = journal.totalProfitLossReporting ?? journal.totalProfitLoss;
+  const hasProfit = displayPnl >= 0;
+  const currency = journal.reportingCurrency || getRecordCurrency(journal);
 
   return (
     <Link
@@ -429,7 +433,7 @@ function JournalRow({ journal }: { journal: JournalHistoryItem }) {
             <MiniMetric label="Closed" value={journal.closedTrades} />
             <MiniMetric
               label="P/L"
-              value={formatAccountMoney(journal.totalProfitLoss, currency)}
+              value={formatAccountMoney(displayPnl, currency)}
               className={
                 hasProfit
                   ? "text-emerald-600 dark:text-emerald-300"

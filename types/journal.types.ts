@@ -85,6 +85,7 @@ export interface JournalListTradeSummary {
   direction: CreateTradePayload["direction"];
   status: TradeSummary["status"];
   profitLoss: number;
+  profitLossCurrency?: string | null;
   plannedRR: number;
   achievedRR?: number;
   source?: "manual" | "ctrader";
