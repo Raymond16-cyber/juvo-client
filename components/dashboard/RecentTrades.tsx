@@ -168,7 +168,7 @@ function LivePositionCard({
   const displayPnl = brokerPnl ?? fallbackPnl;
   const positionCurrency =
     typeof position.tradingAccount === "object"
-      ? position.tradingAccount.currency
+      ? position.tradingAccount.accountCurrency || position.tradingAccount.currency
       : currency;
 
   return (

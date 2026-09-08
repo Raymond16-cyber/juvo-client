@@ -442,7 +442,7 @@ export default function MyDayWorkflow({
                 const inPlay = isAccountInPlay(account);
                 return (
                   <option key={account._id} value={account._id} disabled={!inPlay}>
-                    {account.accountName} - {account.broker} · {account.currency}
+                    {account.accountName} - {account.broker} · {account.accountCurrency || account.currency}
                     {inPlay ? "" : ` · ${getAccountStatusLabel(account)}`}
                   </option>
                 );
@@ -454,7 +454,7 @@ export default function MyDayWorkflow({
             <div className="grid grid-cols-3 gap-2 border-y border-slate-200 py-3 text-sm dark:border-white/10">
               <span>
                 <strong className="block text-slate-950 dark:text-white">
-                  {selectedAccount.currency} {selectedAccount.currentBalance.toLocaleString()}
+                  {selectedAccount.accountCurrency || selectedAccount.currency} {selectedAccount.currentBalance.toLocaleString()}
                 </strong>
                 <small className="text-slate-500 dark:text-slate-400">Balance</small>
               </span>

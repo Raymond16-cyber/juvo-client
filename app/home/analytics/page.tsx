@@ -81,11 +81,15 @@ export default function AnalyticsPage() {
     [accountFilter, accounts],
   );
   const summary = data?.summary;
-  const currency = selectedAccount?.currency || data?.currency || "USD";
+  const currency =
+    selectedAccount?.accountCurrency || selectedAccount?.currency || data?.currency || "USD";
   const filteredLabel = selectedAccount
     ? selectedAccount.accountName
     : "All accounts";
-  const mixedCurrency = data?.currencyMode === "mixed" && accountFilter === ALL_ACCOUNTS;
+  const normalizedCurrency =
+    data?.currencyMode === "normalized" && accountFilter === ALL_ACCOUNTS;
+  const missingFx =
+    Boolean(data?.conversionUnavailable) && accountFilter === ALL_ACCOUNTS;
 
   useEffect(() => {
     fetchAccounts().catch(() => undefined);
@@ -176,7 +180,7 @@ export default function AnalyticsPage() {
                 <option value={ALL_ACCOUNTS}>All accounts</option>
                 {accounts.map((account) => (
                   <option key={account._id} value={account._id}>
-                    {account.accountName} · {account.currency}
+                    {account.accountName} · {account.accountCurrency || account.currency}
                   </option>
                 ))}
               </select>
@@ -184,10 +188,13 @@ export default function AnalyticsPage() {
           }
         />
 
-        {mixedCurrency ? (
+        {normalizedCurrency ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-200">
-            This all-account view includes more than one account currency, so money
-            totals are grouped as logged instead of converted.
+            All-account money totals are shown in {data?.reportingCurrency || currency}.
+            Closed trades use historical FX where a rate is available.
+            {missingFx
+              ? ` ${data?.conversionUnavailableCount || 0} trade${data?.conversionUnavailableCount === 1 ? "" : "s"} could not be converted yet.`
+              : ""}
           </div>
         ) : null}
 
@@ -335,7 +342,7 @@ export default function AnalyticsPage() {
                   <StatRow
                     key={account._id}
                     label={account.accountName}
-                    meta={`${account.broker} · ${account.currency} · ${account.status || "Active"}`}
+                    meta={`${account.broker} · ${account.accountCurrency || account.currency} · ${account.status || "Active"}`}
                     value={`${formatNumber(account.tradesCount || 0, 0)} trades`}
                     tone="text-slate-950 dark:text-white"
                   />

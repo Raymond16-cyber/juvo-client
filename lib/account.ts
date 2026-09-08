@@ -31,11 +31,13 @@ export function getRecordAccountId(
 }
 
 export function getRecordCurrency(
-  record?: { tradingAccount?: string | { currency?: string } | null } | null,
+  record?: {
+    tradingAccount?: string | { currency?: string; accountCurrency?: string } | null;
+  } | null,
   fallback = "USD",
 ) {
   if (record?.tradingAccount && typeof record.tradingAccount !== "string") {
-    return record.tradingAccount.currency || fallback;
+    return record.tradingAccount.accountCurrency || record.tradingAccount.currency || fallback;
   }
   return fallback;
 }

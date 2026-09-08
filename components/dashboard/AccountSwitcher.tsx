@@ -68,7 +68,7 @@ export default function AccountSwitcher({
           const inPlay = isAccountInPlay(account);
           return (
             <option key={account._id} value={account._id}>
-              {account.accountName} · {account.currency}
+              {account.accountName} · {account.accountCurrency || account.currency}
               {inPlay ? "" : ` · ${status}`}
             </option>
           );

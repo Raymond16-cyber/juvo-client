@@ -19,6 +19,7 @@ export interface User {
   preferences?: {
     theme?: "light" | "dark" | "system";
     preferredCurrency?: string;
+    reportingCurrency?: string;
     weekStartsOn?: "sunday" | "monday";
     notifications?: {
       enabled?: boolean;
@@ -104,6 +105,7 @@ export interface ResetPasswordData {
 export interface UpdatePreferencesPayload {
   theme?: "light" | "dark" | "system";
   preferredCurrency?: string;
+  reportingCurrency?: string;
   weekStartsOn?: "sunday" | "monday";
   notificationsEnabled?: boolean;
   reminderTime?: string;

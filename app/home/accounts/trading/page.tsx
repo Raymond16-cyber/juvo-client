@@ -234,11 +234,17 @@ export default function TradingAccountsPage() {
                       {[
                         [
                           "Balance",
-                          formatMoney(account.currentBalance, account.currency),
+                          formatMoney(
+                            account.currentBalance,
+                            account.accountCurrency || account.currency,
+                          ),
                         ],
                         [
                           "Equity",
-                          formatMoney(account.currentEquity, account.currency),
+                          formatMoney(
+                            account.currentEquity,
+                            account.accountCurrency || account.currency,
+                          ),
                         ],
                         ["Trades", String(account.tradesCount || 0)],
                         ["Target", `${formatNumber(account.profitTarget)}%`],
@@ -293,7 +299,7 @@ export default function TradingAccountsPage() {
                               >
                                 {formatMoney(
                                   trade.profitLoss || 0,
-                                  account.currency,
+                                  account.accountCurrency || account.currency,
                                 )}
                               </p>
                             </div>
@@ -495,10 +501,19 @@ function ArchivedAccountCard({
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          ["Balance", formatMoney(account.currentBalance, account.currency)],
-          ["Equity", formatMoney(account.currentEquity, account.currency)],
+          [
+            "Balance",
+            formatMoney(account.currentBalance, account.accountCurrency || account.currency),
+          ],
+          [
+            "Equity",
+            formatMoney(account.currentEquity, account.accountCurrency || account.currency),
+          ],
           ["Trades", String(account.tradesCount || 0)],
-          ["P/L", formatMoney(account.totalProfitLoss || 0, account.currency)],
+          [
+            "P/L",
+            formatMoney(account.totalProfitLoss || 0, account.accountCurrency || account.currency),
+          ],
         ].map(([label, value]) => (
           <div
             key={label}
@@ -533,7 +548,10 @@ function ArchivedAccountCard({
                   </p>
                 </div>
                 <p className={`font-bold ${pnlClass(trade.profitLoss || 0)}`}>
-                  {formatMoney(trade.profitLoss || 0, account.currency)}
+                  {formatMoney(
+                    trade.profitLoss || 0,
+                    trade.profitLossCurrency || account.accountCurrency || account.currency,
+                  )}
                 </p>
               </div>
             ))}

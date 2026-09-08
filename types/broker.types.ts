@@ -46,6 +46,7 @@ export interface BrokerPosition {
   swap?: number;
   commission?: number;
   usedMargin?: number;
+  moneyCurrency?: string | null;
   status: BrokerPositionStatus;
   openedAt?: string;
   brokerUpdatedAt?: string;
@@ -76,6 +77,7 @@ export interface BrokerPosition {
         broker: string;
         platform: string;
         currency: string;
+        accountCurrency?: string;
       };
   createdAt?: string;
   updatedAt?: string;

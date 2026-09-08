@@ -36,7 +36,9 @@ export default function AccountSummary({ account, livePnl = 0 }: AccountSummaryP
             {account ? `${account.accountName} · ${account.broker}` : "Primary Account"}
           </p>
           <h2 className="mt-2 text-3xl font-bold">
-            {account ? `${account.currency} ${formatNumber(equity)}` : "No account yet"}
+            {account
+              ? `${account.accountCurrency || account.currency} ${formatNumber(equity)}`
+              : "No account yet"}
           </h2>
           {account ? (
             <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -54,11 +56,19 @@ export default function AccountSummary({ account, livePnl = 0 }: AccountSummaryP
 
       <div className="mt-7 grid gap-3 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
         {[
-          ["Balance", account ? formatMoney(balance, account.currency) : "—"],
-          ["Equity", account ? formatMoney(equity, account.currency) : "—"],
+          [
+            "Balance",
+            account
+              ? formatMoney(balance, account.accountCurrency || account.currency)
+              : "—",
+          ],
+          [
+            "Equity",
+            account ? formatMoney(equity, account.accountCurrency || account.currency) : "—",
+          ],
           [
             "Floating P/L",
-            account ? formatMoney(livePnl, account.currency) : "—",
+            account ? formatMoney(livePnl, account.accountCurrency || account.currency) : "—",
           ],
         ].map(([label, value]) => (
           <div key={label} className="rounded-2xl bg-white/[0.06] p-4">

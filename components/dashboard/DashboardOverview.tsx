@@ -83,7 +83,11 @@ export default function DashboardOverview() {
       currentEquity: Number((balance + liveBrokerPnl).toFixed(2)),
     };
   }, [liveBrokerPnl, selectedAccount]);
-  const currency = dashboardAccount?.currency || analytics?.currency || "USD";
+  const currency =
+    dashboardAccount?.accountCurrency ||
+    dashboardAccount?.currency ||
+    analytics?.currency ||
+    "USD";
 
   const openMyDayWorkflow = (hasJournalToday?: boolean) => {
     if (hasJournalToday) {

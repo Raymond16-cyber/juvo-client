@@ -43,12 +43,18 @@ export interface AnalyticsInsight {
 
 export interface AnalyticsData {
   currency?: string;
-  currencyMode?: "single" | "mixed";
+  reportingCurrency?: string;
+  currencyMode?: "single" | "mixed" | "normalized";
+  nativeCurrencyMode?: "single" | "mixed";
+  conversionUnavailable?: boolean;
+  conversionUnavailableCount?: number;
+  monetaryTradesCount?: number;
   tradingAccount?: {
     _id: string;
     accountName: string;
     broker: string;
     currency: string;
+    accountCurrency?: string;
     status?: "Active" | "Passed" | "Breached";
     isActive?: boolean;
   } | null;
@@ -98,6 +104,7 @@ export interface AnalyticsData {
     accountName: string;
     broker: string;
     currency: string;
+    accountCurrency?: string;
     currentBalance: number;
     currentEquity?: number;
     profitTarget?: number;

@@ -17,6 +17,7 @@ export interface JournalSummary {
         | "broker"
         | "accountType"
         | "currency"
+        | "accountCurrency"
         | "currentBalance"
         | "currentEquity"
         | "isActive"
@@ -67,6 +68,7 @@ export interface TradeSummary extends CreateTradePayload {
   _id: string;
   status: "Open" | "Closed" | "Breakeven" | "Cancelled";
   profitLoss: number;
+  profitLossCurrency?: string | null;
   source?: "manual" | "ctrader";
   externalId?: string;
   externalPositionId?: string;
@@ -97,13 +99,22 @@ export interface JournalListTradeSummary {
     | string
     | Pick<
         TradingAccount,
-        "_id" | "accountName" | "broker" | "currency" | "status" | "isActive"
+        | "_id"
+        | "accountName"
+        | "broker"
+        | "currency"
+        | "accountCurrency"
+        | "status"
+        | "isActive"
       >;
 }
 
 export interface JournalHistoryItem extends JournalSummary {
   trades?: JournalListTradeSummary[];
   totalProfitLoss: number;
+  totalProfitLossReporting?: number;
+  reportingCurrency?: string;
+  conversionUnavailableCount?: number;
   openTrades: number;
   closedTrades: number;
   winningTrades: number;

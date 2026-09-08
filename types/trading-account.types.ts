@@ -13,6 +13,7 @@ export interface TradingAccountTrade {
   lotSize?: number;
   riskPercentage?: number;
   profitLoss: number;
+  profitLossCurrency?: string | null;
   plannedRR?: number;
   achievedRR?: number;
   source?: "manual" | "ctrader";
@@ -38,6 +39,7 @@ export interface TradingAccount {
   server?: string;
   leverage: string;
   currency: string;
+  accountCurrency?: string;
   currentEquity: number;
   maxDrawnDown: number;
   profitTarget: number;
@@ -69,6 +71,7 @@ export type CreateTradingAccountPayload = {
   server?: string;
   leverage: string;
   currency: string;
+  accountCurrency?: string;
   maxDrawnDown: number;
   profitTarget: number;
 };
@@ -88,6 +91,7 @@ export interface TradingAccountOutcome {
   accountName: string;
   broker?: string;
   currency?: string;
+  accountCurrency?: string;
   currentBalance: number;
   currentEquity: number;
   initialBalance?: number;

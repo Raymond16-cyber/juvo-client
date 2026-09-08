@@ -32,7 +32,7 @@ export default function CalendarPage() {
     accountFilter === ALL_ACCOUNTS
       ? null
       : getSelectedAccount(accounts, accountFilter || selectedAccountId);
-  const currency = selectedAccount?.currency || "USD";
+  const currency = selectedAccount?.accountCurrency || selectedAccount?.currency || "USD";
   const [cursor, setCursor] = useState(() => new Date());
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function CalendarPage() {
                   <option value={ALL_ACCOUNTS}>All accounts</option>
                   {accounts.map((account) => (
                     <option key={account._id} value={account._id}>
-                      {account.accountName} · {account.currency}
+                      {account.accountName} · {account.accountCurrency || account.currency}
                     </option>
                   ))}
                 </select>
@@ -130,11 +130,19 @@ export default function CalendarPage() {
               if (!day) return <div key={`empty-${index}`} />;
               const key = toDateKey(new Date(year, month, day));
               const dayJournals = byDate.get(key) || [];
+              const first = dayJournals[0];
+              const useReportingCurrency = accountFilter === ALL_ACCOUNTS;
               const pnl = dayJournals.reduce(
-                (total, journal) => total + (journal.totalProfitLoss || 0),
+                (total, journal) =>
+                  total +
+                  (useReportingCurrency
+                    ? journal.totalProfitLossReporting ?? journal.totalProfitLoss ?? 0
+                    : journal.totalProfitLoss || 0),
                 0,
               );
-              const first = dayJournals[0];
+              const displayCurrency = useReportingCurrency
+                ? first?.reportingCurrency || "USD"
+                : getRecordCurrency(first, currency);
 
               const inner = (
                 <div
@@ -148,7 +156,7 @@ export default function CalendarPage() {
                   {dayJournals.length ? (
                     <>
                       <p className={`mt-2 text-xs font-semibold ${pnlClass(pnl)}`}>
-                        {formatMoney(pnl, getRecordCurrency(first, currency))}
+                        {formatMoney(pnl, displayCurrency)}
                       </p>
                       <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                         {dayJournals.reduce((total, journal) => total + (journal.tradesCount || 0), 0)} trades
