@@ -2,6 +2,7 @@
 
 import AuthLoadingScreen from "@/components/auth/AuthLoadingScreen";
 import AuthVisual from "@/components/auth/AuthVisual";
+import GuestRoute from "@/components/auth/GuestRoute";
 import Header from "@/components/Header";
 import Button from "@/components/ui/Button";
 import { AUTH_ENTER_LABEL, markEnteringApp } from "@/lib/auth-entry";
@@ -168,7 +169,9 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={null}>
-      <LoginForm />
+      <GuestRoute>
+        <LoginForm />
+      </GuestRoute>
     </Suspense>
   );
 }

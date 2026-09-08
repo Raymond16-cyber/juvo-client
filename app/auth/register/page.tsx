@@ -2,6 +2,7 @@
 
 import AuthLoadingScreen from "@/components/auth/AuthLoadingScreen";
 import AuthVisual from "@/components/auth/AuthVisual";
+import GuestRoute from "@/components/auth/GuestRoute";
 import Header from "@/components/Header";
 import Button from "@/components/ui/Button";
 import { AUTH_ENTER_LABEL, markEnteringApp } from "@/lib/auth-entry";
@@ -12,7 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
   const register = useAuthStore((state) => state.register);
   const storeError = useAuthStore((state) => state.error);
@@ -167,5 +168,13 @@ export default function RegisterPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <GuestRoute>
+      <RegisterForm />
+    </GuestRoute>
   );
 }

@@ -7,6 +7,7 @@ import images from "@/constants/images.service";
 import Button from "@/components/ui/Button";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/auth.store";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -19,9 +20,18 @@ const navLinks = [
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hasStoredToken, setHasStoredToken] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const isAuthPage = pathname.startsWith("/auth");
+  const hasCheckedAuth = useAuthStore((state) => state.hasCheckedAuth);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
+  const showDashboardAction =
+    isAuthenticated || (!hasCheckedAuth && hasStoredToken);
+  const dashboardPath = user?.onboarding?.completed
+    ? "/home/dashboard"
+    : "/home/onboarding";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -30,6 +40,12 @@ export default function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setHasStoredToken(Boolean(window.localStorage.getItem("token")));
+    });
   }, []);
 
   return (
@@ -76,21 +92,34 @@ export default function Header() {
             </nav>
           ) : null}
 
-          <Button
-            variant="onDark"
-            onClick={() => router.push("/auth/login")}
-            className="min-w-[110px]"
-          >
-            Sign In
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => router.push("/auth/register")}
-            className="min-w-[138px]"
-          >
-            Get Started
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          {showDashboardAction ? (
+            <Button
+              variant="primary"
+              onClick={() => router.push(dashboardPath)}
+              className="min-w-[138px]"
+            >
+              Dashboard
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="onDark"
+                onClick={() => router.push("/auth/login")}
+                className="min-w-[110px]"
+              >
+                Sign In
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => router.push("/auth/register")}
+                className="min-w-[138px]"
+              >
+                Get Started
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
 
         <Button
@@ -132,27 +161,43 @@ export default function Header() {
                 </nav>
               ) : null}
 
-              <Button
-                variant="onDark"
-                onClick={() => {
-                  setMobileOpen(false);
-                  router.push("/auth/login");
-                }}
-                className="mt-4 w-full"
-              >
-                Sign In
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => {
-                  setMobileOpen(false);
-                  router.push("/auth/register");
-                }}
-                className="mt-3 w-full"
-              >
-                Get Started
-                <ArrowRight className="h-4 w-4" />
-              </Button>
+              {showDashboardAction ? (
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    router.push(dashboardPath);
+                  }}
+                  className="mt-4 w-full"
+                >
+                  Dashboard
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="onDark"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      router.push("/auth/login");
+                    }}
+                    className="mt-4 w-full"
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      router.push("/auth/register");
+                    }}
+                    className="mt-3 w-full"
+                  >
+                    Get Started
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
             </div>
           </motion.div>
         ) : null}
