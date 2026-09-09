@@ -79,6 +79,7 @@ export default function BrokerConnectionsPage() {
   const fetchConnections = useBrokerStore((state) => state.fetchConnections);
   const fetchPositions = useBrokerStore((state) => state.fetchPositions);
   const syncCTrader = useBrokerStore((state) => state.syncCTrader);
+  const disconnectCTrader = useBrokerStore((state) => state.disconnectCTrader);
   const connections = useBrokerStore((state) => state.connections);
   const positions = useBrokerStore((state) => state.positions);
   const lastSync = useBrokerStore((state) => state.lastSync);
@@ -87,7 +88,17 @@ export default function BrokerConnectionsPage() {
   const error = useBrokerStore((state) => state.error);
 
   const cTraderConnection = useMemo(
-    () => connections.find((connection) => connection.provider === "ctrader"),
+    () =>
+      connections.find(
+        (connection) =>
+          connection.provider === "ctrader" && connection.status === "connected",
+      ) ||
+      connections.find(
+        (connection) =>
+          connection.provider === "ctrader" &&
+          connection.status === "reauthorization_required",
+      ) ||
+      connections.find((connection) => connection.provider === "ctrader"),
     [connections],
   );
   const connectedCTrader = cTraderConnection?.status === "connected";
@@ -214,6 +225,28 @@ export default function BrokerConnectionsPage() {
       showNotice({
         title: "cTrader sync failed",
         body: "JUVO could not refresh cTrader data right now.",
+        tone: "warning",
+      });
+    }
+  };
+
+  const handleDisconnectCtrader = async (connectionId: string) => {
+    const shouldDisconnect = window.confirm(
+      "Disconnect this cTrader account from JUVO? Imported journal history stays saved, but live positions stop until you reconnect.",
+    );
+    if (!shouldDisconnect) return;
+
+    try {
+      await disconnectCTrader(connectionId);
+      showNotice({
+        title: "cTrader disconnected",
+        body: "JUVO has stopped syncing this cTrader account. You can connect it again anytime.",
+        tone: "success",
+      });
+    } catch {
+      showNotice({
+        title: "Disconnect failed",
+        body: "JUVO could not disconnect this cTrader account right now.",
         tone: "warning",
       });
     }
@@ -396,6 +429,8 @@ export default function BrokerConnectionsPage() {
                   <ConnectionRow
                     key={connection.id}
                     connection={connection}
+                    disabled={isConnecting}
+                    onDisconnect={handleDisconnectCtrader}
                   />
                 ))
               ) : (
@@ -576,7 +611,18 @@ function DestinationCard({
   );
 }
 
-function ConnectionRow({ connection }: { connection: BrokerConnection }) {
+function ConnectionRow({
+  connection,
+  disabled,
+  onDisconnect,
+}: {
+  connection: BrokerConnection;
+  disabled?: boolean;
+  onDisconnect: (connectionId: string) => void;
+}) {
+  const canDisconnect =
+    connection.provider === "ctrader" && connection.status === "connected";
+
   return (
     <div className="rounded-xl border border-slate-200 p-4 dark:border-white/10">
       <div className="flex items-start justify-between gap-3">
@@ -615,6 +661,18 @@ function ConnectionRow({ connection }: { connection: BrokerConnection }) {
           }
         />
       </div>
+
+      {canDisconnect ? (
+        <Button
+          variant="ghost"
+          className="mt-4 h-9 w-full justify-center text-rose-600 hover:text-rose-700 dark:text-rose-300"
+          disabled={disabled}
+          onClick={() => onDisconnect(connection.id)}
+        >
+          <Unplug size={15} />
+          Disconnect
+        </Button>
+      ) : null}
     </div>
   );
 }

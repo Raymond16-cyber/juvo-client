@@ -125,6 +125,15 @@ export interface CTraderSyncResponse {
   data: CTraderSyncResult;
 }
 
+export interface CTraderDisconnectResponse {
+  message: string;
+  data: {
+    connection: BrokerConnection;
+    tradingAccountId?: string | null;
+    markedPositionsUnknown: number;
+  };
+}
+
 export interface CTraderConnectResponse {
   message: string;
   authorizationUrl: string;

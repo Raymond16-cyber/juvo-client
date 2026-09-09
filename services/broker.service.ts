@@ -3,6 +3,7 @@ import {
   BrokerConnectionsResponse,
   BrokerPositionsResponse,
   CompleteCTraderResponse,
+  CTraderDisconnectResponse,
   CTraderSyncResponse,
   CTraderConnectResponse,
 } from "@/types/broker.types";
@@ -44,6 +45,15 @@ export const syncCTraderService = async (connectionId?: string) => {
   const response = await api.post<CTraderSyncResponse>("/broker/ctrader/sync", {
     connectionId,
   });
+
+  return response.data;
+};
+
+export const disconnectCTraderService = async (connectionId: string) => {
+  const response = await api.post<CTraderDisconnectResponse>(
+    "/broker/ctrader/disconnect",
+    { connectionId },
+  );
 
   return response.data;
 };

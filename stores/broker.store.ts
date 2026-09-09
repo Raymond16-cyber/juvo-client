@@ -1,6 +1,7 @@
 import { getApiErrorMessage } from "@/lib/axios";
 import {
   completeCTraderConnectService,
+  disconnectCTraderService,
   getBrokerConnectionsService,
   getBrokerPositionsService,
   getCTraderConnectUrlService,
@@ -28,6 +29,7 @@ interface BrokerState {
   fetchConnections: () => Promise<BrokerConnection[]>;
   fetchPositions: (status?: string) => Promise<BrokerPosition[]>;
   syncCTrader: (connectionId?: string) => Promise<CTraderSyncResult>;
+  disconnectCTrader: (connectionId: string) => Promise<void>;
   applyPositionLiveUpdate: (update: BrokerPositionLiveUpdate) => void;
   clearBrokerNotice: () => void;
 }
@@ -166,6 +168,37 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
       set({
         isConnecting: false,
         error: getApiErrorMessage(error, "Unable to sync cTrader."),
+      });
+      throw error;
+    }
+  },
+  disconnectCTrader: async (connectionId) => {
+    set({ isConnecting: true, error: null, message: null });
+
+    try {
+      const result = await disconnectCTraderService(connectionId);
+      const connections = await get().fetchConnections().catch(() =>
+        get().connections.map((connection) =>
+          connection.id === connectionId
+            ? { ...connection, status: "disconnected" as const }
+            : connection,
+        ),
+      );
+      const positions = await get().fetchPositions("open").catch(() =>
+        get().positions.filter((position) => position.status === "open"),
+      );
+
+      set({
+        isConnecting: false,
+        isConnected: hasConnectedBroker(connections),
+        connections,
+        positions,
+        message: result.message,
+      });
+    } catch (error) {
+      set({
+        isConnecting: false,
+        error: getApiErrorMessage(error, "Unable to disconnect cTrader."),
       });
       throw error;
     }
