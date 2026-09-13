@@ -7,9 +7,15 @@ import {
   CreateTradePayload,
   CreateTradeResponse,
   JournalDetailResponse,
+  JournalExport,
   JournalStatusResponse,
   UserJournalsResponse,
 } from "@/types/journal.types";
+
+export const getJournalExportService = async (): Promise<JournalExport> => {
+  const response = await api.get<JournalExport>("/journal/export");
+  return response.data;
+};
 
 export const getTodayJournalStatusService =
   async (): Promise<JournalStatusResponse> => {

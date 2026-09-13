@@ -85,6 +85,7 @@ export interface JournalListTradeSummary {
   direction: CreateTradePayload["direction"];
   status: TradeSummary["status"];
   profitLoss: number;
+  profitLossReporting?: number | null;
   profitLossCurrency?: string | null;
   plannedRR: number;
   achievedRR?: number;
@@ -142,6 +143,8 @@ export interface JournalHistoryItem extends JournalSummary {
 }
 
 export interface JournalDetailTrade extends JournalListTradeSummary {
+  pips?: number;
+  screenshots?: string[];
   entryPrice?: number;
   exitPrice?: number;
   stopLoss?: number;
@@ -153,6 +156,14 @@ export interface JournalDetailTrade extends JournalListTradeSummary {
 
 export interface JournalDetail extends JournalHistoryItem {
   trades?: JournalDetailTrade[];
+}
+
+export interface JournalExport {
+  schemaVersion: number;
+  exportedAt: string;
+  timeZone: string;
+  reportingCurrency: string;
+  journals: JournalDetail[];
 }
 
 export type CompleteJournalPayload = {

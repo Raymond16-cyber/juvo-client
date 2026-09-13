@@ -1,10 +1,9 @@
 "use client";
 
 import AuthLoadingScreen from "@/components/auth/AuthLoadingScreen";
-import AuthVisual from "@/components/auth/AuthVisual";
+import AuthShell from "@/components/auth/AuthShell";
+import styles from "@/components/auth/AuthShell.module.css";
 import GuestRoute from "@/components/auth/GuestRoute";
-import Header from "@/components/Header";
-import Button from "@/components/ui/Button";
 import { AUTH_ENTER_LABEL, markEnteringApp } from "@/lib/auth-entry";
 import { getApiErrorMessage } from "@/lib/axios";
 import { useAuthStore } from "@/stores/auth.store";
@@ -65,104 +64,100 @@ function LoginForm() {
   }
 
   return (
-    <div className="dark-page-shell min-h-screen overflow-x-hidden">
-      <Header />
-      <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-10 lg:px-16">
-        <div className="grid w-full max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
-          <section className="mx-auto w-full max-w-md">
-            <div className="mb-8">
-              <h1 className="mb-3 text-3xl font-semibold text-white">
-                Welcome back
-              </h1>
-              <p className="text-sm leading-6 text-slate-400">
-                Sign in to continue tracking your trading discipline and
-                performance.
-              </p>
-            </div>
+    <AuthShell variant="login">
+      <div className={styles.intro}>
+        <h1>
+          Welcome back
+        </h1>
+        <p>
+          Welcome back to your journal.
+        </p>
+      </div>
 
-            {visibleError ? (
-              <div
-                role="alert"
-                className="mb-5 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
-              >
-                {visibleError}
-              </div>
-            ) : null}
-
-            <form className="space-y-5" onSubmit={handleLogin}>
-              <div>
-                <label htmlFor="email" className="mb-2 block text-sm text-slate-300">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(event) => {
-                    setEmail(event.target.value);
-                    if (error) setError("");
-                  }}
-                  placeholder="Enter your email"
-                  className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-2 block text-sm text-slate-300"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(event) => {
-                      setPassword(event.target.value);
-                      if (error) setError("");
-                    }}
-                    placeholder="Enter your password"
-                    className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((value) => !value)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
-              <Link
-                href="/auth/forgot-password"
-                className="inline-block text-xs text-slate-400 transition-colors hover:text-white"
-              >
-                Forgot password?
-              </Link>
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? "Signing in..." : "Sign In"}
-              </Button>
-            </form>
-
-            <p className="mt-6 text-center text-sm text-slate-400">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/register"
-                className="font-medium text-white hover:underline"
-              >
-                Register
-              </Link>
-            </p>
-          </section>
-
-          <AuthVisual />
+      {visibleError ? (
+        <div
+          role="alert"
+          className={styles.error}
+        >
+          {visibleError}
         </div>
-      </main>
-    </div>
+      ) : null}
+
+      <form className="space-y-5" onSubmit={handleLogin}>
+        <div>
+          <label htmlFor="email" className={styles.label}>
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              if (error) setError("");
+            }}
+            placeholder="Enter your email"
+            className={styles.input}
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="password"
+            className={styles.label}
+          >
+            Password
+          </label>
+          <div className={styles.password}>
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                if (error) setError("");
+              }}
+              placeholder="Enter your password"
+              className={styles.input}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              className={styles.passwordToggle}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              title={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+        <Link
+          href="/auth/forgot-password"
+          className={`${styles.link} ${styles.forgot}`}
+        >
+          Forgot password?
+        </Link>
+        <button type="submit" disabled={loading} aria-busy={loading} className={styles.submit}>
+          {loading ? "Signing in..." : "Sign In"}
+        </button>
+      </form>
+
+      <p className={styles.switch}>
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/auth/register"
+          className={styles.link}
+        >
+          Register
+        </Link>
+      </p>
+    </AuthShell>
   );
 }
 

@@ -296,9 +296,9 @@ export default function JournalDetailPage() {
                             )}
                           </p>
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            RR {trade.achievedRR || trade.plannedRR}
+                            RR {trade.achievedRR ?? trade.plannedRR}
                           </p>
-                          {trade.status === "Open" ? (
+                          {trade.status === "Open" && trade.source !== "ctrader" ? (
                             <Button
                               variant="ghost"
                               className="mt-3 h-9 px-3"

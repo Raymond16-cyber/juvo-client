@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "stillGeneration": "Built-in image generation",
+  "videoGeneration": "Deterministic motion graphics composited over the generated stills with FFmpeg",
+  "posterDerivation": "First decoded video frame resampled to 2000x2500; matching still and poster are identical",
+  "assets": [
+    {
+      "kind": "login",
+      "master": "design/auth/juvo-v1/login-master.png",
+      "sourceWidth": 1122,
+      "sourceHeight": 1402,
+      "imageWidth": 2000,
+      "imageHeight": 2500,
+      "videoWidth": 1080,
+      "videoHeight": 1350,
+      "fps": 24,
+      "frames": 192,
+      "durationSeconds": 8,
+      "videoBytes": 278660,
+      "audio": false
+    },
+    {
+      "kind": "register",
+      "master": "design/auth/juvo-v1/register-master.png",
+      "sourceWidth": 1122,
+      "sourceHeight": 1402,
+      "imageWidth": 2000,
+      "imageHeight": 2500,
+      "videoWidth": 1080,
+      "videoHeight": 1350,
+      "fps": 24,
+      "frames": 192,
+      "durationSeconds": 8,
+      "videoBytes": 328136,
+      "audio": false
+    }
+  ]
+}

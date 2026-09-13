@@ -6,6 +6,9 @@ import { useBrokerStore } from "@/stores/broker.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { useNoticeStore } from "@/stores/notice.store";
 import { formatMoney } from "@/lib/format";
+import { connectRealtime } from "@/lib/realtime-connection";
+import { useAuthStore } from "@/stores/auth.store";
+import { useAnalyticsStore } from "@/stores/analytics.store";
 import { BrokerPositionLiveUpdate } from "@/types/broker.types";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
@@ -26,17 +29,46 @@ type RealtimeEnvelope = {
 
 export default function RealtimeBridge() {
   const pathname = usePathname();
+  const inDashboard = pathname?.startsWith("/home");
+  const token = useAuthStore((state) => state.token);
+  const authenticated = useAuthStore((state) => state.isAuthenticated);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!pathname?.startsWith("/home")) return;
-
-    const token = window.localStorage.getItem("token");
-    if (!token) return;
-
-    const socket = new WebSocket(getRealtimeUrl(token));
+    if (!inDashboard || !authenticated || !token) return;
     const pendingPositionUpdates = new Map<string, BrokerPositionLiveUpdate>();
     let positionUpdateFrame: number | null = null;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    let refreshing = false;
+    let refreshPending = false;
+    let disposed = false;
+    const notifiedTrades = new Set<string>();
+
+    const refreshData = () => {
+      if (disposed) return;
+      if (refreshing) {
+        refreshPending = true;
+        return;
+      }
+      if (refreshTimer) return;
+      refreshTimer = setTimeout(async () => {
+        refreshTimer = null;
+        refreshing = true;
+        await Promise.allSettled([
+          useJournalStore.getState().getUserJournals(),
+          useJournalStore.getState().getTodayJournalStatus(),
+          useAccountsStore.getState().fetchAccounts(),
+          useBrokerStore.getState().fetchPositions("open"),
+          useBrokerStore.getState().fetchConnections(),
+          useAnalyticsStore.getState().refreshAnalytics(),
+        ]);
+        refreshing = false;
+        if (refreshPending) {
+          refreshPending = false;
+          refreshData();
+        }
+      }, 250);
+    };
 
     const flushPositionUpdates = () => {
       positionUpdateFrame = null;
@@ -54,16 +86,17 @@ export default function RealtimeBridge() {
       }
     };
 
-    socket.onmessage = (message) => {
+    const onMessage = (message: MessageEvent) => {
       let envelope: RealtimeEnvelope;
       try {
         envelope = JSON.parse(message.data);
       } catch {
         return;
       }
+      if (!envelope || typeof envelope !== "object") return;
 
       if (envelope.event === "position:updated") {
-        useBrokerStore.getState().fetchPositions("open").catch(() => undefined);
+        refreshData();
         return;
       }
 
@@ -74,6 +107,11 @@ export default function RealtimeBridge() {
 
       if (envelope.event === "trade:closed") {
         const trade = envelope.payload?.trade;
+        if (trade?._id && notifiedTrades.has(trade._id)) return;
+        if (trade?._id) {
+          notifiedTrades.add(trade._id);
+          if (notifiedTrades.size > 200) notifiedTrades.delete(notifiedTrades.values().next().value!);
+        }
         useNoticeStore.getState().showNotice({
           title: "Trade closed",
           body: `${trade?.symbol || "cTrader"} ${trade?.direction || ""} ${formatMoney(
@@ -83,21 +121,21 @@ export default function RealtimeBridge() {
           tone: "success",
         });
 
-        useJournalStore.getState().getUserJournals().catch(() => undefined);
-        useJournalStore.getState().getTodayJournalStatus().catch(() => undefined);
-        useAccountsStore.getState().fetchAccounts().catch(() => undefined);
-        useBrokerStore.getState().fetchPositions("open").catch(() => undefined);
+        refreshData();
       }
     };
+    const disconnect = connectRealtime({ url: getRealtimeUrl(token), onMessage, onOpen: refreshData });
 
     return () => {
+      disposed = true;
+      if (refreshTimer) clearTimeout(refreshTimer);
       if (positionUpdateFrame != null) {
         window.cancelAnimationFrame(positionUpdateFrame);
       }
       pendingPositionUpdates.clear();
-      socket.close();
+      disconnect();
     };
-  }, [pathname]);
+  }, [authenticated, inDashboard, token]);
 
   return null;
 }

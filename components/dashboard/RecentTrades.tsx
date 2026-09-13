@@ -148,7 +148,7 @@ export default function RecentTrades({
                         )}
                       </p>
                       <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                        RR {trade.achievedRR || trade.plannedRR}
+                        RR {trade.achievedRR ?? trade.plannedRR}
                       </p>
                     </div>
                   </Link>
