@@ -69,7 +69,9 @@ export interface TradeSummary extends CreateTradePayload {
   status: "Open" | "Closed" | "Breakeven" | "Cancelled";
   profitLoss: number;
   profitLossCurrency?: string | null;
-  source?: "manual" | "ctrader";
+  source?: "manual" | "ctrader" | "metaapi";
+  platform?: "ctrader" | "mt4" | "mt5";
+  brokerMetadata?: { magic?: number; comment?: string; origin?: "manual" | "ea" | "unknown" };
   externalId?: string;
   externalPositionId?: string;
   externalOrderId?: string;
@@ -89,7 +91,9 @@ export interface JournalListTradeSummary {
   profitLossCurrency?: string | null;
   plannedRR: number;
   achievedRR?: number;
-  source?: "manual" | "ctrader";
+  source?: "manual" | "ctrader" | "metaapi";
+  platform?: "ctrader" | "mt4" | "mt5";
+  brokerMetadata?: { magic?: number; comment?: string; origin?: "manual" | "ea" | "unknown" };
   externalId?: string;
   externalPositionId?: string;
   externalOrderId?: string;

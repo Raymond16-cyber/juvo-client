@@ -138,13 +138,13 @@ export default function AnalyticsPage() {
     },
     {
       label: "Average RR",
-      value: formatNumber(summary?.avgRr || 0, 2),
+      value: summary?.rrSampleSize === 0 ? "N/A" : formatNumber(summary?.avgRr || 0, 2),
       caption: "Closed and breakeven trades",
       icon: TrendingUp,
     },
     {
       label: "Average risk",
-      value: `${formatNumber(summary?.avgRisk || 0, 1)}%`,
+      value: summary?.riskSampleSize === 0 ? "N/A" : `${formatNumber(summary?.avgRisk || 0, 1)}%`,
       caption: "Across logged trades",
       icon: TrendingDown,
     },

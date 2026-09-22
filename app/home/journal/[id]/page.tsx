@@ -279,7 +279,7 @@ export default function JournalDetailPage() {
                               : ""}
                           </p>
                           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                            Entry {trade.entryPrice} · SL {trade.stopLoss} · TP {trade.takeProfit} · Size {trade.lotSize}
+                            Entry {trade.entryPrice} · SL {trade.stopLoss ?? "N/A"} · TP {trade.takeProfit ?? "N/A"} · Size {trade.lotSize}
                           </p>
                           {trade.notes ? (
                             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -296,9 +296,9 @@ export default function JournalDetailPage() {
                             )}
                           </p>
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            RR {trade.achievedRR ?? trade.plannedRR}
+                            RR {trade.achievedRR ?? trade.plannedRR ?? "N/A"}
                           </p>
-                          {trade.status === "Open" && trade.source !== "ctrader" ? (
+                          {trade.status === "Open" && (!trade.source || trade.source === "manual") ? (
                             <Button
                               variant="ghost"
                               className="mt-3 h-9 px-3"

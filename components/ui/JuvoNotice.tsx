@@ -10,6 +10,7 @@ import {
 import { useAccountsStore } from "@/stores/accounts.store";
 import { ShieldAlert, Trophy, Info, CircleCheck, TriangleAlert, X } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
+import Link from "next/link";
 
 const toneStyles: Record<
   JuvoNoticeTone,
@@ -107,6 +108,7 @@ function NoticeCard({ notice }: { notice: JuvoNotice }) {
             >
               {notice.body}
             </p>
+            {notice.journalId && <Link href={`/home/journal/${encodeURIComponent(notice.journalId)}`} onClick={() => void dismiss()} className="mt-3 inline-block text-sm font-semibold text-cyan-700 underline underline-offset-4 dark:text-primary">Review in journal</Link>}
           </div>
           <button
             type="button"

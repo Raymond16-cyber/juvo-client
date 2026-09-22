@@ -1,6 +1,8 @@
 "use client";
 
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import MetaTraderConnections from "@/components/brokers/MetaTraderConnections";
+import { brokerStatusCopy as statusCopy, brokerStatusStyle } from "@/lib/broker-status";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
@@ -35,34 +37,12 @@ const brokerOptions = [
     action: "ctrader" as const,
   },
   {
-    id: "mt5",
-    name: "MetaTrader 5",
-    body: "Planned integration for traders who want MT5 history imported into JUVO.",
-    action: "coming-soon" as const,
-  },
-  {
     id: "csv",
     name: "CSV / broker statement",
     body: "Planned import path for broker statements and manual reconciliation.",
     action: "coming-soon" as const,
   },
 ];
-
-const statusStyles: Record<BrokerConnection["status"], string> = {
-  connecting: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  connected: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  disconnected: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
-  error: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
-  reauthorization_required: "bg-rose-500/10 text-rose-700 dark:text-rose-300",
-};
-
-const statusCopy: Record<BrokerConnection["status"], string> = {
-  connecting: "Authorization started",
-  connected: "Connected",
-  disconnected: "Disconnected",
-  error: "Needs attention",
-  reauthorization_required: "Reconnect required",
-};
 
 type IconType = React.ComponentType<{ size?: number; className?: string }>;
 
@@ -86,6 +66,8 @@ export default function BrokerConnectionsPage() {
   const isConnecting = useBrokerStore((state) => state.isConnecting);
   const isLoading = useBrokerStore((state) => state.isLoading);
   const error = useBrokerStore((state) => state.error);
+  const cTraderConnections = connections.filter((connection) => connection.provider === "ctrader");
+  const cTraderPositionCount = positions.filter((position) => position.provider === "ctrader").length;
 
   const cTraderConnection = useMemo(
     () =>
@@ -345,7 +327,7 @@ export default function BrokerConnectionsPage() {
                 label="Live tracking"
                 value={
                   connectedCTrader
-                    ? `${positions.length} open position${positions.length === 1 ? "" : "s"}`
+                    ? `${cTraderPositionCount} open position${cTraderPositionCount === 1 ? "" : "s"}`
                     : "Offline"
                 }
                 tone={connectedCTrader ? "good" : "muted"}
@@ -379,18 +361,20 @@ export default function BrokerConnectionsPage() {
           </Card>
         </section>
 
+        <MetaTraderConnections />
+
         <section className="grid gap-4 lg:grid-cols-3">
           <DestinationCard
             icon={Activity}
             title="Live positions"
-            body="Open cTrader positions appear on the dashboard trade section while they are active."
+            body="Open broker positions appear on the dashboard trade section while they are active."
             href="/home/dashboard"
             action="Open dashboard"
           />
           <DestinationCard
             icon={History}
             title="Closed trades"
-            body="Closed cTrader deals are imported into journal history for review and analytics."
+            body="Closed broker deals are imported into journal history for review and analytics."
             href="/home/journal"
             action="Open journal"
           />
@@ -424,8 +408,8 @@ export default function BrokerConnectionsPage() {
             </div>
 
             <div className="mt-5 space-y-3">
-              {connections.length ? (
-                connections.map((connection) => (
+              {cTraderConnections.length ? (
+                cTraderConnections.map((connection) => (
                   <ConnectionRow
                     key={connection.id}
                     connection={connection}
@@ -450,11 +434,11 @@ export default function BrokerConnectionsPage() {
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <RuleItem
                 title="Open positions"
-                body="Kept separate from journal trades until cTrader reports the position as closed."
+                body="Kept separate from journal trades until the broker reports a closing deal."
               />
               <RuleItem
                 title="Final P/L"
-                body="Realized P/L comes from cTrader close/deal data, not from JUVO's live quote display."
+                body="Realized P/L comes from broker close/deal data, not from JUVO's live quote display."
               />
               <RuleItem
                 title="User notes"
@@ -638,7 +622,7 @@ function ConnectionRow({
           </p>
         </div>
         <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[connection.status]}`}
+          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${brokerStatusStyle(connection.status)}`}
         >
           {statusCopy[connection.status]}
         </span>

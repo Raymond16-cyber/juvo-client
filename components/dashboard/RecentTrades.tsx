@@ -68,7 +68,7 @@ export default function RecentTrades({
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
               <RadioTower size={14} />
-              Live cTrader positions
+              Live broker positions
             </div>
             <motion.div
               className="space-y-3"
@@ -116,9 +116,10 @@ export default function RecentTrades({
                         ) : (
                           <TrendingDown size={14} className="text-rose-500" />
                         )}
-                        {trade.source === "ctrader" ? (
+                        {trade.source === "ctrader" || trade.source === "metaapi" ? (
                           <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary">
-                            cTrader
+                            {trade.source === "ctrader" ? "cTrader" : trade.platform?.toUpperCase() || "MetaTrader"}
+                            {trade.brokerMetadata?.origin === "ea" ? " / EA" : ""}
                           </span>
                         ) : null}
                         <span
@@ -148,7 +149,7 @@ export default function RecentTrades({
                         )}
                       </p>
                       <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                        RR {trade.achievedRR ?? trade.plannedRR}
+                        RR {trade.achievedRR ?? trade.plannedRR ?? "N/A"}
                       </p>
                     </div>
                   </Link>
@@ -158,7 +159,7 @@ export default function RecentTrades({
           </motion.div>
         ) : (
           <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">
-            No journal trades yet. Start your day or sync cTrader history.
+            No journal trades yet. Start your day or sync broker history.
           </p>
         )}
       </div>
@@ -199,7 +200,7 @@ function LivePositionCard({
           </p>
           <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/15 px-2 py-0.5 text-[11px] font-bold uppercase text-cyan-700 dark:text-cyan-200">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-500" />
-            Live
+            {position.live ? "Live" : "Awaiting data"}
           </span>
         </div>
         <p className="mt-2 truncate text-sm text-slate-500 dark:text-slate-400">
@@ -207,6 +208,8 @@ function LivePositionCard({
           {position.lotSize
             ? `${formatNumber(position.lotSize, 2)} lots`
             : "Lot size unavailable"}
+          {position.provider === "metaapi" ? ` / ${position.platform?.toUpperCase() || "MetaTrader"}` : " / cTrader"}
+          {position.brokerMetadata?.origin === "ea" ? " / EA" : ""}
         </p>
       </div>
       <div className="shrink-0 text-right tabular-nums">
@@ -229,7 +232,7 @@ function LivePositionCard({
         </motion.p>
         <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
           {typeof brokerPnl === "number"
-            ? "Broker P/L"
+            ? position.provider === "metaapi" && position.live?.netUnrealizedPnl === undefined ? "Gross broker P/L" : "Broker P/L"
             : typeof fallbackPnl === "number"
               ? "Indicative"
               : position.openedAt
@@ -242,8 +245,8 @@ function LivePositionCard({
       </div>
       <div className="col-span-2 grid grid-cols-3 gap-2 text-xs tabular-nums">
         <PositionMini label="Entry" value={position.entryPrice} />
-        <PositionMini label="Bid" value={position.live?.currentBid} />
-        <PositionMini label="Ask" value={position.live?.currentAsk} />
+        <PositionMini label={position.provider === "metaapi" ? "Current" : "Bid"} value={position.provider === "metaapi" ? position.live?.currentPrice : position.live?.currentBid} />
+        <PositionMini label={position.provider === "metaapi" ? "Stop loss" : "Ask"} value={position.provider === "metaapi" ? position.stopLoss : position.live?.currentAsk} />
       </div>
     </motion.div>
   );

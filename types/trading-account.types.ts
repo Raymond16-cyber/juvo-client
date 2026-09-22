@@ -16,7 +16,9 @@ export interface TradingAccountTrade {
   profitLossCurrency?: string | null;
   plannedRR?: number;
   achievedRR?: number;
-  source?: "manual" | "ctrader";
+  source?: "manual" | "ctrader" | "metaapi";
+  platform?: "ctrader" | "mt4" | "mt5";
+  brokerMetadata?: { magic?: number; comment?: string; origin?: "manual" | "ea" | "unknown" };
   externalId?: string;
   externalPositionId?: string;
   externalOrderId?: string;
@@ -41,6 +43,8 @@ export interface TradingAccount {
   currency: string;
   accountCurrency?: string;
   currentEquity: number;
+  margin?: number;
+  freeMargin?: number;
   maxDrawnDown: number;
   profitTarget: number;
   isConnected: boolean;

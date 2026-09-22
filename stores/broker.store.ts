@@ -26,7 +26,8 @@ interface BrokerState {
   lastSync: CTraderSyncResult | null;
   startCTraderConnect: () => Promise<void>;
   completeCTraderConnect: (code: string) => Promise<void>;
-  fetchConnections: () => Promise<BrokerConnection[]>;
+  fetchConnections: (silent?: boolean) => Promise<BrokerConnection[]>;
+  upsertConnection: (connection: BrokerConnection) => void;
   fetchPositions: (status?: string) => Promise<BrokerPosition[]>;
   syncCTrader: (connectionId?: string) => Promise<CTraderSyncResult>;
   disconnectCTrader: (connectionId: string) => Promise<void>;
@@ -105,8 +106,12 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
       throw error;
     }
   },
-  fetchConnections: async () => {
-    set({ isLoading: true, error: null });
+  upsertConnection: (connection) => set((state) => {
+    const connections = [...state.connections.filter((item) => item.id !== connection.id), connection];
+    return { connections, isConnected: hasConnectedBroker(connections) };
+  }),
+  fetchConnections: async (silent = false) => {
+    if (!silent) set({ isLoading: true, error: null });
 
     try {
       const result = await getBrokerConnectionsService();
@@ -114,12 +119,11 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
       set({
         connections,
         isConnected: hasConnectedBroker(connections),
-        isLoading: false,
-        message: result.message,
+        ...(!silent ? { isLoading: false, message: result.message } : {}),
       });
       return connections;
     } catch (error) {
-      set({
+      if (!silent) set({
         isLoading: false,
         error: getApiErrorMessage(error, "Unable to load broker connections."),
       });
@@ -219,8 +223,8 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
             currentAsk: update.currentAsk ?? live.currentAsk,
             currentPrice: update.currentPrice ?? live.currentPrice,
             grossUnrealizedPnl:
-              update.grossUnrealizedPnl ?? live.grossUnrealizedPnl,
-            netUnrealizedPnl: update.netUnrealizedPnl ?? live.netUnrealizedPnl,
+              update.provider === "metaapi" ? update.grossUnrealizedPnl : update.grossUnrealizedPnl ?? live.grossUnrealizedPnl,
+            netUnrealizedPnl: update.provider === "metaapi" ? update.netUnrealizedPnl : update.netUnrealizedPnl ?? live.netUnrealizedPnl,
             floatingProfitIndicative:
               update.floatingProfitIndicative ?? live.floatingProfitIndicative,
             quoteTimestamp: update.quoteTimestamp ?? live.quoteTimestamp,

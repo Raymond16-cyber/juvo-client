@@ -12,6 +12,8 @@ export interface AnalyticsSummary {
   maxDrawdown: number;
   avgRr: number;
   avgRisk: number;
+  rrSampleSize?: number;
+  riskSampleSize?: number;
   avgDiscipline: number;
   wins: number;
   losses: number;

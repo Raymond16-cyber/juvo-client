@@ -16,6 +16,11 @@ import { useEffect } from "react";
 type RealtimeEnvelope = {
   event?: string;
   payload?: BrokerPositionLiveUpdate & {
+    accountId?: string;
+    currentBalance?: number;
+    currentEquity?: number;
+    margin?: number;
+    freeMargin?: number;
     trade?: {
       _id: string;
       symbol?: string;
@@ -95,8 +100,13 @@ export default function RealtimeBridge() {
       }
       if (!envelope || typeof envelope !== "object") return;
 
-      if (envelope.event === "position:updated") {
+      if (["position:updated", "broker:sync-status", "trade:imported"].includes(envelope.event || "")) {
         refreshData();
+        return;
+      }
+
+      if (envelope.event === "account:update" && envelope.payload?.accountId) {
+        useAccountsStore.getState().applyBrokerAccountUpdate({ ...envelope.payload, accountId: envelope.payload.accountId });
         return;
       }
 
@@ -114,11 +124,12 @@ export default function RealtimeBridge() {
         }
         useNoticeStore.getState().showNotice({
           title: "Trade closed",
-          body: `${trade?.symbol || "cTrader"} ${trade?.direction || ""} ${formatMoney(
+          body: `${trade?.symbol || "Broker trade"} ${trade?.direction || ""} ${formatMoney(
             Number(trade?.profitLoss || 0),
             trade?.profitLossCurrency || "USD",
-          )}`.trim(),
+          )}. Add your reflection in the journal.`.trim(),
           tone: "success",
+          journalId: trade?.journal,
         });
 
         refreshData();

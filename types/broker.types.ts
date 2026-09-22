@@ -7,7 +7,9 @@ export type BrokerConnectionStatus =
   | "connected"
   | "disconnected"
   | "error"
-  | "reauthorization_required";
+  | "reauthorization_required"
+  | "awaiting_configuration" | "deploying" | "synchronizing" | "reconnecting"
+  | "broker_auth_failed" | "disconnecting";
 
 export type BrokerAccountType = "demo" | "live";
 
@@ -20,6 +22,12 @@ export interface BrokerConnection {
   brokerName?: string;
   accountNumber?: string;
   accountType?: BrokerAccountType;
+  server?: string;
+  accountCurrency?: string;
+  investorMode?: boolean;
+  desiredConnected?: boolean;
+  tradingAccount?: string;
+  lastError?: { code: string; message: string } | null;
   status: BrokerConnectionStatus;
   lastSyncedAt?: string | null;
   connectedAt?: string | null;
@@ -32,8 +40,10 @@ export type BrokerPositionStatus = "open" | "closed" | "unknown";
 export interface BrokerPosition {
   _id: string;
   userId?: string;
-  provider: "ctrader";
-  ctidTraderAccountId: string;
+  provider: BrokerProvider;
+  platform?: BrokerPlatform;
+  ctidTraderAccountId?: string;
+  brokerMetadata?: { magic?: number; comment?: string; origin?: "manual" | "ea" | "unknown" };
   externalPositionId: string;
   symbol: string;
   symbolId?: string;
@@ -86,7 +96,7 @@ export interface BrokerPosition {
 export interface BrokerPositionLiveUpdate {
   positionId: string;
   tradingAccountId: string;
-  provider: "ctrader";
+  provider: BrokerProvider;
   symbol: string;
   side: "long" | "short";
   entryPrice?: number;

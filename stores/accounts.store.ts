@@ -43,6 +43,7 @@ interface AccountsStore {
   archiveAccount: (accountId: string) => Promise<void>;
   restoreAccount: (accountId: string) => Promise<TradingAccount>;
   deleteAccount: (accountId: string) => Promise<void>;
+  applyBrokerAccountUpdate: (update: { accountId: string; currentBalance?: number; currentEquity?: number; margin?: number; freeMargin?: number }) => void;
 }
 
 function resolveSelectedId(accounts: TradingAccount[], preferredId?: string | null) {
@@ -55,6 +56,13 @@ export const useAccountsStore = create<AccountsStore>((set, get) => ({
   selectedAccountId: null,
   isLoading: false,
   error: null,
+  applyBrokerAccountUpdate: (update) => set((state) => ({
+    accounts: state.accounts.map((account) => {
+      if (account._id !== update.accountId) return account;
+      const fields = Object.fromEntries(Object.entries(update).filter(([key, value]) => ["currentBalance", "currentEquity", "margin", "freeMargin"].includes(key) && typeof value === "number" && Number.isFinite(value)));
+      return { ...account, ...fields };
+    }),
+  })),
   fetchAccounts: async () => {
     set({ isLoading: true, error: null });
     try {
