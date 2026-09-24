@@ -16,7 +16,7 @@ export interface TradingAccountTrade {
   profitLossCurrency?: string | null;
   plannedRR?: number;
   achievedRR?: number;
-  source?: "manual" | "ctrader" | "metaapi";
+  source?: "manual" | "ctrader" | "metatrader";
   platform?: "ctrader" | "mt4" | "mt5";
   brokerMetadata?: { magic?: number; comment?: string; origin?: "manual" | "ea" | "unknown" };
   externalId?: string;

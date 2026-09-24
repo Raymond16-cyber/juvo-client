@@ -59,23 +59,22 @@ export const disconnectCTraderService = async (connectionId: string) => {
   return response.data;
 };
 
-export async function getMetaTraderCapabilities() {
-  return (await api.get<{ data: { enabled: boolean } }>("/broker/metaapi/capabilities")).data.data;
+export async function getMetaTraderStatus() {
+  return (await api.get<{ data: { enabled: boolean; url: string; connections: BrokerConnection[] } }>("/broker/metatrader/status")).data.data;
 }
 
-export async function createMetaTraderConnection(input: { platform: "mt4" | "mt5"; server: string; requestKey: string }) {
-  return (await api.post<{ data: BrokerConnection }>("/broker/metaapi/connections", input)).data.data;
+export async function createMetaTraderPairingCode() {
+  return (await api.post<{ data: { code: string; expiresAt: string; apiUrl: string } }>("/broker/metatrader/pairing-code")).data.data;
 }
 
-export async function getMetaTraderConfigurationLink(id: string) {
-  const result = await api.post<{ configurationUrl: string }>(`/broker/metaapi/connections/${encodeURIComponent(id)}/configuration-link`);
-  const url = new URL(result.data.configurationUrl);
-  if (url.origin !== "https://app.metaapi.cloud" || url.username || url.password || !url.pathname.startsWith("/configure-trading-account-credentials/")) {
-    throw new Error("The secure setup address could not be verified.");
-  }
-  return url.href;
+export async function downloadMetaTraderConnector() {
+  const result = await api.get<Blob>("/broker/metatrader/download", { responseType: "blob" });
+  const url = URL.createObjectURL(result.data);
+  const link = document.createElement("a");
+  link.href = url; link.download = "JUVOConnector.mq5"; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export async function manageMetaTraderConnection(id: string, action: "sync" | "reconnect" | "disconnect") {
-  return (await api.post<{ data: BrokerConnection }>(`/broker/metaapi/connections/${encodeURIComponent(id)}/${action}`, {})).data.data;
+export async function manageMetaTraderConnection(id: string, action: "sync" | "disconnect") {
+  await api.post(`/broker/metatrader/connections/${encodeURIComponent(id)}/${action}`, {});
 }

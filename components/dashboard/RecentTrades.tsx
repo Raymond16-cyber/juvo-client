@@ -116,7 +116,7 @@ export default function RecentTrades({
                         ) : (
                           <TrendingDown size={14} className="text-rose-500" />
                         )}
-                        {trade.source === "ctrader" || trade.source === "metaapi" ? (
+                        {trade.source === "ctrader" || trade.source === "metatrader" ? (
                           <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary">
                             {trade.source === "ctrader" ? "cTrader" : trade.platform?.toUpperCase() || "MetaTrader"}
                             {trade.brokerMetadata?.origin === "ea" ? " / EA" : ""}
@@ -208,7 +208,7 @@ function LivePositionCard({
           {position.lotSize
             ? `${formatNumber(position.lotSize, 2)} lots`
             : "Lot size unavailable"}
-          {position.provider === "metaapi" ? ` / ${position.platform?.toUpperCase() || "MetaTrader"}` : " / cTrader"}
+          {position.provider === "metatrader" ? ` / ${position.platform?.toUpperCase() || "MetaTrader"}` : " / cTrader"}
           {position.brokerMetadata?.origin === "ea" ? " / EA" : ""}
         </p>
       </div>
@@ -232,7 +232,7 @@ function LivePositionCard({
         </motion.p>
         <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
           {typeof brokerPnl === "number"
-            ? position.provider === "metaapi" && position.live?.netUnrealizedPnl === undefined ? "Gross broker P/L" : "Broker P/L"
+            ? position.provider === "metatrader" && position.live?.netUnrealizedPnl === undefined ? "Gross broker P/L" : "Broker P/L"
             : typeof fallbackPnl === "number"
               ? "Indicative"
               : position.openedAt
@@ -245,8 +245,8 @@ function LivePositionCard({
       </div>
       <div className="col-span-2 grid grid-cols-3 gap-2 text-xs tabular-nums">
         <PositionMini label="Entry" value={position.entryPrice} />
-        <PositionMini label={position.provider === "metaapi" ? "Current" : "Bid"} value={position.provider === "metaapi" ? position.live?.currentPrice : position.live?.currentBid} />
-        <PositionMini label={position.provider === "metaapi" ? "Stop loss" : "Ask"} value={position.provider === "metaapi" ? position.stopLoss : position.live?.currentAsk} />
+        <PositionMini label={position.provider === "metatrader" ? "Current" : "Bid"} value={position.provider === "metatrader" ? position.live?.currentPrice : position.live?.currentBid} />
+        <PositionMini label={position.provider === "metatrader" ? "Stop loss" : "Ask"} value={position.provider === "metatrader" ? position.stopLoss : position.live?.currentAsk} />
       </div>
     </motion.div>
   );

@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { brokerStatusCopy, brokerStatusStyle } from "../lib/broker-status.ts";
 
 test("MetaTrader transitional, failure and connected states have labels and dark-mode colors", () => {
-  for (const status of ["awaiting_configuration", "deploying", "synchronizing", "reconnecting", "broker_auth_failed", "disconnecting", "connected", "disconnected", "error"]) {
+  for (const status of ["synchronizing", "stale", "offline", "connected", "disconnected", "error"]) {
     assert.ok(brokerStatusCopy[status]);
     assert.match(brokerStatusStyle(status), /dark:text-/);
   }

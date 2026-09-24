@@ -1,4 +1,4 @@
-export type BrokerProvider = "ctrader" | "metaapi";
+export type BrokerProvider = "ctrader" | "metatrader";
 
 export type BrokerPlatform = "ctrader" | "mt4" | "mt5";
 
@@ -8,8 +8,7 @@ export type BrokerConnectionStatus =
   | "disconnected"
   | "error"
   | "reauthorization_required"
-  | "awaiting_configuration" | "deploying" | "synchronizing" | "reconnecting"
-  | "broker_auth_failed" | "disconnecting";
+  | "synchronizing" | "stale" | "offline";
 
 export type BrokerAccountType = "demo" | "live";
 
@@ -24,7 +23,9 @@ export interface BrokerConnection {
   accountType?: BrokerAccountType;
   server?: string;
   accountCurrency?: string;
-  investorMode?: boolean;
+  lastHeartbeatAt?: string | null;
+  connectorVersion?: string;
+  legacy?: boolean;
   desiredConnected?: boolean;
   tradingAccount?: string;
   lastError?: { code: string; message: string } | null;
@@ -43,7 +44,7 @@ export interface BrokerPosition {
   provider: BrokerProvider;
   platform?: BrokerPlatform;
   ctidTraderAccountId?: string;
-  brokerMetadata?: { magic?: number; comment?: string; origin?: "manual" | "ea" | "unknown" };
+  brokerMetadata?: { magic?: number | string; comment?: string; origin?: "manual" | "ea" | "unknown" };
   externalPositionId: string;
   symbol: string;
   symbolId?: string;

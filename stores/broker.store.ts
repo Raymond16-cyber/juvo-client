@@ -223,8 +223,8 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
             currentAsk: update.currentAsk ?? live.currentAsk,
             currentPrice: update.currentPrice ?? live.currentPrice,
             grossUnrealizedPnl:
-              update.provider === "metaapi" ? update.grossUnrealizedPnl : update.grossUnrealizedPnl ?? live.grossUnrealizedPnl,
-            netUnrealizedPnl: update.provider === "metaapi" ? update.netUnrealizedPnl : update.netUnrealizedPnl ?? live.netUnrealizedPnl,
+              update.provider === "metatrader" ? update.grossUnrealizedPnl : update.grossUnrealizedPnl ?? live.grossUnrealizedPnl,
+            netUnrealizedPnl: update.provider === "metatrader" ? update.netUnrealizedPnl : update.netUnrealizedPnl ?? live.netUnrealizedPnl,
             floatingProfitIndicative:
               update.floatingProfitIndicative ?? live.floatingProfitIndicative,
             quoteTimestamp: update.quoteTimestamp ?? live.quoteTimestamp,

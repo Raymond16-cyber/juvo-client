@@ -612,7 +612,7 @@ function ConnectionRow({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-bold text-slate-950 dark:text-white">
-            {connection.provider === "ctrader" ? "cTrader" : "MetaAPI"}
+            {connection.provider === "ctrader" ? "cTrader" : "MetaTrader"}
           </p>
           <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
             {connection.brokerName ||
