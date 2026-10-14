@@ -29,7 +29,7 @@ export interface User {
   };
   subscription?: {
     plan?: "free" | "pro" | "super";
-    status?: "trial" | "active" | "expired" | "cancelled";
+    status?: "free" | "pending" | "trial" | "active" | "non-renewing" | "past-due" | "expired" | "cancelled";
     startedAt?: string;
     expiresAt?: string;
     trialEndsAt?: string;

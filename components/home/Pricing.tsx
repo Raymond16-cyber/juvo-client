@@ -35,7 +35,7 @@ const plans = [
       "Juvo AI chat",
       "CSV / JSON export",
     ],
-    cta: "Start on Pro later",
+    cta: "Choose Pro",
     featured: true,
   },
   {
@@ -50,7 +50,7 @@ const plans = [
       "Broker sync when it ships",
       "Priority coaching context",
     ],
-    cta: "Start on Super later",
+    cta: "Choose Super",
     featured: false,
   },
 ];
@@ -69,7 +69,7 @@ export default function Pricing() {
             <span className="block text-slate-300">is a habit.</span>
           </>
         }
-        description="Same tiers as in the app. Checkout isn’t live yet — create an account and you land on Free."
+        description="Start on Free, then choose Pro or Super from your JUVO subscriptions page through secure Paystack checkout."
       />
 
       <div className="mt-12 grid gap-4 lg:grid-cols-3 lg:items-stretch">
@@ -126,7 +126,7 @@ export default function Pricing() {
             <Button
               variant={plan.featured ? "primary" : "onDark"}
               className="mt-8 w-full"
-              onClick={() => router.push("/auth/register")}
+              onClick={() => router.push(plan.id === "free" ? "/auth/register" : "/home/general/subscriptions")}
             >
               {plan.cta}
               <ArrowRight className="h-4 w-4" />
