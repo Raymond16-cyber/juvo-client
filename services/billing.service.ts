@@ -2,7 +2,8 @@ import api from "@/lib/axios";
 import type { BillingOverview, BillingPlan } from "@/types/billing.types";
 
 export async function getBillingOverviewService() {
-  return (await api.get<{ data: BillingOverview }>("/billing")).data.data;
+  const data = await api.get<{ data: BillingOverview }>("/billing");
+  return data.data.data;
 }
 export async function initializeBillingCheckoutService(plan: Exclude<BillingPlan, "free">) {
   return (await api.post<{ data: { authorizationUrl: string; reference: string } }>("/billing/checkout", { plan, billingInterval: "monthly" })).data.data;

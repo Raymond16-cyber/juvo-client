@@ -14,13 +14,16 @@ import {
 import { AiAccess, AiConversationSummary, AiMessage } from "@/types/ai.types";
 import {
   Bot,
+  Check,
   ChevronDown,
   Clock3,
+  Copy,
   LockKeyhole,
   MessageSquare,
   Plus,
   Send,
   Sparkles,
+  UserRound,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -81,6 +84,7 @@ export default function JuvoAIChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [showJump, setShowJump] = useState(false);
   const [threadsOpen, setThreadsOpen] = useState(false);
+  const [copiedMessage, setCopiedMessage] = useState<number | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
   const canUseAi = Boolean(access?.hasAccess);
@@ -279,6 +283,16 @@ export default function JuvoAIChatPage() {
     }
   };
 
+  const copyMessage = async (content: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessage(index);
+      window.setTimeout(() => setCopiedMessage((current) => current === index ? null : current), 1600);
+    } catch {
+      // Copy support is an enhancement; the conversation remains fully usable without it.
+    }
+  };
+
   const conversationList = (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center justify-between gap-3">
@@ -416,22 +430,67 @@ export default function JuvoAIChatPage() {
                   ))}
                 </div>
               ) : (
-                messages.map((message, index) => (
-                  <div
-                    key={`${message.role}-${index}`}
-                    className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-6 ${
-                      message.role === "user"
-                        ? "ml-auto bg-slate-950 text-white dark:bg-primary dark:text-slate-950"
-                        : "bg-slate-50 text-slate-700 dark:bg-white/[0.04] dark:text-slate-200"
-                    }`}
-                  >
-                    {message.content}
-                  </div>
-                ))
+                messages.map((message, index) => {
+                  const fromUser = message.role === "user";
+                  const timestamp = message.createdAt
+                    ? new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(message.createdAt))
+                    : null;
+
+                  return (
+                    <article
+                      key={`${message.role}-${index}`}
+                      className={`flex w-full gap-3 ${fromUser ? "flex-row-reverse" : ""}`}
+                    >
+                      <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border ${
+                        fromUser
+                          ? "border-slate-800 bg-slate-950 text-white dark:border-primary/30 dark:bg-primary dark:text-slate-950"
+                          : "border-primary/25 bg-primary/10 text-primary"
+                      }`}>
+                        {fromUser ? <UserRound size={15} /> : <Bot size={16} />}
+                      </div>
+                      <div className={`flex min-w-0 max-w-[min(760px,calc(100%-44px))] flex-col ${fromUser ? "items-end" : "items-start"}`}>
+                        <div className={`mb-1 flex items-center gap-2 px-1 text-[11px] font-semibold ${
+                          fromUser ? "justify-end text-slate-500 dark:text-slate-400" : "text-slate-500 dark:text-slate-400"
+                        }`}>
+                          <span className={fromUser ? "order-2" : ""}>{fromUser ? "You" : "JUVO"}</span>
+                          {timestamp ? <span className="font-normal">{timestamp}</span> : null}
+                        </div>
+                        <div className={`group relative whitespace-pre-wrap rounded-xl border px-4 py-3 text-sm leading-6 shadow-sm ${
+                          fromUser
+                            ? "border-slate-950 bg-slate-950 text-white dark:border-primary dark:bg-primary dark:text-slate-950"
+                            : "border-slate-200 bg-slate-50 text-slate-700 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-200"
+                        }`}>
+                          {message.content}
+                          {!fromUser ? (
+                            <button
+                              type="button"
+                              onClick={() => void copyMessage(message.content, index)}
+                              className="absolute -right-9 top-2 grid h-7 w-7 place-items-center rounded-md text-slate-400 opacity-0 transition hover:bg-slate-200 hover:text-slate-700 focus:opacity-100 group-hover:opacity-100 dark:hover:bg-white/10 dark:hover:text-white"
+                              aria-label="Copy JUVO response"
+                              title="Copy response"
+                            >
+                              {copiedMessage === index ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })
               )}
               {isLoading ? (
-                <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">
-                  Juvo is reading your journal...
+                <div className="flex items-start gap-3">
+                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
+                    <Bot size={16} />
+                  </div>
+                  <div>
+                    <p className="mb-1 px-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">JUVO</p>
+                    <div className="flex w-fit items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.035]">
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.2s]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.1s]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
+                    </div>
+                  </div>
                 </div>
               ) : null}
               {error ? (
@@ -457,9 +516,9 @@ export default function JuvoAIChatPage() {
             className="shrink-0 border-t border-slate-200 p-3 dark:border-white/10 sm:p-4"
             onSubmit={handleSubmit}
           >
-            <div className="flex items-end gap-3">
+            <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 shadow-sm transition focus-within:border-primary/60 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10 dark:border-white/10 dark:bg-white/[0.035] dark:focus-within:bg-white/[0.06]">
               <textarea
-                className={`${controlClassName} max-h-28 min-h-[52px] resize-none py-3`}
+                className={`${controlClassName} min-h-[48px] max-h-32 resize-none border-0 bg-transparent py-3 shadow-none focus:border-transparent focus:ring-0 dark:bg-transparent`}
                 rows={2}
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
@@ -469,7 +528,9 @@ export default function JuvoAIChatPage() {
               <Button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="h-12 px-4"
+                className="h-11 w-11 shrink-0 rounded-lg px-0"
+                aria-label="Send message"
+                title="Send message"
               >
                 <Send size={16} />
               </Button>
