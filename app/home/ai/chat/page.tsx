@@ -23,6 +23,7 @@ import {
   Plus,
   Send,
   Sparkles,
+  Trash,
   UserRound,
   X,
 } from "lucide-react";
@@ -46,7 +47,10 @@ const prompts = [
 const NEAR_BOTTOM_PX = 96;
 
 function isNearBottom(element: HTMLElement) {
-  return element.scrollHeight - element.scrollTop - element.clientHeight < NEAR_BOTTOM_PX;
+  return (
+    element.scrollHeight - element.scrollTop - element.clientHeight <
+    NEAR_BOTTOM_PX
+  );
 }
 
 function getTrialTimeLeft(expiresAt?: string | null) {
@@ -76,7 +80,9 @@ export default function JuvoAIChatPage() {
   const [access, setAccess] = useState<AiAccess | null>(null);
   const [accessLoading, setAccessLoading] = useState(true);
   const [trialStarting, setTrialStarting] = useState(false);
-  const [conversations, setConversations] = useState<AiConversationSummary[]>([]);
+  const [conversations, setConversations] = useState<AiConversationSummary[]>(
+    [],
+  );
   const [conversationId, setConversationId] = useState<string | undefined>();
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [input, setInput] = useState("");
@@ -265,7 +271,9 @@ export default function JuvoAIChatPage() {
           </Link>
         </div>
         {error ? (
-          <p className="mt-4 text-sm text-rose-700 dark:text-rose-300">{error}</p>
+          <p className="mt-4 text-sm text-rose-700 dark:text-rose-300">
+            {error}
+          </p>
         ) : null}
       </div>
     </div>
@@ -287,7 +295,11 @@ export default function JuvoAIChatPage() {
     try {
       await navigator.clipboard.writeText(content);
       setCopiedMessage(index);
-      window.setTimeout(() => setCopiedMessage((current) => current === index ? null : current), 1600);
+      window.setTimeout(
+        () =>
+          setCopiedMessage((current) => (current === index ? null : current)),
+        1600,
+      );
     } catch {
       // Copy support is an enhancement; the conversation remains fully usable without it.
     }
@@ -304,9 +316,18 @@ export default function JuvoAIChatPage() {
             Conversations
           </h2>
         </div>
-        <Button variant="ghost" className="h-10 px-3" onClick={startNew}>
-          <Plus size={16} />
-        </Button>
+
+        <div className="Action-Buttons flex flex-row justify-center gap-3">
+          {/* New chat button */}
+          <Button variant="ghost" className="h-10 px-3" onClick={startNew}>
+            <Plus size={16} />
+          </Button>
+
+          {/* Delete Conversation button */}
+          <Button variant="ghost" className="h-10 px-3">
+            <Trash size={16} color="#FF0000" />
+          </Button>
+        </div>
       </div>
       <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1">
         {conversations.length ? (
@@ -321,7 +342,9 @@ export default function JuvoAIChatPage() {
                   : "bg-slate-50 text-slate-700 hover:bg-slate-100 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/10"
               }`}
             >
-              <p className="truncate text-sm font-semibold">{conversation.title}</p>
+              <p className="truncate text-sm font-semibold">
+                {conversation.title}
+              </p>
               <p className="mt-1 truncate text-xs opacity-70">
                 {conversation.preview || "No messages yet"}
               </p>
@@ -401,142 +424,174 @@ export default function JuvoAIChatPage() {
           ) : !canUseAi ? (
             accessPanel
           ) : (
-          <>
-          {access?.source === "trial" ? (
-            <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 px-4 py-2 text-xs font-semibold text-slate-500 dark:border-white/10 dark:text-slate-400">
-              <Clock3 size={14} className="text-primary" />
-              3-day trial active{trialLabel ? ` - ${trialLabel}` : ""}
-            </div>
-          ) : null}
-
-          <div className="relative min-h-0 flex-1 overflow-hidden">
-            <div
-              ref={scrollerRef}
-              onScroll={handleScroll}
-              className="absolute inset-0 space-y-4 overflow-x-hidden overflow-y-auto overscroll-contain scroll-smooth p-4 [scrollbar-width:thin]"
-            >
-              {!messages.length && !isLoading ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {prompts.map((prompt) => (
-                    <button
-                      key={prompt}
-                      type="button"
-                      onClick={() => sendMessage(prompt)}
-                      className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left text-sm text-slate-600 transition hover:border-primary hover:bg-white dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/10"
-                    >
-                      <Sparkles size={16} className="mb-2 text-primary" />
-                      {prompt}
-                    </button>
-                  ))}
+            <>
+              {access?.source === "trial" ? (
+                <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 px-4 py-2 text-xs font-semibold text-slate-500 dark:border-white/10 dark:text-slate-400">
+                  <Clock3 size={14} className="text-primary" />
+                  3-day trial active{trialLabel ? ` - ${trialLabel}` : ""}
                 </div>
-              ) : (
-                messages.map((message, index) => {
-                  const fromUser = message.role === "user";
-                  const timestamp = message.createdAt
-                    ? new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(message.createdAt))
-                    : null;
+              ) : null}
 
-                  return (
-                    <article
-                      key={`${message.role}-${index}`}
-                      className={`flex w-full gap-3 ${fromUser ? "flex-row-reverse" : ""}`}
-                    >
-                      <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border ${
-                        fromUser
-                          ? "border-slate-800 bg-slate-950 text-white dark:border-primary/30 dark:bg-primary dark:text-slate-950"
-                          : "border-primary/25 bg-primary/10 text-primary"
-                      }`}>
-                        {fromUser ? <UserRound size={15} /> : <Bot size={16} />}
-                      </div>
-                      <div className={`flex min-w-0 max-w-[min(760px,calc(100%-44px))] flex-col ${fromUser ? "items-end" : "items-start"}`}>
-                        <div className={`mb-1 flex items-center gap-2 px-1 text-[11px] font-semibold ${
-                          fromUser ? "justify-end text-slate-500 dark:text-slate-400" : "text-slate-500 dark:text-slate-400"
-                        }`}>
-                          <span className={fromUser ? "order-2" : ""}>{fromUser ? "You" : "JUVO"}</span>
-                          {timestamp ? <span className="font-normal">{timestamp}</span> : null}
-                        </div>
-                        <div className={`group relative min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-xl border px-4 py-3 text-sm leading-6 shadow-sm ${
-                          fromUser
-                            ? "border-slate-950 bg-slate-950 text-white dark:border-primary dark:bg-primary dark:text-slate-950"
-                            : "border-slate-200 bg-slate-50 pr-10 text-slate-700 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-200"
-                        }`}>
-                          {message.content}
-                          {!fromUser ? (
-                            <button
-                              type="button"
-                              onClick={() => void copyMessage(message.content, index)}
-                              className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-md text-slate-400 opacity-0 transition hover:bg-slate-200 hover:text-slate-700 focus:opacity-100 group-hover:opacity-100 dark:hover:bg-white/10 dark:hover:text-white"
-                              aria-label="Copy JUVO response"
-                              title="Copy response"
-                            >
-                              {copiedMessage === index ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
-                            </button>
-                          ) : null}
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })
-              )}
-              {isLoading ? (
-                <div className="flex items-start gap-3">
-                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
-                    <Bot size={16} />
-                  </div>
-                  <div>
-                    <p className="mb-1 px-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">JUVO</p>
-                    <div className="flex w-fit items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.035]">
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.2s]" />
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.1s]" />
-                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
+              <div className="relative min-h-0 flex-1 overflow-hidden">
+                <div
+                  ref={scrollerRef}
+                  onScroll={handleScroll}
+                  className="absolute inset-0 space-y-4 overflow-x-hidden overflow-y-auto overscroll-contain scroll-smooth p-4 [scrollbar-width:thin]"
+                >
+                  {!messages.length && !isLoading ? (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {prompts.map((prompt) => (
+                        <button
+                          key={prompt}
+                          type="button"
+                          onClick={() => sendMessage(prompt)}
+                          className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left text-sm text-slate-600 transition hover:border-primary hover:bg-white dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/10"
+                        >
+                          <Sparkles size={16} className="mb-2 text-primary" />
+                          {prompt}
+                        </button>
+                      ))}
                     </div>
-                  </div>
-                </div>
-              ) : null}
-              {error ? (
-                <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
-                  {error}
-                </div>
-              ) : null}
-            </div>
+                  ) : (
+                    messages.map((message, index) => {
+                      const fromUser = message.role === "user";
+                      const timestamp = message.createdAt
+                        ? new Intl.DateTimeFormat(undefined, {
+                            hour: "numeric",
+                            minute: "2-digit",
+                          }).format(new Date(message.createdAt))
+                        : null;
 
-            {showJump ? (
-              <button
-                type="button"
-                onClick={() => scrollToLatest(true)}
-                className="absolute bottom-4 left-1/2 z-10 grid h-11 w-11 -translate-x-1/2 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-lg shadow-slate-950/10 transition hover:bg-slate-50 dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/10"
-                aria-label="Jump to latest message"
-              >
-                <ChevronDown size={20} />
-              </button>
-            ) : null}
-          </div>
+                      return (
+                        <article
+                          key={`${message.role}-${index}`}
+                          className={`flex w-full gap-3 ${fromUser ? "flex-row-reverse" : ""}`}
+                        >
+                          <div
+                            className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border ${
+                              fromUser
+                                ? "border-slate-800 bg-slate-950 text-white dark:border-primary/30 dark:bg-primary dark:text-slate-950"
+                                : "border-primary/25 bg-primary/10 text-primary"
+                            }`}
+                          >
+                            {fromUser ? (
+                              <UserRound size={15} />
+                            ) : (
+                              <Bot size={16} />
+                            )}
+                          </div>
+                          <div
+                            className={`flex min-w-0 max-w-[min(760px,calc(100%-44px))] flex-col ${fromUser ? "items-end" : "items-start"}`}
+                          >
+                            <div
+                              className={`mb-1 flex items-center gap-2 px-1 text-[11px] font-semibold ${
+                                fromUser
+                                  ? "justify-end text-slate-500 dark:text-slate-400"
+                                  : "text-slate-500 dark:text-slate-400"
+                              }`}
+                            >
+                              <span className={fromUser ? "order-2" : ""}>
+                                {fromUser ? "You" : "JUVO"}
+                              </span>
+                              {timestamp ? (
+                                <span className="font-normal">{timestamp}</span>
+                              ) : null}
+                            </div>
+                            <div
+                              className={`group relative min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-xl border px-4 py-3 text-sm leading-6 shadow-sm ${
+                                fromUser
+                                  ? "border-slate-950 bg-slate-950 text-white dark:border-primary dark:bg-primary dark:text-slate-950"
+                                  : "border-slate-200 bg-slate-50 pr-10 text-slate-700 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-200"
+                              }`}
+                            >
+                              {message.content}
+                              {!fromUser ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void copyMessage(message.content, index)
+                                  }
+                                  className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-md text-slate-400 opacity-0 transition hover:bg-slate-200 hover:text-slate-700 focus:opacity-100 group-hover:opacity-100 dark:hover:bg-white/10 dark:hover:text-white"
+                                  aria-label="Copy JUVO response"
+                                  title="Copy response"
+                                >
+                                  {copiedMessage === index ? (
+                                    <Check
+                                      size={14}
+                                      className="text-emerald-500"
+                                    />
+                                  ) : (
+                                    <Copy size={14} />
+                                  )}
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })
+                  )}
+                  {isLoading ? (
+                    <div className="flex items-start gap-3">
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
+                        <Bot size={16} />
+                      </div>
+                      <div>
+                        <p className="mb-1 px-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                          JUVO
+                        </p>
+                        <div className="flex w-fit items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.035]">
+                          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.2s]" />
+                          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.1s]" />
+                          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" />
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                  {error ? (
+                    <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-300">
+                      {error}
+                    </div>
+                  ) : null}
+                </div>
 
-          <form
-            className="shrink-0 border-t border-slate-200 p-3 dark:border-white/10 sm:p-4"
-            onSubmit={handleSubmit}
-          >
-            <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 shadow-sm transition focus-within:border-primary/60 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10 dark:border-white/10 dark:bg-white/[0.035] dark:focus-within:bg-white/[0.06]">
-              <textarea
-                className={`${controlClassName} min-h-[48px] max-h-32 resize-none border-0 bg-transparent py-3 shadow-none focus:border-transparent focus:ring-0 dark:bg-transparent`}
-                rows={2}
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                onKeyDown={handleComposerKeyDown}
-                placeholder="Ask about your process, not the next setup"
-              />
-              <Button
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                className="h-11 w-11 shrink-0 rounded-lg px-0"
-                aria-label="Send message"
-                title="Send message"
+                {showJump ? (
+                  <button
+                    type="button"
+                    onClick={() => scrollToLatest(true)}
+                    className="absolute bottom-4 left-1/2 z-10 grid h-11 w-11 -translate-x-1/2 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-lg shadow-slate-950/10 transition hover:bg-slate-50 dark:border-white/10 dark:bg-card dark:text-white dark:hover:bg-white/10"
+                    aria-label="Jump to latest message"
+                  >
+                    <ChevronDown size={20} />
+                  </button>
+                ) : null}
+              </div>
+
+              <form
+                className="shrink-0 border-t border-slate-200 p-3 dark:border-white/10 sm:p-4"
+                onSubmit={handleSubmit}
               >
-                <Send size={16} />
-              </Button>
-            </div>
-          </form>
-          </>
+                <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 shadow-sm transition focus-within:border-primary/60 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10 dark:border-white/10 dark:bg-white/[0.035] dark:focus-within:bg-white/[0.06]">
+                  <textarea
+                    className={`${controlClassName} min-h-[48px] max-h-32 resize-none border-0 bg-transparent py-3 shadow-none focus:border-transparent focus:ring-0 dark:bg-transparent`}
+                    rows={2}
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    onKeyDown={handleComposerKeyDown}
+                    placeholder="Ask about your process, not the next setup"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={isLoading || !input.trim()}
+                    className="h-11 w-11 shrink-0 rounded-lg px-0"
+                    aria-label="Send message"
+                    title="Send message"
+                  >
+                    <Send size={16} />
+                  </Button>
+                </div>
+              </form>
+            </>
           )}
         </section>
       </div>
