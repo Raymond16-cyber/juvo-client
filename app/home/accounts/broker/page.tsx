@@ -2,7 +2,10 @@
 
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import MetaTraderConnections from "@/components/brokers/MetaTraderConnections";
-import { brokerStatusCopy as statusCopy, brokerStatusStyle } from "@/lib/broker-status";
+import {
+  brokerStatusCopy as statusCopy,
+  brokerStatusStyle,
+} from "@/lib/broker-status";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
@@ -66,14 +69,23 @@ export default function BrokerConnectionsPage() {
   const isConnecting = useBrokerStore((state) => state.isConnecting);
   const isLoading = useBrokerStore((state) => state.isLoading);
   const error = useBrokerStore((state) => state.error);
-  const cTraderConnections = connections.filter((connection) => connection.provider === "ctrader");
-  const cTraderPositionCount = positions.filter((position) => position.provider === "ctrader").length;
+  const cTraderConnections = connections.filter(
+    (connection) =>
+      connection.provider === "ctrader" 
+  );
+  const connectedcTraderConnections = cTraderConnections.filter(
+    (c) => c.status === "connected",
+  );
+  const cTraderPositionCount = positions.filter(
+    (position) => position.provider === "ctrader",
+  ).length;
 
   const cTraderConnection = useMemo(
     () =>
       connections.find(
         (connection) =>
-          connection.provider === "ctrader" && connection.status === "connected",
+          connection.provider === "ctrader" &&
+          connection.status === "connected",
       ) ||
       connections.find(
         (connection) =>
@@ -267,8 +279,8 @@ export default function BrokerConnectionsPage() {
                       : "Connect a broker to JUVO"}
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  JUVO reads account activity for journaling and analytics. It does
-                  not place, edit, or close broker trades.
+                  JUVO reads account activity for journaling and analytics. It
+                  does not place, edit, or close broker trades.
                 </p>
               </div>
 
@@ -286,7 +298,9 @@ export default function BrokerConnectionsPage() {
                   ) : (
                     <>
                       <Link2 size={16} />
-                      {connectedCTrader ? "Reconnect cTrader" : "Connect cTrader"}
+                      {connectedCTrader
+                        ? "Reconnect cTrader"
+                        : "Connect cTrader"}
                     </>
                   )}
                 </Button>
@@ -336,7 +350,9 @@ export default function BrokerConnectionsPage() {
                 icon={Clock3}
                 label="Last sync"
                 value={lastSyncLabel}
-                tone={lastSync || cTraderConnection?.lastSyncedAt ? "good" : "muted"}
+                tone={
+                  lastSync || cTraderConnection?.lastSyncedAt ? "good" : "muted"
+                }
               />
               <StatusMetric
                 icon={Database}
@@ -408,8 +424,8 @@ export default function BrokerConnectionsPage() {
             </div>
 
             <div className="mt-5 space-y-3">
-              {cTraderConnections.length ? (
-                cTraderConnections.map((connection) => (
+              {connectedcTraderConnections.length ? (
+                connectedcTraderConnections.map((connection) => (
                   <ConnectionRow
                     key={connection.id}
                     connection={connection}
@@ -523,7 +539,9 @@ function StatusMetric({
   return (
     <div className="min-w-0 rounded-xl bg-slate-100 px-4 py-3 dark:bg-white/[0.05]">
       <div className="flex items-center gap-2">
-        <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${toneClass}`}>
+        <span
+          className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${toneClass}`}
+        >
           <Icon size={16} />
         </span>
         <div className="min-w-0">
@@ -677,7 +695,9 @@ function ConnectionMini({ label, value }: { label: string; value: string }) {
 function RuleItem({ title, body }: { title: string; body: string }) {
   return (
     <div className="rounded-xl border border-slate-200 p-4 dark:border-white/10">
-      <p className="text-sm font-bold text-slate-950 dark:text-white">{title}</p>
+      <p className="text-sm font-bold text-slate-950 dark:text-white">
+        {title}
+      </p>
       <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
         {body}
       </p>
@@ -688,7 +708,9 @@ function RuleItem({ title, body }: { title: string; body: string }) {
 function BrokerEmptyState({ title, body }: { title: string; body: string }) {
   return (
     <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-white/10">
-      <p className="text-sm font-bold text-slate-950 dark:text-white">{title}</p>
+      <p className="text-sm font-bold text-slate-950 dark:text-white">
+        {title}
+      </p>
       <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
         {body}
       </p>

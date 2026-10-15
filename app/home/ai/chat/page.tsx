@@ -338,7 +338,7 @@ export default function JuvoAIChatPage() {
 
   return (
     <DashboardShell fillViewport>
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden xl:grid xl:grid-cols-[280px_minmax(0,1fr)] xl:gap-4">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden xl:grid xl:grid-cols-[280px_minmax(0,1fr)] xl:gap-4">
         <aside className="hidden min-h-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card xl:flex xl:flex-col">
           {conversationList}
         </aside>
@@ -367,7 +367,7 @@ export default function JuvoAIChatPage() {
           </div>
         ) : null}
 
-        <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-card">
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-card">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 p-4 dark:border-white/10">
             <div className="flex min-w-0 items-center gap-3">
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary">
@@ -413,7 +413,7 @@ export default function JuvoAIChatPage() {
             <div
               ref={scrollerRef}
               onScroll={handleScroll}
-              className="absolute inset-0 space-y-4 overflow-y-auto overscroll-contain scroll-smooth p-4 [scrollbar-width:thin]"
+              className="absolute inset-0 space-y-4 overflow-x-hidden overflow-y-auto overscroll-contain scroll-smooth p-4 [scrollbar-width:thin]"
             >
               {!messages.length && !isLoading ? (
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -455,17 +455,17 @@ export default function JuvoAIChatPage() {
                           <span className={fromUser ? "order-2" : ""}>{fromUser ? "You" : "JUVO"}</span>
                           {timestamp ? <span className="font-normal">{timestamp}</span> : null}
                         </div>
-                        <div className={`group relative whitespace-pre-wrap rounded-xl border px-4 py-3 text-sm leading-6 shadow-sm ${
+                        <div className={`group relative min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-xl border px-4 py-3 text-sm leading-6 shadow-sm ${
                           fromUser
                             ? "border-slate-950 bg-slate-950 text-white dark:border-primary dark:bg-primary dark:text-slate-950"
-                            : "border-slate-200 bg-slate-50 text-slate-700 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-200"
+                            : "border-slate-200 bg-slate-50 pr-10 text-slate-700 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-200"
                         }`}>
                           {message.content}
                           {!fromUser ? (
                             <button
                               type="button"
                               onClick={() => void copyMessage(message.content, index)}
-                              className="absolute -right-9 top-2 grid h-7 w-7 place-items-center rounded-md text-slate-400 opacity-0 transition hover:bg-slate-200 hover:text-slate-700 focus:opacity-100 group-hover:opacity-100 dark:hover:bg-white/10 dark:hover:text-white"
+                              className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-md text-slate-400 opacity-0 transition hover:bg-slate-200 hover:text-slate-700 focus:opacity-100 group-hover:opacity-100 dark:hover:bg-white/10 dark:hover:text-white"
                               aria-label="Copy JUVO response"
                               title="Copy response"
                             >
