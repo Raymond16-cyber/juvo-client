@@ -512,7 +512,13 @@ function JournalRow({
       }`}
     >
       <article className="min-w-0">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div
+          className={`flex flex-col gap-4 ${
+            view === "list"
+              ? "xl:flex-row xl:items-start xl:justify-between"
+              : ""
+          }`}
+        >
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-2">
               <h3 className="truncate text-base font-bold text-slate-950 dark:text-white">
@@ -525,17 +531,27 @@ function JournalRow({
             <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
               {getAccountName(journal)}
             </p>
-            {journal.psychology?.beforeTrading ? (
+            {view === "list" && journal.psychology?.beforeTrading ? (
               <p className="mt-3 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
                 {journal.psychology.beforeTrading}
               </p>
             ) : null}
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 xl:w-[280px] xl:shrink-0">
+          <div
+            className={`grid w-full gap-2 ${
+              view === "list"
+                ? "grid-cols-2 sm:grid-cols-4 xl:w-[280px] xl:shrink-0"
+                : "grid-cols-2"
+            }`}
+          >
             <MiniMetric label="Trades" value={journal.tradesCount || 0} />
-            <MiniMetric label="Open" value={journal.openTrades} />
-            <MiniMetric label="Closed" value={journal.closedTrades} />
+            {view === "list" ? (
+              <>
+                <MiniMetric label="Open" value={journal.openTrades} />
+                <MiniMetric label="Closed" value={journal.closedTrades} />
+              </>
+            ) : null}
             <MiniMetric
               label="P/L"
               value={formatAccountMoney(displayPnl, currency)}
@@ -548,7 +564,7 @@ function JournalRow({
           </div>
         </div>
 
-        {journal.trades?.length ? (
+        {view === "list" && journal.trades?.length ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {journal.trades.slice(0, 5).map((trade) => (
               <span
