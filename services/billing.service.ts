@@ -5,8 +5,11 @@ export async function getBillingOverviewService() {
   const data = await api.get<{ data: BillingOverview }>("/billing");
   return data.data.data;
 }
-export async function initializeBillingCheckoutService(plan: Exclude<BillingPlan, "free">) {
-  return (await api.post<{ data: { authorizationUrl: string; reference: string } }>("/billing/checkout", { plan, billingInterval: "monthly" })).data.data;
+export async function initializeBillingCheckoutService(plan: Exclude<BillingPlan, "free">, invitationCode?: string) {
+  return (await api.post<{ data: { authorizationUrl: string; reference: string } }>("/billing/checkout", { plan, billingInterval: "monthly", ...(invitationCode ? { invitationCode } : {}) })).data.data;
+}
+export async function validateBillingInvitationService(invitationCode: string) {
+  return (await api.post<{ data: { discountPercent: number; expiresAt: string } }>("/billing/invitation/validate", { invitationCode })).data.data;
 }
 export async function verifyBillingPaymentService(reference: string) {
   return (await api.post("/billing/verify", { reference })).data;

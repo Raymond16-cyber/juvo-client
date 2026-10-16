@@ -126,7 +126,7 @@ export default function Pricing() {
             <Button
               variant={plan.featured ? "primary" : "onDark"}
               className="mt-8 w-full"
-              onClick={() => router.push(plan.id === "free" ? "/auth/register" : "/home/general/subscriptions")}
+              onClick={() => router.push(plan.id === "free" ? "/waitlist" : "/home/general/subscriptions")}
             >
               {plan.cta}
               <ArrowRight className="h-4 w-4" />

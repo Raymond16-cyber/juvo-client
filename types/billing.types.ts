@@ -1,6 +1,18 @@
 export type BillingPlan = "free" | "pro" | "super";
-export type BillingSubscriptionStatus = "pending" | "active" | "non-renewing" | "past-due" | "cancelled" | "expired";
-export type PaymentStatus = "pending" | "processing" | "success" | "failed" | "abandoned" | "reversed";
+export type BillingSubscriptionStatus =
+  | "pending"
+  | "active"
+  | "non-renewing"
+  | "past-due"
+  | "cancelled"
+  | "expired";
+export type PaymentStatus =
+  | "pending"
+  | "processing"
+  | "success"
+  | "failed"
+  | "abandoned"
+  | "reversed";
 
 export interface BillingPlanOption {
   plan: Exclude<BillingPlan, "free">;
@@ -36,7 +48,16 @@ export interface BillingPayment {
 export interface BillingOverview {
   enabled: boolean;
   plans: BillingPlanOption[];
-  current: { plan?: BillingPlan; status?: string; startedAt?: string; expiresAt?: string | null };
+  current: {
+    plan?: BillingPlan;
+    status?: string;
+    startedAt?: string;
+    expiresAt?: string | null;
+  };
   subscriptions: BillingSubscription[];
   payments: BillingPayment[];
+}
+export interface BillingInvitationOffer {
+  discountPercent: 40;
+  expiresAt: string;
 }

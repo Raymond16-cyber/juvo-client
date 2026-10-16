@@ -1,0 +1,65 @@
+"use client";
+
+import AuthShell from "@/components/auth/AuthShell";
+import { getApiErrorMessage } from "@/lib/axios";
+import { verifyEmail } from "@/services/auth.service";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+
+export default function VerifyEmailPage() {
+  const params = useParams<{ token: string }>();
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    "loading",
+  );
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    void verifyEmail(params.token)
+      .then((response) => {
+        setMessage(response.message);
+        setStatus("success");
+      })
+      .catch((cause) => {
+        setMessage(
+          getApiErrorMessage(
+            cause,
+            "This verification link is invalid or expired.",
+          ),
+        );
+        setStatus("error");
+      });
+  }, [params.token]);
+
+  return (
+    <AuthShell variant="register">
+      <div className="space-y-5 text-center">
+        <div>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+            JUVO account
+          </p>
+          <h1 className="mt-1 text-3xl font-bold text-slate-950 dark:text-white">
+            {status === "loading"
+              ? "Verifying email..."
+              : status === "success"
+                ? "Email verified"
+                : "Verification failed"}
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
+            {status === "loading"
+              ? "Please wait while we confirm your email address."
+              : message}
+          </p>
+        </div>
+        {status !== "loading" ? (
+          <Link
+            href="/home/onboarding"
+            className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-5 text-sm font-bold text-slate-950 transition hover:bg-secondary"
+          >
+            Continue to JUVO
+          </Link>
+        ) : null}
+      </div>
+    </AuthShell>
+  );
+}

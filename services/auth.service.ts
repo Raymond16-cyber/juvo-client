@@ -46,6 +46,21 @@ export const resetPassword = async (data: ResetPasswordData) => {
   return response.data;
 };
 
+export const verifyEmail = async (token: string) => {
+  const response = await api.get<{ message: string }>(
+    `/auth/verify-email/${encodeURIComponent(token)}`,
+  );
+  return response.data;
+};
+
+export const resendEmailVerification = async (email: string) => {
+  const response = await api.post<{ message: string }>(
+    "/auth/resend-verification",
+    { email },
+  );
+  return response.data;
+};
+
 export const getCurrentUser = async (): Promise<User> => {
   const response = await api.get<{ user: User }>("/auth/me");
 

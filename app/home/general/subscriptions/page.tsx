@@ -23,6 +23,7 @@ import {
   getBillingOverviewService,
   initializeBillingCheckoutService,
   reconcileBillingService,
+  validateBillingInvitationService,
   verifyBillingPaymentService,
 } from "@/services/billing.service";
 import type {
@@ -67,6 +68,13 @@ export default function SubscriptionsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [invitationCode, setInvitationCode] = useState("");
+  const [invitationOffer, setInvitationOffer] = useState<{
+    discountPercent: number;
+    expiresAt: string;
+  } | null>(null);
+  const [invitationBusy, setInvitationBusy] = useState(false);
+  const [invitationError, setInvitationError] = useState("");
   const load = useCallback(async () => {
     const current = await getBillingOverviewService();
     setOverview(current);
@@ -138,11 +146,34 @@ export default function SubscriptionsPage() {
     setError("");
     setNotice("");
     try {
-      const result = await initializeBillingCheckoutService(plan);
+      const result = await initializeBillingCheckoutService(
+        plan,
+        invitationOffer ? invitationCode.trim() : undefined,
+      );
       window.location.assign(result.authorizationUrl);
     } catch (cause) {
       setError(getApiErrorMessage(cause, "Unable to start checkout."));
       setBusy(null);
+    }
+  }
+
+  async function applyInvitationCode() {
+    const code = invitationCode.trim();
+    if (!code) return;
+    setInvitationBusy(true);
+    setInvitationError("");
+    setInvitationOffer(null);
+    try {
+      setInvitationOffer(await validateBillingInvitationService(code));
+    } catch (cause) {
+      setInvitationError(
+        getApiErrorMessage(
+          cause,
+          "This invitation code is invalid or expired.",
+        ),
+      );
+    } finally {
+      setInvitationBusy(false);
     }
   }
 
@@ -263,6 +294,63 @@ export default function SubscriptionsPage() {
             </p>
           </Card>
         )}
+        {overview?.enabled ? (
+          <Card className="p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-950 dark:text-white">
+                  Early-access invitation
+                </p>
+                <p className="mt-1 max-w-xl text-sm text-slate-500 dark:text-slate-400">
+                  Apply your invitation for 40% off the first successful
+                  qualifying payment only. Future billing periods use the normal
+                  plan price.
+                </p>
+              </div>
+              <div className="flex w-full gap-2 sm:max-w-sm">
+                <input
+                  className="h-11 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm uppercase text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                  value={invitationCode}
+                  onChange={(event) => {
+                    setInvitationCode(event.target.value.toUpperCase());
+                    setInvitationOffer(null);
+                    setInvitationError("");
+                  }}
+                  placeholder="Invitation code"
+                  aria-label="Invitation code"
+                />
+                <Button
+                  variant="ghost"
+                  onClick={() => void applyInvitationCode()}
+                  disabled={invitationBusy || !invitationCode.trim()}
+                >
+                  {invitationBusy ? (
+                    <LoaderCircle size={16} className="animate-spin" />
+                  ) : (
+                    "Apply"
+                  )}
+                </Button>
+              </div>
+            </div>
+            {invitationOffer ? (
+              <p
+                role="status"
+                className="mt-3 text-sm text-emerald-700 dark:text-emerald-300"
+              >
+                Invitation applied. The 40% discount is used once after payment
+                succeeds.
+              </p>
+            ) : null}
+            {invitationError ? (
+              <p
+                role="alert"
+                className="mt-3 text-sm text-rose-700 dark:text-rose-300"
+              >
+                {invitationError}
+              </p>
+            ) : null}
+          </Card>
+        ) : null}
         <div className="grid gap-4 lg:grid-cols-3">
           {(["free", "pro", "super"] as const).map((plan) => {
             const details = planDetails[plan];
@@ -278,9 +366,27 @@ export default function SubscriptionsPage() {
                   {details.name}
                 </p>
                 <p className="mt-2 text-3xl font-bold text-slate-950 dark:text-white">
-                  {plan === "free"
-                    ? "Free"
-                    : money(option?.amount, option?.currency)}
+                  {plan === "free" ? (
+                    "Free"
+                  ) : invitationOffer && option?.amount && option.currency ? (
+                    <span className="flex flex-col">
+                      <span className="text-sm font-medium text-slate-400 line-through">
+                        {money(option.amount, option.currency)}
+                      </span>
+                      <span>
+                        {money(
+                          Math.floor(
+                            (option.amount *
+                              (100 - invitationOffer.discountPercent)) /
+                              100,
+                          ),
+                          option.currency,
+                        )}
+                      </span>
+                    </span>
+                  ) : (
+                    money(option?.amount, option?.currency)
+                  )}
                   <span className="text-sm font-medium text-slate-400">
                     {plan === "free" ? "" : " / mo"}
                   </span>

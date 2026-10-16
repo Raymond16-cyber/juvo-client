@@ -46,11 +46,14 @@ function RegisterForm() {
       });
       markEnteringApp();
       setEntering(true);
-      router.push("/home/onboarding");
+      router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
       return;
     } catch (registerError: unknown) {
       setError(
-        getApiErrorMessage(registerError, "Registration failed. Please try again."),
+        getApiErrorMessage(
+          registerError,
+          "Registration failed. Please try again.",
+        ),
       );
       setLoading(false);
     }
@@ -63,19 +66,12 @@ function RegisterForm() {
   return (
     <AuthShell variant="register">
       <div className={styles.intro}>
-        <h1>
-          Register for JUVO
-        </h1>
-        <p>
-          Start your trading journal. Build your own perspective.
-        </p>
+        <h1>Register for JUVO</h1>
+        <p>Start your trading journal. Build your own perspective.</p>
       </div>
 
       {visibleError ? (
-        <div
-          role="alert"
-          className={styles.error}
-        >
+        <div role="alert" className={styles.error}>
           {visibleError}
         </div>
       ) : null}
@@ -98,10 +94,7 @@ function RegisterForm() {
           />
         </div>
         <div>
-          <label
-            htmlFor="registerEmail"
-            className={styles.label}
-          >
+          <label htmlFor="registerEmail" className={styles.label}>
             Email
           </label>
           <input
@@ -117,10 +110,7 @@ function RegisterForm() {
           />
         </div>
         <div>
-          <label
-            htmlFor="registerPassword"
-            className={styles.label}
-          >
+          <label htmlFor="registerPassword" className={styles.label}>
             Password
           </label>
           <div className={styles.password}>
@@ -148,9 +138,16 @@ function RegisterForm() {
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          <p id="password-hint" className={styles.hint}>Use at least 8 characters.</p>
+          <p id="password-hint" className={styles.hint}>
+            Use at least 8 characters.
+          </p>
         </div>
-        <button type="submit" disabled={loading} aria-busy={loading} className={styles.submit}>
+        <button
+          type="submit"
+          disabled={loading}
+          aria-busy={loading}
+          className={styles.submit}
+        >
           {loading ? "Creating account..." : "Create Account"}
         </button>
       </form>
