@@ -29,7 +29,9 @@ export default function ForgotPassword() {
 
   useEffect(() => {
     if (message && resetPasswordToken) {
-      router.push(`/auth/verify-otp-code/${resetPasswordToken}?email=${encodeURIComponent(email)}`);
+      router.push(
+        `/auth/verify-otp-code/${resetPasswordToken}?email=${encodeURIComponent(email)}`,
+      );
     }
   }, [email, message, resetPasswordToken, router]);
 
@@ -45,8 +47,8 @@ export default function ForgotPassword() {
             </h1>
 
             <p className="text-sm leading-6 text-slate-400">
-              Enter your email address and we&apos;ll send you a link to reset your
-              password.
+              Enter your email address and we&apos;ll send you a link to reset
+              your password.
             </p>
           </div>
 
@@ -87,12 +89,12 @@ export default function ForgotPassword() {
           </form>
 
           <div className="mt-6 text-center">
-            <a
-              href="/auth/register"
-              className="text-sm text-slate-400 transition-colors hover:text-white"
+            <span
+              aria-disabled="true"
+              className="text-sm text-slate-400 opacity-50"
             >
               ← Back to sign in
-            </a>
+            </span>
           </div>
         </section>
       </main>

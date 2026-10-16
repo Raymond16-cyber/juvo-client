@@ -11,9 +11,10 @@ const plans = [
   {
     id: "free",
     name: "Free",
-    price: "$0",
+    price: "NGN 0",
     cadence: "forever",
-    blurb: "The daily loop. Journal, calendar, enough analytics to see the week.",
+    blurb:
+      "The daily loop. Journal, calendar, enough analytics to see the week.",
     features: [
       "Daily journal + pre-market notes",
       "Juvo Calendar",
@@ -26,7 +27,7 @@ const plans = [
   {
     id: "pro",
     name: "Pro",
-    price: "$19",
+    price: "NGN 19,937",
     cadence: "/ mo",
     blurb: "When the notes need a second reader — insights and Juvo AI.",
     features: [
@@ -41,7 +42,7 @@ const plans = [
   {
     id: "super",
     name: "Super",
-    price: "$39",
+    price: "NGN 39,887",
     cadence: "/ mo",
     blurb: "For the desk that already journals — reviews, sync, extra room.",
     features: [
@@ -109,7 +110,9 @@ export default function Pricing() {
               )}
             </div>
 
-            <p className="mt-4 text-sm leading-6 text-slate-300">{plan.blurb}</p>
+            <p className="mt-4 text-sm leading-6 text-slate-300">
+              {plan.blurb}
+            </p>
 
             <ul className="mt-6 flex-1 space-y-2.5">
               {plan.features.map((feature) => (
@@ -126,7 +129,13 @@ export default function Pricing() {
             <Button
               variant={plan.featured ? "primary" : "onDark"}
               className="mt-8 w-full"
-              onClick={() => router.push(plan.id === "free" ? "/waitlist" : "/home/general/subscriptions")}
+              onClick={() =>
+                router.push(
+                  plan.id === "free"
+                    ? "/waitlist"
+                    : "/home/general/subscriptions",
+                )
+              }
             >
               {plan.cta}
               <ArrowRight className="h-4 w-4" />

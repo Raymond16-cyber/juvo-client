@@ -6,7 +6,6 @@ import {
   joinWaitlistService,
   retryWaitlistInvitationService,
 } from "@/services/waitlist.service";
-import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 export default function WaitlistPage() {
@@ -123,9 +122,12 @@ export default function WaitlistPage() {
         </button>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Already have an account?{" "}
-          <Link href="/auth/login" className="font-bold text-primary">
+          <span
+            aria-disabled="true"
+            className="font-bold text-primary opacity-50"
+          >
             Sign in
-          </Link>
+          </span>
         </p>
       </div>
     </AuthShell>

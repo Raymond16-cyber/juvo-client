@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ShieldCheck, ArrowLeft } from "lucide-react";
 
 import AuthVisual from "@/components/auth/AuthVisual";
@@ -172,22 +171,22 @@ export default function VerifyOtpPage({ params }: VerifyOtpPageProps) {
                 Didn&apos;t receive the code?
               </p>
 
-              <Link
-                href="/auth/forgot-password"
-                className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-white transition hover:text-primary"
+              <span
+                aria-disabled="true"
+                className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-white opacity-50"
               >
                 Request a new reset link
-              </Link>
+              </span>
             </div>
 
             <div className="mt-8 border-t border-white/5 pt-6">
-              <Link
-                href="/auth/register"
-                className="mx-auto flex w-fit items-center gap-2 text-sm text-slate-400 transition hover:text-white"
+              <span
+                aria-disabled="true"
+                className="mx-auto flex w-fit items-center gap-2 text-sm text-slate-400 opacity-50"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to registration
-              </Link>
+              </span>
             </div>
           </section>
 

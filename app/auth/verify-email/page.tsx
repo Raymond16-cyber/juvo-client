@@ -3,7 +3,6 @@
 import AuthShell from "@/components/auth/AuthShell";
 import { getApiErrorMessage } from "@/lib/axios";
 import { resendEmailVerification } from "@/services/auth.service";
-import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 export default function VerifyEmailPendingPage() {
@@ -85,12 +84,12 @@ export default function VerifyEmailPendingPage() {
             {busy ? "Sending..." : "Resend verification email"}
           </button>
         </form>
-        <Link
-          href="/auth/login"
-          className="block text-sm font-bold text-primary"
+        <span
+          aria-disabled="true"
+          className="block text-sm font-bold text-primary opacity-50"
         >
           Continue to sign in
-        </Link>
+        </span>
       </div>
     </AuthShell>
   );

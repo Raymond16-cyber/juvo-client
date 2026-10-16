@@ -8,7 +8,6 @@ import { AUTH_ENTER_LABEL, markEnteringApp } from "@/lib/auth-entry";
 import { getApiErrorMessage } from "@/lib/axios";
 import { useAuthStore } from "@/stores/auth.store";
 import { Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
@@ -154,9 +153,9 @@ function RegisterForm() {
 
       <p className={styles.switch}>
         Already have an account?{" "}
-        <Link href="/auth/login" className={styles.link}>
+        <span aria-disabled="true" className={`${styles.link} opacity-50`}>
           Sign in
-        </Link>
+        </span>
       </p>
     </AuthShell>
   );

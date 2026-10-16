@@ -8,7 +8,6 @@ import { AUTH_ENTER_LABEL, markEnteringApp } from "@/lib/auth-entry";
 import { getApiErrorMessage } from "@/lib/axios";
 import { useAuthStore } from "@/stores/auth.store";
 import { Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
 
@@ -41,7 +40,8 @@ function LoginForm() {
       const response = await login({ email, password });
       const nextPath = searchParams.get("next");
       const safeNext =
-        nextPath?.startsWith("/home") && !nextPath.startsWith("/home/onboarding")
+        nextPath?.startsWith("/home") &&
+        !nextPath.startsWith("/home/onboarding")
           ? nextPath
           : "/home/dashboard";
 
@@ -52,9 +52,7 @@ function LoginForm() {
       );
       return;
     } catch (loginError: unknown) {
-      setError(
-        getApiErrorMessage(loginError, "Invalid email or password."),
-      );
+      setError(getApiErrorMessage(loginError, "Invalid email or password."));
       setLoading(false);
     }
   };
@@ -66,19 +64,12 @@ function LoginForm() {
   return (
     <AuthShell variant="login">
       <div className={styles.intro}>
-        <h1>
-          Welcome back
-        </h1>
-        <p>
-          Welcome back to your journal.
-        </p>
+        <h1>Welcome back</h1>
+        <p>Welcome back to your journal.</p>
       </div>
 
       {visibleError ? (
-        <div
-          role="alert"
-          className={styles.error}
-        >
+        <div role="alert" className={styles.error}>
           {visibleError}
         </div>
       ) : null}
@@ -104,10 +95,7 @@ function LoginForm() {
           />
         </div>
         <div>
-          <label
-            htmlFor="password"
-            className={styles.label}
-          >
+          <label htmlFor="password" className={styles.label}>
             Password
           </label>
           <div className={styles.password}>
@@ -137,25 +125,27 @@ function LoginForm() {
             </button>
           </div>
         </div>
-        <Link
-          href="/auth/forgot-password"
-          className={`${styles.link} ${styles.forgot}`}
+        <span
+          aria-disabled="true"
+          className={`${styles.link} ${styles.forgot} opacity-50`}
         >
           Forgot password?
-        </Link>
-        <button type="submit" disabled={loading} aria-busy={loading} className={styles.submit}>
+        </span>
+        <button
+          type="submit"
+          disabled={loading}
+          aria-busy={loading}
+          className={styles.submit}
+        >
           {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
 
       <p className={styles.switch}>
         Don&apos;t have an account?{" "}
-        <Link
-          href="/auth/register"
-          className={styles.link}
-        >
+        <span aria-disabled="true" className={`${styles.link} opacity-50`}>
           Register
-        </Link>
+        </span>
       </p>
     </AuthShell>
   );
