@@ -74,6 +74,27 @@ export function getJournalDisplayPnl(
   };
 }
 
+export function getJournalNativePnlByCurrency(
+  journal: Pick<
+    JournalHistoryItem,
+    "totalProfitLoss" | "trades" | "tradingAccount"
+  >,
+  fallback = "USD",
+) {
+  const journalCurrency = getRecordCurrency(journal, fallback);
+  if (!journal.trades?.length) {
+    return [{ currency: journalCurrency, value: journal.totalProfitLoss }];
+  }
+
+  const totals = new Map<string, number>();
+  for (const trade of journal.trades) {
+    const currency = getRecordCurrency(trade, journalCurrency);
+    totals.set(currency, (totals.get(currency) || 0) + (trade.profitLoss || 0));
+  }
+
+  return Array.from(totals, ([currency, value]) => ({ currency, value }));
+}
+
 export function filterByAccount<
   T extends {
     tradingAccount?: string | { _id: string } | null;

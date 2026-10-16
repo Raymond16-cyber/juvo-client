@@ -5,7 +5,7 @@ import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
 import {
   filterByAccount,
-  getJournalDisplayPnl,
+  getJournalNativePnlByCurrency,
   getSelectedAccount,
 } from "@/lib/account";
 import { formatMoney, pnlClass } from "@/lib/format";
@@ -145,23 +145,21 @@ export default function CalendarPage() {
               const key = toDateKey(new Date(year, month, day));
               const dayJournals = byDate.get(key) || [];
               const first = dayJournals[0];
-              const useReportingCurrency = accountFilter === ALL_ACCOUNTS;
-              const conversionUnavailable = dayJournals.some(
-                (journal) => (journal.conversionUnavailableCount || 0) > 0,
-              );
-              const pnl = dayJournals.reduce(
-                (total, journal) =>
-                  total +
-                  (useReportingCurrency
-                    ? conversionUnavailable
-                      ? 0
-                      : getJournalDisplayPnl(journal).value
-                    : journal.totalProfitLoss || 0),
-                0,
-              );
-              const displayCurrency = useReportingCurrency
-                ? first?.reportingCurrency || "USD"
-                : getJournalDisplayPnl(first, currency).currency;
+              const dailyPnl = dayJournals.reduce<
+                Array<{ currency: string; value: number }>
+              >((totals, journal) => {
+                for (const item of getJournalNativePnlByCurrency(
+                  journal,
+                  currency,
+                )) {
+                  const existing = totals.find(
+                    (entry) => entry.currency === item.currency,
+                  );
+                  if (existing) existing.value += item.value;
+                  else totals.push({ ...item });
+                }
+                return totals;
+              }, []);
 
               const inner = (
                 <div
@@ -176,13 +174,16 @@ export default function CalendarPage() {
                   </p>
                   {dayJournals.length ? (
                     <>
-                      <p
-                        className={`mt-2 text-xs font-semibold ${pnlClass(pnl)}`}
-                      >
-                        {useReportingCurrency && conversionUnavailable
-                          ? "Unavailable"
-                          : formatMoney(pnl, displayCurrency)}
-                      </p>
+                      <div className="mt-2 space-y-1">
+                        {dailyPnl.map((item) => (
+                          <p
+                            key={item.currency}
+                            className={`truncate text-xs font-semibold ${pnlClass(item.value)}`}
+                          >
+                            {formatMoney(item.value, item.currency)}
+                          </p>
+                        ))}
+                      </div>
                       <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                         {dayJournals.reduce(
                           (total, journal) =>
