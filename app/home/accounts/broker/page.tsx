@@ -21,6 +21,7 @@ import {
   Clock3,
   Database,
   History,
+  HelpCircle,
   Link2,
   LoaderCircle,
   RefreshCw,
@@ -31,6 +32,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
+import { useState } from "react";
 
 const brokerOptions = [
   {
@@ -50,6 +52,7 @@ const brokerOptions = [
 type IconType = React.ComponentType<{ size?: number; className?: string }>;
 
 export default function BrokerConnectionsPage() {
+  const [helpVisible, setHelpVisible] = useState(false);
   const router = useRouter();
   const processedCallbackRef = useRef<string | null>(null);
   const showNotice = useNoticeStore((state) => state.showNotice);
@@ -70,8 +73,7 @@ export default function BrokerConnectionsPage() {
   const isLoading = useBrokerStore((state) => state.isLoading);
   const error = useBrokerStore((state) => state.error);
   const cTraderConnections = connections.filter(
-    (connection) =>
-      connection.provider === "ctrader" 
+    (connection) => connection.provider === "ctrader",
   );
   const connectedcTraderConnections = cTraderConnections.filter(
     (c) => c.status === "connected",
@@ -271,13 +273,44 @@ export default function BrokerConnectionsPage() {
                   <ShieldCheck size={17} />
                   Read-only broker access
                 </div>
-                <h2 className="mt-2 text-2xl font-bold text-slate-950 dark:text-white">
-                  {connectedCTrader
-                    ? "cTrader is connected"
-                    : needsReauth
-                      ? "cTrader needs reconnecting"
-                      : "Connect a broker to JUVO"}
-                </h2>
+                <div className="mt-2 flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-slate-950 dark:text-white">
+                    {connectedCTrader
+                      ? "cTrader is connected"
+                      : needsReauth
+                        ? "cTrader needs reconnecting"
+                        : "Connect a broker to JUVO"}
+                  </h2>
+                  <span className="group relative shrink-0">
+                    <button
+                      type="button"
+                      aria-controls="ctrader-help-tooltip"
+                      aria-expanded={helpVisible}
+                      aria-label="cTrader connection walkthrough"
+                      onClick={() => setHelpVisible((visible) => !visible)}
+                      className="grid h-6 w-6 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 dark:hover:bg-white/10 dark:hover:text-white"
+                    >
+                      <HelpCircle size={16} />
+                    </button>
+                    <div
+                      id="ctrader-help-tooltip"
+                      role="tooltip"
+                      className={`absolute left-0 top-full z-20 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-3 text-sm font-medium shadow-lg transition dark:border-white/10 dark:bg-card ${
+                        helpVisible
+                          ? "pointer-events-auto opacity-100"
+                          : "pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
+                      }`}
+                    >
+                      <Link
+                        href="/home/general/help#ctrader-walkthrough"
+                        onClick={() => setHelpVisible(false)}
+                        className="text-slate-700 underline decoration-primary/60 underline-offset-4 hover:text-primary dark:text-slate-200"
+                      >
+                        Need a walkthrough to connect your cTrader account?
+                      </Link>
+                    </div>
+                  </span>
+                </div>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
                   JUVO reads account activity for journaling and analytics. It
                   does not place, edit, or close broker trades.
@@ -667,7 +700,7 @@ function ConnectionRow({
       {canDisconnect ? (
         <Button
           variant="ghost"
-          className="mt-4 h-9 w-full justify-center text-rose-600 hover:text-rose-700 dark:text-rose-300"
+          className="mt-4 h-9 w-full justify-center text-white hover:text-rose-700 dark:text-rose-300 bg-red-500 "
           disabled={disabled}
           onClick={() => onDisconnect(connection.id)}
         >

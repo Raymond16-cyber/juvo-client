@@ -6,17 +6,20 @@ import { motion } from "framer-motion";
 
 type CardProps = {
   children: React.ReactNode;
+  id?: string;
   className?: string;
   interactive?: boolean;
 };
 
 export default function Card({
+  id,
   children,
   className,
   interactive = true,
 }: CardProps) {
   return (
     <motion.section
+      id={id}
       className={cn(
         cardClassName,
         interactive &&
