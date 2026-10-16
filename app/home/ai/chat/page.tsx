@@ -365,7 +365,11 @@ export default function JuvoAIChatPage() {
 
   const conversationList = (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between gap-3">
+      <div
+        className={`flex gap-3 ${
+          isSelectingConversations ? "flex-col" : "items-center justify-between"
+        }`}
+      >
         <div>
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
             Juvo AI
@@ -376,13 +380,13 @@ export default function JuvoAIChatPage() {
         </div>
 
         {isSelectingConversations ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+            <span className="mr-auto text-xs font-semibold text-slate-500 dark:text-slate-400">
               {selectedConversationIds.length} selected
             </span>
             <Button
               variant="ghost"
-              className="h-10 px-3"
+              className="h-10 shrink-0 px-3"
               onClick={cancelConversationSelection}
               disabled={isDeletingConversations}
               aria-label="Cancel conversation selection"
@@ -392,7 +396,7 @@ export default function JuvoAIChatPage() {
             </Button>
             <Button
               variant="ghost"
-              className="h-10 px-3 text-rose-600 dark:text-rose-300"
+              className="h-10 shrink-0 px-3 text-rose-600 dark:text-rose-300"
               onClick={() => void deleteSelectedConversations()}
               disabled={
                 !selectedConversationIds.length || isDeletingConversations
