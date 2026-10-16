@@ -30,6 +30,14 @@ export const getConversationService = async (conversationId: string) => {
   return response.data;
 };
 
+export const deleteConversationsService = async (conversationIds: string[]) => {
+  const response = await api.delete<{ data: { deletedCount: number } }>(
+    "/ai/conversations",
+    { data: { conversationIds } },
+  );
+  return response.data;
+};
+
 export const chatWithJuvoService = async (payload: {
   message: string;
   conversationId?: string;

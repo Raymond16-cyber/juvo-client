@@ -6,6 +6,7 @@ import { getApiErrorMessage } from "@/lib/axios";
 import { controlClassName } from "@/lib/ui";
 import {
   chatWithJuvoService,
+  deleteConversationsService,
   getAiAccessService,
   getConversationService,
   listConversationsService,
@@ -91,6 +92,12 @@ export default function JuvoAIChatPage() {
   const [showJump, setShowJump] = useState(false);
   const [threadsOpen, setThreadsOpen] = useState(false);
   const [copiedMessage, setCopiedMessage] = useState<number | null>(null);
+  const [isSelectingConversations, setIsSelectingConversations] =
+    useState(false);
+  const [selectedConversationIds, setSelectedConversationIds] = useState<
+    string[]
+  >([]);
+  const [isDeletingConversations, setIsDeletingConversations] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
   const canUseAi = Boolean(access?.hasAccess);
@@ -190,6 +197,57 @@ export default function JuvoAIChatPage() {
     setError(null);
     setThreadsOpen(false);
     stickToBottomRef.current = true;
+  };
+
+  const toggleConversationSelection = (id: string) => {
+    setSelectedConversationIds((current) =>
+      current.includes(id)
+        ? current.filter((conversationId) => conversationId !== id)
+        : [...current, id],
+    );
+  };
+
+  const startConversationSelection = () => {
+    setIsSelectingConversations(true);
+    setSelectedConversationIds([]);
+  };
+
+  const cancelConversationSelection = () => {
+    setIsSelectingConversations(false);
+    setSelectedConversationIds([]);
+  };
+
+  const deleteSelectedConversations = async () => {
+    if (!selectedConversationIds.length || isDeletingConversations) return;
+    const count = selectedConversationIds.length;
+    if (
+      !window.confirm(
+        `Delete ${count} conversation${count === 1 ? "" : "s"}? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+
+    setIsDeletingConversations(true);
+    setError(null);
+    try {
+      await deleteConversationsService(selectedConversationIds);
+      if (conversationId && selectedConversationIds.includes(conversationId)) {
+        setConversationId(undefined);
+        setMessages([]);
+      }
+      cancelConversationSelection();
+      await loadConversations();
+    } catch (deleteError) {
+      setError(
+        getApiErrorMessage(
+          deleteError,
+          "Juvo could not delete the selected conversations.",
+        ),
+      );
+    } finally {
+      setIsDeletingConversations(false);
+    }
   };
 
   const openConversation = async (id: string) => {
@@ -317,39 +375,99 @@ export default function JuvoAIChatPage() {
           </h2>
         </div>
 
-        <div className="Action-Buttons flex flex-row justify-center gap-3">
-          {/* New chat button */}
-          <Button variant="ghost" className="h-10 px-3" onClick={startNew}>
-            <Plus size={16} />
-          </Button>
-
-          {/* Delete Conversation button */}
-          <Button variant="ghost" className="h-10 px-3">
-            <Trash size={16} color="#FF0000" />
-          </Button>
-        </div>
+        {isSelectingConversations ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              {selectedConversationIds.length} selected
+            </span>
+            <Button
+              variant="ghost"
+              className="h-10 px-3"
+              onClick={cancelConversationSelection}
+              disabled={isDeletingConversations}
+              aria-label="Cancel conversation selection"
+              title="Cancel"
+            >
+              <X size={16} />
+            </Button>
+            <Button
+              variant="ghost"
+              className="h-10 px-3 text-rose-600 dark:text-rose-300"
+              onClick={() => void deleteSelectedConversations()}
+              disabled={
+                !selectedConversationIds.length || isDeletingConversations
+              }
+              aria-label="Delete selected conversations"
+              title="Delete selected conversations"
+            >
+              <Trash size={16} />
+              <span className="hidden sm:inline">
+                {isDeletingConversations ? "Deleting" : "Delete"}
+              </span>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-row justify-center gap-3">
+            <Button variant="ghost" className="h-10 px-3" onClick={startNew}>
+              <Plus size={16} />
+              <span className="sr-only">Start new conversation</span>
+            </Button>
+            <Button
+              variant="ghost"
+              className="h-10 px-3 text-rose-600 dark:text-rose-300"
+              onClick={startConversationSelection}
+              disabled={!conversations.length}
+              aria-label="Select conversations to delete"
+              title="Delete conversations"
+            >
+              <Trash size={16} />
+            </Button>
+          </div>
+        )}
       </div>
       <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1">
         {conversations.length ? (
-          conversations.map((conversation) => (
-            <button
-              key={conversation._id}
-              type="button"
-              onClick={() => openConversation(conversation._id)}
-              className={`w-full rounded-2xl px-3 py-3 text-left transition ${
-                conversationId === conversation._id
-                  ? "bg-slate-950 text-white dark:bg-primary dark:text-slate-950"
-                  : "bg-slate-50 text-slate-700 hover:bg-slate-100 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/10"
-              }`}
-            >
-              <p className="truncate text-sm font-semibold">
-                {conversation.title}
-              </p>
-              <p className="mt-1 truncate text-xs opacity-70">
-                {conversation.preview || "No messages yet"}
-              </p>
-            </button>
-          ))
+          conversations.map((conversation) => {
+            const selected = selectedConversationIds.includes(conversation._id);
+            return (
+              <div key={conversation._id} className="flex items-center gap-2">
+                {isSelectingConversations ? (
+                  <input
+                    type="checkbox"
+                    checked={selected}
+                    onChange={() =>
+                      toggleConversationSelection(conversation._id)
+                    }
+                    disabled={isDeletingConversations}
+                    aria-label={`Select ${conversation.title}`}
+                    className="ml-1 h-4 w-4 shrink-0 accent-cyan-400"
+                  />
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() =>
+                    isSelectingConversations
+                      ? toggleConversationSelection(conversation._id)
+                      : void openConversation(conversation._id)
+                  }
+                  className={`min-w-0 flex-1 rounded-2xl px-3 py-3 text-left transition ${
+                    conversationId === conversation._id
+                      ? "bg-slate-950 text-white dark:bg-primary dark:text-slate-950"
+                      : selected
+                        ? "bg-primary/15 text-slate-700 dark:text-slate-200"
+                        : "bg-slate-50 text-slate-700 hover:bg-slate-100 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/10"
+                  }`}
+                >
+                  <p className="truncate text-sm font-semibold">
+                    {conversation.title}
+                  </p>
+                  <p className="mt-1 truncate text-xs opacity-70">
+                    {conversation.preview || "No messages yet"}
+                  </p>
+                </button>
+              </div>
+            );
+          })
         ) : (
           <p className="px-1 text-sm text-slate-500 dark:text-slate-400">
             Ask Juvo about your journal, risk, or psychology.
