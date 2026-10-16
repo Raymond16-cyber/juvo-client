@@ -21,6 +21,8 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock3,
+  LayoutGrid,
+  List,
   NotebookPen,
   Plus,
   Search,
@@ -55,12 +57,15 @@ export default function JournalPage() {
   const getUserJournals = useJournalStore((state) => state.getUserJournals);
 
   const accounts = useAccountsStore((state) => state.accounts);
-  const storeSelectedAccountId = useAccountsStore((state) => state.selectedAccountId);
+  const storeSelectedAccountId = useAccountsStore(
+    (state) => state.selectedAccountId,
+  );
   const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
   const selectAccount = useAccountsStore((state) => state.selectAccount);
   const selectedAccount = getSelectedAccount(accounts, storeSelectedAccountId);
   const tradableAccounts = getTradableAccounts(accounts);
-  const currency = selectedAccount?.accountCurrency || selectedAccount?.currency || "USD";
+  const currency =
+    selectedAccount?.accountCurrency || selectedAccount?.currency || "USD";
   const reportingCurrency = journals[0]?.reportingCurrency || currency;
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [beforeTrading, setBeforeTrading] = useState("");
@@ -72,6 +77,7 @@ export default function JournalPage() {
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [journalView, setJournalView] = useState<"list" | "grid">("list");
 
   useEffect(() => {
     const loadJournalPage = async () => {
@@ -83,10 +89,15 @@ export default function JournalPage() {
           getUserJournals(),
           fetchAccounts(),
         ]);
-        const preferred = getSelectedAccount(loadedAccounts, storeSelectedAccountId);
+        const preferred = getSelectedAccount(
+          loadedAccounts,
+          storeSelectedAccountId,
+        );
         setSelectedAccountId((current) => current || preferred?._id || "");
         if (needsNewAccount(loadedAccounts)) {
-          setAccountError("Create a trading account before starting a journal.");
+          setAccountError(
+            "Create a trading account before starting a journal.",
+          );
         }
       } catch (loadError) {
         void loadError;
@@ -106,10 +117,18 @@ export default function JournalPage() {
 
     return journals.filter((journal) => {
       const accountName = getAccountName(journal).toLowerCase();
-      const symbols = journal.trades?.map((trade) => trade.symbol).join(" ").toLowerCase() || "";
+      const symbols =
+        journal.trades
+          ?.map((trade) => trade.symbol)
+          .join(" ")
+          .toLowerCase() || "";
       const note = journal.psychology?.beforeTrading?.toLowerCase() || "";
 
-      return accountName.includes(query) || symbols.includes(query) || note.includes(query);
+      return (
+        accountName.includes(query) ||
+        symbols.includes(query) ||
+        note.includes(query)
+      );
     });
   }, [journals, searchTerm]);
 
@@ -184,8 +203,8 @@ export default function JournalPage() {
               Trading Journals
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-              Review every journal you have created, how many trades each one contains,
-              and the performance tied to those sessions.
+              Review every journal you have created, how many trades each one
+              contains, and the performance tied to those sessions.
             </p>
           </div>
 
@@ -204,8 +223,16 @@ export default function JournalPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard icon={BookOpenText} label="Journals" value={stats.journals} />
-          <StatCard icon={Activity} label="Trades logged" value={stats.trades} />
+          <StatCard
+            icon={BookOpenText}
+            label="Journals"
+            value={stats.journals}
+          />
+          <StatCard
+            icon={Activity}
+            label="Trades logged"
+            value={stats.trades}
+          />
           <StatCard
             icon={stats.totalProfitLoss >= 0 ? TrendingUp : TrendingDown}
             label="Net P/L"
@@ -234,18 +261,67 @@ export default function JournalPage() {
                   {filteredJournals.length} shown from {journals.length} total
                 </p>
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                <CalendarDays size={17} />
-                Newest first
+              <div className="flex items-center justify-between gap-3 text-sm text-slate-500 dark:text-slate-400 sm:justify-end">
+                <div className="flex items-center gap-2">
+                  <CalendarDays size={17} />
+                  Newest first
+                </div>
+                <div
+                  className="flex items-center gap-1 rounded-full bg-slate-100 p-1 dark:bg-white/10"
+                  role="group"
+                  aria-label="Journal display mode"
+                >
+                  <button
+                    type="button"
+                    aria-label="Show journals as a list"
+                    aria-pressed={journalView === "list"}
+                    title="List view"
+                    onClick={() => setJournalView("list")}
+                    className={`grid h-8 w-8 place-items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                      journalView === "list"
+                        ? "bg-white text-slate-950 shadow-sm dark:bg-card dark:text-white"
+                        : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    <List size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Show journals as a grid"
+                    aria-pressed={journalView === "grid"}
+                    title="Grid view"
+                    onClick={() => setJournalView("grid")}
+                    className={`grid h-8 w-8 place-items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                      journalView === "grid"
+                        ? "bg-white text-slate-950 shadow-sm dark:bg-card dark:text-white"
+                        : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    <LayoutGrid size={16} />
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div className="divide-y divide-slate-200 dark:divide-white/10">
+            <div
+              className={
+                journalView === "list"
+                  ? "divide-y divide-slate-200 dark:divide-white/10"
+                  : "grid gap-4 p-4 sm:grid-cols-2"
+              }
+            >
               {isLoading && !journals.length ? (
-                <EmptyState title="Loading journals" body="Your journal history is coming in." />
+                <EmptyState
+                  title="Loading journals"
+                  body="Your journal history is coming in."
+                />
               ) : filteredJournals.length ? (
                 filteredJournals.map((journal) => (
-                  <JournalRow key={journal._id} journal={journal} />
+                  <JournalRow
+                    key={journal._id}
+                    journal={journal}
+                    view={journalView}
+                  />
                 ))
               ) : (
                 <EmptyState
@@ -297,7 +373,9 @@ export default function JournalPage() {
                   <select
                     className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
                     value={selectedAccountId}
-                    onChange={(event) => setSelectedAccountId(event.target.value)}
+                    onChange={(event) =>
+                      setSelectedAccountId(event.target.value)
+                    }
                     disabled={isLoadingAccounts || !accounts.length}
                     required
                   >
@@ -305,8 +383,13 @@ export default function JournalPage() {
                     {accounts.map((account) => {
                       const inPlay = isAccountInPlay(account);
                       return (
-                        <option key={account._id} value={account._id} disabled={!inPlay}>
-                          {account.accountName} - {account.broker} · {account.accountCurrency || account.currency}
+                        <option
+                          key={account._id}
+                          value={account._id}
+                          disabled={!inPlay}
+                        >
+                          {account.accountName} - {account.broker} ·{" "}
+                          {account.accountCurrency || account.currency}
                           {inPlay ? "" : ` · ${account.status}`}
                         </option>
                       );
@@ -332,14 +415,18 @@ export default function JournalPage() {
                     min="1"
                     max="10"
                     value={confidenceBefore}
-                    onChange={(event) => setConfidenceBefore(Number(event.target.value))}
+                    onChange={(event) =>
+                      setConfidenceBefore(Number(event.target.value))
+                    }
                   />
                 </label>
 
                 <Button
                   className="w-full whitespace-nowrap"
                   type="submit"
-                  disabled={isLoading || isLoadingAccounts || !tradableAccounts.length}
+                  disabled={
+                    isLoading || isLoadingAccounts || !tradableAccounts.length
+                  }
                 >
                   <Plus size={18} />
                   {isLoading ? "Creating..." : "Create Journal"}
@@ -353,7 +440,10 @@ export default function JournalPage() {
                 Journal quality
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                <MiniMetric label="Winning trades" value={stats.winningTrades} />
+                <MiniMetric
+                  label="Winning trades"
+                  value={stats.winningTrades}
+                />
                 <MiniMetric label="Losing trades" value={stats.losingTrades} />
               </div>
             </div>
@@ -391,20 +481,35 @@ function StatCard({ icon: Icon, label, value, helper, tone }: StatCardProps) {
         </div>
       </div>
       <p className={`mt-4 text-3xl font-bold ${toneClass}`}>{value}</p>
-      {helper && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{helper}</p>}
+      {helper && (
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          {helper}
+        </p>
+      )}
     </div>
   );
 }
 
-function JournalRow({ journal }: { journal: JournalHistoryItem }) {
-  const displayPnl = journal.totalProfitLossReporting ?? journal.totalProfitLoss;
+function JournalRow({
+  journal,
+  view,
+}: {
+  journal: JournalHistoryItem;
+  view: "list" | "grid";
+}) {
+  const displayPnl =
+    journal.totalProfitLossReporting ?? journal.totalProfitLoss;
   const hasProfit = displayPnl >= 0;
   const currency = journal.reportingCurrency || getRecordCurrency(journal);
 
   return (
     <Link
       href={`/home/journal/${journal._id}`}
-      className="block p-5 transition hover:bg-slate-50 dark:hover:bg-white/[0.03]"
+      className={`block p-5 transition hover:bg-slate-50 dark:hover:bg-white/[0.03] ${
+        view === "grid"
+          ? "rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.025]"
+          : ""
+      }`}
     >
       <article className="min-w-0">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -495,8 +600,12 @@ function EmptyState({ title, body }: { title: string; body: string }) {
       <div className="grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300">
         <Clock3 size={20} />
       </div>
-      <h3 className="mt-4 text-base font-bold text-slate-950 dark:text-white">{title}</h3>
-      <p className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">{body}</p>
+      <h3 className="mt-4 text-base font-bold text-slate-950 dark:text-white">
+        {title}
+      </h3>
+      <p className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+        {body}
+      </p>
     </div>
   );
 }
