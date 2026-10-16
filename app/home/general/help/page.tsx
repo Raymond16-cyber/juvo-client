@@ -26,27 +26,6 @@ const faqs = [
   },
 ];
 
-function getYouTubeEmbedUrl(source?: string) {
-  if (!source) return null;
-  try {
-    const url = new URL(source);
-    const videoId =
-      url.hostname === "youtu.be"
-        ? url.pathname.slice(1)
-        : url.hostname.endsWith("youtube.com")
-          ? url.searchParams.get("v")
-          : null;
-    return videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId)
-      ? `https://www.youtube-nocookie.com/embed/${videoId}`
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-const cTraderTutorialUrl = "https://youtu.be/2Wh36UKXT_s";
-const cTraderTutorialEmbedUrl = getYouTubeEmbedUrl(cTraderTutorialUrl);
-
 export default function HelpPage() {
   return (
     <DashboardShell>
@@ -68,28 +47,19 @@ export default function HelpPage() {
         ))}
         <Card id="ctrader-walkthrough" className="scroll-mt-24 p-6">
           <h2 className="text-lg font-bold text-slate-950 dark:text-white">
-            How to Connect Your cTrader Account to JUVO
+            Want to see a demo walkthrough on JUVO?
           </h2>
           <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
             This walkthrough demonstrates how to connect an existing cTrader
             account to JUVO through cTrader&apos;s secure web authentication
-            flow.
+            flow and other JUVO services.
           </p>
-          {cTraderTutorialEmbedUrl ? (
-            <div className="mt-5 aspect-video overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-white/10 dark:bg-white/[0.04]">
-              <iframe
-                className="h-full w-full"
-                src={cTraderTutorialEmbedUrl}
-                title="How to connect your cTrader account to JUVO"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
-          ) : (
-            <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">
-              The cTrader walkthrough is temporarily unavailable.
-            </p>
-          )}
+          <Link
+            href="/home/general/juvo-tutorials"
+            className="mt-5 inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-secondary"
+          >
+            Open JUVO tutorials
+          </Link>
         </Card>
         <Card className="p-6">
           <p className="text-sm text-slate-500 dark:text-slate-400">

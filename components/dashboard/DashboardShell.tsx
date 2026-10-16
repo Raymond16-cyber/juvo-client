@@ -30,6 +30,7 @@ const titles: Record<string, string> = {
   "/home/general/subscriptions": "Plans",
   "/home/general/settings": "Settings",
   "/home/general/help": "Help",
+  "/home/general/juvo-tutorials": "JUVO Tutorials",
 };
 
 const SIDEBAR_COLLAPSED_KEY = "juvo.sidebarCollapsed";
@@ -102,7 +103,9 @@ export default function DashboardShell({
         ) : null}
       </AnimatePresence>
 
-      <div className={`flex ${fillViewport ? "h-full overflow-hidden" : "min-h-screen"}`}>
+      <div
+        className={`flex ${fillViewport ? "h-full overflow-hidden" : "min-h-screen"}`}
+      >
         <Sidebar
           isOpen={sidebarOpen}
           isCollapsed={sidebarCollapsed}
