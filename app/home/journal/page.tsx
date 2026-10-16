@@ -510,7 +510,7 @@ function JournalRow({
   view: "list" | "grid";
 }) {
   const display = getJournalDisplayPnl(journal);
-  const displayPnl = display.value;
+  const displayPnl = display.value
   const hasProfit = displayPnl >= 0;
   const currency = display.currency;
 
