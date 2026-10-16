@@ -32,14 +32,46 @@ export function getRecordAccountId(
 
 export function getRecordCurrency(
   record?: {
-    tradingAccount?: string | { currency?: string; accountCurrency?: string } | null;
+    tradingAccount?:
+      | string
+      | { currency?: string; accountCurrency?: string }
+      | null;
   } | null,
   fallback = "USD",
 ) {
   if (record?.tradingAccount && typeof record.tradingAccount !== "string") {
-    return record.tradingAccount.accountCurrency || record.tradingAccount.currency || fallback;
+    return (
+      record.tradingAccount.accountCurrency ||
+      record.tradingAccount.currency ||
+      fallback
+    );
   }
   return fallback;
+}
+
+export function getJournalDisplayPnl(
+  journal: Pick<
+    JournalHistoryItem,
+    | "totalProfitLoss"
+    | "totalProfitLossReporting"
+    | "reportingCurrency"
+    | "conversionUnavailableCount"
+    | "tradingAccount"
+  >,
+  fallback = "USD",
+) {
+  const nativeCurrency = getRecordCurrency(journal, fallback);
+  const conversionUnavailable = (journal.conversionUnavailableCount || 0) > 0;
+
+  return {
+    value: conversionUnavailable
+      ? journal.totalProfitLoss
+      : (journal.totalProfitLossReporting ?? journal.totalProfitLoss),
+    currency: conversionUnavailable
+      ? nativeCurrency
+      : journal.reportingCurrency || nativeCurrency,
+    conversionUnavailable,
+  };
 }
 
 export function filterByAccount<

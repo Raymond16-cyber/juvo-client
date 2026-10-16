@@ -1,6 +1,6 @@
 "use client";
 
-import { getRecordCurrency } from "@/lib/account";
+import { getJournalDisplayPnl } from "@/lib/account";
 import { formatDate, formatMoney, pnlClass } from "@/lib/format";
 import {
   dropdownTransition,
@@ -186,17 +186,12 @@ export default function JournalSearch() {
                             </span>
                             <span
                               className={`shrink-0 text-xs font-semibold ${pnlClass(
-                                journal.totalProfitLossReporting ??
-                                  journal.totalProfitLoss ??
-                                  0,
+                                getJournalDisplayPnl(journal).value,
                               )}`}
                             >
                               {formatMoney(
-                                journal.totalProfitLossReporting ??
-                                  journal.totalProfitLoss ??
-                                  0,
-                                journal.reportingCurrency ||
-                                  getRecordCurrency(journal),
+                                getJournalDisplayPnl(journal).value,
+                                getJournalDisplayPnl(journal).currency,
                               )}
                             </span>
                           </span>

@@ -5,17 +5,12 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
-import { getRecordCurrency } from "@/lib/account";
+import { getJournalDisplayPnl, getRecordCurrency } from "@/lib/account";
 import { formatDate, formatMoney, pnlClass } from "@/lib/format";
 import { controlClassName, textareaClassName } from "@/lib/ui";
 import { useJournalStore } from "@/stores/journal.store";
 import { CompleteJournalPayload } from "@/types/journal.types";
-import {
-  ArrowLeft,
-  Bot,
-  CheckCircle2,
-  NotebookPen,
-} from "lucide-react";
+import { ArrowLeft, Bot, CheckCircle2, NotebookPen } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
@@ -64,8 +59,7 @@ function estimateCloseResult({
     return null;
   }
 
-  const move =
-    direction === "short" ? entry - exitPrice : exitPrice - entry;
+  const move = direction === "short" ? entry - exitPrice : exitPrice - entry;
   const achievedRR = Number((move / risk).toFixed(2));
   const riskAmount = accountBalance
     ? accountBalance * (Number(riskPercentage || 0) / 100)
@@ -90,9 +84,9 @@ export default function JournalDetailPage() {
   const [review, setReview] = useState(defaultReview);
   const [closingTradeId, setClosingTradeId] = useState<string | null>(null);
   const [exitPrice, setExitPrice] = useState("");
-  const [closeStatus, setCloseStatus] = useState<"Closed" | "Breakeven" | "Cancelled">(
-    "Closed",
-  );
+  const [closeStatus, setCloseStatus] = useState<
+    "Closed" | "Breakeven" | "Cancelled"
+  >("Closed");
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -112,7 +106,8 @@ export default function JournalDetailPage() {
         improvementsTomorrow: journal.review?.improvementsTomorrow || "",
         overallThoughts: journal.review?.overallThoughts || "",
         followedTradingPlan: journal.discipline?.followedTradingPlan ?? true,
-        followedRiskManagement: journal.discipline?.followedRiskManagement ?? true,
+        followedRiskManagement:
+          journal.discipline?.followedRiskManagement ?? true,
         revengeTraded: journal.discipline?.revengeTraded ?? false,
         overTraded: journal.discipline?.overTraded ?? false,
         respectedStopLoss: journal.discipline?.respectedStopLoss ?? true,
@@ -129,9 +124,11 @@ export default function JournalDetailPage() {
       ? journal.tradingAccount.status
       : undefined;
   const journalCurrency = getRecordCurrency(journal);
-  const journalDisplayProfitLoss =
-    journal?.totalProfitLossReporting ?? journal?.totalProfitLoss ?? 0;
-  const journalDisplayCurrency = journal?.reportingCurrency || journalCurrency;
+  const journalDisplay = journal
+    ? getJournalDisplayPnl(journal, journalCurrency)
+    : { value: 0, currency: journalCurrency, conversionUnavailable: false };
+  const journalDisplayProfitLoss = journalDisplay.value;
+  const journalDisplayCurrency = journalDisplay.currency;
   const closingTrade = journal?.trades?.find(
     (trade) => trade._id === closingTradeId,
   );
@@ -213,7 +210,10 @@ export default function JournalDetailPage() {
 
         {!journal && isLoading ? (
           <Card>
-            <EmptyState title="Loading session" body="Pulling trades and notes." />
+            <EmptyState
+              title="Loading session"
+              body="Pulling trades and notes."
+            />
           </Card>
         ) : journal ? (
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -222,7 +222,10 @@ export default function JournalDetailPage() {
                 {[
                   [
                     "P/L",
-                    formatMoney(journalDisplayProfitLoss, journalDisplayCurrency),
+                    formatMoney(
+                      journalDisplayProfitLoss,
+                      journalDisplayCurrency,
+                    ),
                     pnlClass(journalDisplayProfitLoss),
                   ],
                   ["Open", String(journal.openTrades || 0), ""],
@@ -233,7 +236,9 @@ export default function JournalDetailPage() {
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                       {label}
                     </p>
-                    <p className={`mt-2 text-2xl font-bold ${tone || "text-slate-950 dark:text-white"}`}>
+                    <p
+                      className={`mt-2 text-2xl font-bold ${tone || "text-slate-950 dark:text-white"}`}
+                    >
                       {value}
                     </p>
                   </Card>
@@ -248,7 +253,8 @@ export default function JournalDetailPage() {
                   </h2>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                  {journal.psychology?.beforeTrading || "No pre-market note was captured."}
+                  {journal.psychology?.beforeTrading ||
+                    "No pre-market note was captured."}
                 </p>
                 {journal.psychology?.confidenceBefore ? (
                   <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
@@ -272,14 +278,17 @@ export default function JournalDetailPage() {
                             {trade.symbol} · {trade.direction}
                           </p>
                           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                            {trade.instrument} · {trade.session || "No session"} · {trade.status}
+                            {trade.instrument} · {trade.session || "No session"}{" "}
+                            · {trade.status}
                             {trade.tradingAccount &&
                             typeof trade.tradingAccount !== "string"
                               ? ` · ${trade.tradingAccount.accountName}`
                               : ""}
                           </p>
                           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                            Entry {trade.entryPrice} · SL {trade.stopLoss ?? "N/A"} · TP {trade.takeProfit ?? "N/A"} · Size {trade.lotSize}
+                            Entry {trade.entryPrice} · SL{" "}
+                            {trade.stopLoss ?? "N/A"} · TP{" "}
+                            {trade.takeProfit ?? "N/A"} · Size {trade.lotSize}
                           </p>
                           {trade.notes ? (
                             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -288,7 +297,9 @@ export default function JournalDetailPage() {
                           ) : null}
                         </div>
                         <div className="text-right">
-                          <p className={`text-lg font-bold ${pnlClass(trade.profitLoss || 0)}`}>
+                          <p
+                            className={`text-lg font-bold ${pnlClass(trade.profitLoss || 0)}`}
+                          >
                             {formatMoney(
                               trade.profitLoss || 0,
                               trade.profitLossCurrency ||
@@ -298,7 +309,8 @@ export default function JournalDetailPage() {
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                             RR {trade.achievedRR ?? trade.plannedRR ?? "N/A"}
                           </p>
-                          {trade.status === "Open" && (!trade.source || trade.source === "manual") ? (
+                          {trade.status === "Open" &&
+                          (!trade.source || trade.source === "manual") ? (
                             <Button
                               variant="ghost"
                               className="mt-3 h-9 px-3"
@@ -327,7 +339,10 @@ export default function JournalDetailPage() {
                   <h3 className="text-lg font-bold text-slate-950 dark:text-white">
                     Close trade
                   </h3>
-                  <form className="mt-4 grid gap-3 sm:grid-cols-3" onSubmit={handleCloseTrade}>
+                  <form
+                    className="mt-4 grid gap-3 sm:grid-cols-3"
+                    onSubmit={handleCloseTrade}
+                  >
                     <input
                       className={controlClassName}
                       type="number"
@@ -362,15 +377,18 @@ export default function JournalDetailPage() {
                         </span>{" "}
                         and{" "}
                         <span className={pnlClass(estimatedClose.profitLoss)}>
-                          {formatMoney(estimatedClose.profitLoss, journalCurrency)}
+                          {formatMoney(
+                            estimatedClose.profitLoss,
+                            journalCurrency,
+                          )}
                         </span>
-                        . Broker-imported or manually supplied P/L can still override this
-                        later.
+                        . Broker-imported or manually supplied P/L can still
+                        override this later.
                       </p>
                     ) : (
                       <p>
-                        Enter an exit price and JUVO will calculate the close from
-                        your entry, stop, risk, and account balance.
+                        Enter an exit price and JUVO will calculate the close
+                        from your entry, stop, risk, and account balance.
                       </p>
                     )}
                   </div>
@@ -449,7 +467,9 @@ export default function JournalDetailPage() {
                       {label}
                       <input
                         className={`mt-2 ${controlClassName}`}
-                        value={String(review[key as keyof CompleteJournalPayload] || "")}
+                        value={String(
+                          review[key as keyof CompleteJournalPayload] || "",
+                        )}
                         onChange={(event) =>
                           setReview((current) => ({
                             ...current,
@@ -471,10 +491,14 @@ export default function JournalDetailPage() {
                         key={key}
                         className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/[0.04]"
                       >
-                        <span className="text-slate-600 dark:text-slate-300">{label}</span>
+                        <span className="text-slate-600 dark:text-slate-300">
+                          {label}
+                        </span>
                         <input
                           type="checkbox"
-                          checked={Boolean(review[key as keyof CompleteJournalPayload])}
+                          checked={Boolean(
+                            review[key as keyof CompleteJournalPayload],
+                          )}
                           onChange={(event) =>
                             setReview((current) => ({
                               ...current,
@@ -494,7 +518,10 @@ export default function JournalDetailPage() {
           </div>
         ) : (
           <Card>
-            <EmptyState title="Journal not found" body="This session may have been removed." />
+            <EmptyState
+              title="Journal not found"
+              body="This session may have been removed."
+            />
           </Card>
         )}
       </div>

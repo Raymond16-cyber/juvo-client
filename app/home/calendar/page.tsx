@@ -3,7 +3,11 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
-import { filterByAccount, getRecordCurrency, getSelectedAccount } from "@/lib/account";
+import {
+  filterByAccount,
+  getJournalDisplayPnl,
+  getSelectedAccount,
+} from "@/lib/account";
 import { formatMoney, pnlClass } from "@/lib/format";
 import { controlClassName } from "@/lib/ui";
 import { useAccountsStore } from "@/stores/accounts.store";
@@ -25,14 +29,17 @@ export default function CalendarPage() {
   const journals = useJournalStore((state) => state.journals);
   const getUserJournals = useJournalStore((state) => state.getUserJournals);
   const accounts = useAccountsStore((state) => state.accounts);
-  const selectedAccountId = useAccountsStore((state) => state.selectedAccountId);
+  const selectedAccountId = useAccountsStore(
+    (state) => state.selectedAccountId,
+  );
   const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
   const [accountFilter, setAccountFilter] = useState(ALL_ACCOUNTS);
   const selectedAccount =
     accountFilter === ALL_ACCOUNTS
       ? null
       : getSelectedAccount(accounts, accountFilter || selectedAccountId);
-  const currency = selectedAccount?.accountCurrency || selectedAccount?.currency || "USD";
+  const currency =
+    selectedAccount?.accountCurrency || selectedAccount?.currency || "USD";
   const [cursor, setCursor] = useState(() => new Date());
 
   useEffect(() => {
@@ -62,10 +69,13 @@ export default function CalendarPage() {
     return map;
   }, [journals, accountFilter]);
 
-  const cells = Array.from({ length: startWeekday + daysInMonth }, (_, index) => {
-    if (index < startWeekday) return null;
-    return index - startWeekday + 1;
-  });
+  const cells = Array.from(
+    { length: startWeekday + daysInMonth },
+    (_, index) => {
+      if (index < startWeekday) return null;
+      return index - startWeekday + 1;
+    },
+  );
 
   return (
     <DashboardShell>
@@ -87,31 +97,35 @@ export default function CalendarPage() {
                   <option value={ALL_ACCOUNTS}>All accounts</option>
                   {accounts.map((account) => (
                     <option key={account._id} value={account._id}>
-                      {account.accountName} · {account.accountCurrency || account.currency}
+                      {account.accountName} ·{" "}
+                      {account.accountCurrency || account.currency}
                     </option>
                   ))}
                 </select>
               </label>
               <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 dark:border-white/10"
-                onClick={() => setCursor(new Date(year, month - 1, 1))}
-                aria-label="Previous month"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <p className="min-w-36 text-center text-sm font-bold text-slate-950 dark:text-white">
-                {cursor.toLocaleString("en", { month: "long", year: "numeric" })}
-              </p>
-              <button
-                type="button"
-                className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 dark:border-white/10"
-                onClick={() => setCursor(new Date(year, month + 1, 1))}
-                aria-label="Next month"
-              >
-                <ChevronRight size={18} />
-              </button>
+                <button
+                  type="button"
+                  className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 dark:border-white/10"
+                  onClick={() => setCursor(new Date(year, month - 1, 1))}
+                  aria-label="Previous month"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <p className="min-w-36 text-center text-sm font-bold text-slate-950 dark:text-white">
+                  {cursor.toLocaleString("en", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+                <button
+                  type="button"
+                  className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 dark:border-white/10"
+                  onClick={() => setCursor(new Date(year, month + 1, 1))}
+                  aria-label="Next month"
+                >
+                  <ChevronRight size={18} />
+                </button>
               </div>
             </div>
           }
@@ -132,17 +146,22 @@ export default function CalendarPage() {
               const dayJournals = byDate.get(key) || [];
               const first = dayJournals[0];
               const useReportingCurrency = accountFilter === ALL_ACCOUNTS;
+              const conversionUnavailable = dayJournals.some(
+                (journal) => (journal.conversionUnavailableCount || 0) > 0,
+              );
               const pnl = dayJournals.reduce(
                 (total, journal) =>
                   total +
                   (useReportingCurrency
-                    ? journal.totalProfitLossReporting ?? journal.totalProfitLoss ?? 0
+                    ? conversionUnavailable
+                      ? 0
+                      : getJournalDisplayPnl(journal).value
                     : journal.totalProfitLoss || 0),
                 0,
               );
               const displayCurrency = useReportingCurrency
                 ? first?.reportingCurrency || "USD"
-                : getRecordCurrency(first, currency);
+                : getJournalDisplayPnl(first, currency).currency;
 
               const inner = (
                 <div
@@ -152,14 +171,25 @@ export default function CalendarPage() {
                       : "border-transparent bg-transparent"
                   }`}
                 >
-                  <p className="text-sm font-bold text-slate-950 dark:text-white">{day}</p>
+                  <p className="text-sm font-bold text-slate-950 dark:text-white">
+                    {day}
+                  </p>
                   {dayJournals.length ? (
                     <>
-                      <p className={`mt-2 text-xs font-semibold ${pnlClass(pnl)}`}>
-                        {formatMoney(pnl, displayCurrency)}
+                      <p
+                        className={`mt-2 text-xs font-semibold ${pnlClass(pnl)}`}
+                      >
+                        {useReportingCurrency && conversionUnavailable
+                          ? "Unavailable"
+                          : formatMoney(pnl, displayCurrency)}
                       </p>
                       <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                        {dayJournals.reduce((total, journal) => total + (journal.tradesCount || 0), 0)} trades
+                        {dayJournals.reduce(
+                          (total, journal) =>
+                            total + (journal.tradesCount || 0),
+                          0,
+                        )}{" "}
+                        trades
                       </p>
                     </>
                   ) : null}

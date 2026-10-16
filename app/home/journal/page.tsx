@@ -4,7 +4,7 @@ import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import {
-  getRecordCurrency,
+  getJournalDisplayPnl,
   getSelectedAccount,
   getTradableAccounts,
   isAccountInPlay,
@@ -67,6 +67,9 @@ export default function JournalPage() {
   const currency =
     selectedAccount?.accountCurrency || selectedAccount?.currency || "USD";
   const reportingCurrency = journals[0]?.reportingCurrency || currency;
+  const reportingConversionUnavailable = journals.some(
+    (journal) => (journal.conversionUnavailableCount || 0) > 0,
+  );
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [beforeTrading, setBeforeTrading] = useState("");
   const [confidenceBefore, setConfidenceBefore] = useState(7);
@@ -236,8 +239,17 @@ export default function JournalPage() {
           <StatCard
             icon={stats.totalProfitLoss >= 0 ? TrendingUp : TrendingDown}
             label="Net P/L"
-            value={formatAccountMoney(stats.totalProfitLoss, reportingCurrency)}
+            value={
+              reportingConversionUnavailable
+                ? "Unavailable"
+                : formatAccountMoney(stats.totalProfitLoss, reportingCurrency)
+            }
             tone={stats.totalProfitLoss >= 0 ? "positive" : "negative"}
+            helper={
+              reportingConversionUnavailable
+                ? "Some currency rates are unavailable"
+                : undefined
+            }
           />
           <StatCard
             icon={CheckCircle2}
@@ -497,10 +509,10 @@ function JournalRow({
   journal: JournalHistoryItem;
   view: "list" | "grid";
 }) {
-  const displayPnl =
-    journal.totalProfitLossReporting ?? journal.totalProfitLoss;
+  const display = getJournalDisplayPnl(journal);
+  const displayPnl = display.value;
   const hasProfit = displayPnl >= 0;
-  const currency = journal.reportingCurrency || getRecordCurrency(journal);
+  const currency = display.currency;
 
   return (
     <Link
