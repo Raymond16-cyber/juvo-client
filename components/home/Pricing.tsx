@@ -48,7 +48,7 @@ const plans = [
     features: [
       "Everything in Pro",
       "Unlimited reviews",
-      "Broker sync when it ships",
+      "Broker sync",
       "Priority coaching context",
     ],
     cta: "Choose Super",

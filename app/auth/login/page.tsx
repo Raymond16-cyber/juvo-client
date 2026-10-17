@@ -10,6 +10,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 
 function LoginForm() {
   const router = useRouter();
@@ -125,12 +126,12 @@ function LoginForm() {
             </button>
           </div>
         </div>
-        <span
-          aria-disabled="true"
+        <Link
+          href={"/auth/forgot-password"}
           className={`${styles.link} ${styles.forgot} opacity-50`}
         >
           Forgot password?
-        </span>
+        </Link>
         <button
           type="submit"
           disabled={loading}
@@ -141,12 +142,13 @@ function LoginForm() {
         </button>
       </form>
 
-      <p className={styles.switch}>
+
+      <Link href={"/auth/register"} className={styles.switch}>
         Don&apos;t have an account?{" "}
-        <span aria-disabled="true" className={`${styles.link} opacity-50`}>
+        <span aria-disabled="false" className={`${styles.link} opacity-50`}>
           Register
         </span>
-      </p>
+      </Link>
     </AuthShell>
   );
 }
