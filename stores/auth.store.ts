@@ -8,6 +8,7 @@ import {
   logoutUser,
   requestResetPassword,
   verifyOtpCode,
+  verifyEmail,
   resetPassword,
   updatePreferences,
 } from "@/services/auth.service";
@@ -18,6 +19,7 @@ import type {
   LoginData,
   VerifyOtpData,
   VerifyOtpResponse,
+  verifyEmailResponse,
   ResetPasswordData,
   LoginResponse,
   UpdatePreferencesPayload,
@@ -37,6 +39,7 @@ interface AuthState {
   login: (data: LoginData) => Promise<LoginResponse>;
   requestResetPassword: (data: { email: string }) => Promise<void>;
   verifyOtpCode: (data: VerifyOtpData) => Promise<VerifyOtpResponse>;
+  verifyEmail: (token: string) => Promise<verifyEmailResponse>;
   resetPassword: (data: ResetPasswordData) => Promise<void>;
   fetchCurrentUser: () => Promise<void>;
   logout: () => Promise<void>;
@@ -168,6 +171,35 @@ export const useAuthStore = create<AuthState>((set) => ({
         error,
         "Failed to verify OTP code.",
       );
+
+      set({
+        isLoading: false,
+        error: errorMessage,
+        message: null,
+      });
+
+      throw new Error(errorMessage);
+    }
+  },
+
+  verifyEmail: async (token) => {
+    try {
+      set({
+        isLoading: true,
+        error: null,
+        message: null,
+      });
+      const result = await verifyEmail(token);
+
+      set({
+        isLoading: false,
+        message: result.message,
+        error: null,
+      });
+
+      return result;
+    } catch (error) {
+      const errorMessage = getApiErrorMessage(error, "Failed to verify email.");
 
       set({
         isLoading: false,

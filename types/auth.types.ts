@@ -29,7 +29,15 @@ export interface User {
   };
   subscription?: {
     plan?: "free" | "pro" | "super";
-    status?: "free" | "pending" | "trial" | "active" | "non-renewing" | "past-due" | "expired" | "cancelled";
+    status?:
+      | "free"
+      | "pending"
+      | "trial"
+      | "active"
+      | "non-renewing"
+      | "past-due"
+      | "expired"
+      | "cancelled";
     startedAt?: string;
     expiresAt?: string;
     trialEndsAt?: string;
@@ -84,11 +92,20 @@ export interface RequestResetPasswordData {
   email: string;
 }
 
+export interface VerifyEmailData {
+  email: string;
+  token: string;
+}
+
+export interface verifyEmailResponse {
+  message: string;
+}
 export interface VerifyOtpData {
   token: string;
   otp: string;
   email: string | null;
 }
+
 
 export interface VerifyOtpResponse {
   message: string;
@@ -113,7 +130,11 @@ export interface UpdatePreferencesPayload {
   country?: string;
   timezone?: string;
   experienceLevel?: "beginner" | "intermediate" | "advanced" | "professional";
-  tradingStyle?: "scalping" | "day_trading" | "swing_trading" | "position_trading";
+  tradingStyle?:
+    | "scalping"
+    | "day_trading"
+    | "swing_trading"
+    | "position_trading";
   instruments?: string[];
   biggestChallenges?: string[];
 }
