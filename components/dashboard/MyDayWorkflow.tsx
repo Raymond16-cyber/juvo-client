@@ -18,13 +18,22 @@ import { useJournalStore } from "@/stores/journal.store";
 import { CreateTradePayload } from "@/types/journal.types";
 import { CreateTradingAccountPayload } from "@/types/trading-account.types";
 import {
+  getBeforeTradingAudioService,
+  uploadBeforeTradingAudioService,
+} from "@/services/journal.service";
+import {
   ArrowRight,
   CheckCircle2,
   CircleAlert,
   NotebookPen,
   Plus,
   WalletCards,
+  Mic,
+  Square,
+  Play,
+  LoaderCircle,
 } from "lucide-react";
+
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type WorkflowPanel = "start" | "trade" | "account";
@@ -63,6 +72,44 @@ const defaultTradeForm: CreateTradePayload = {
   notes: "",
 };
 
+//  BROWSER AUDIO CONFIGURATION
+
+type SpeechResultEvent = Event & {
+  resultIndex: number;
+  results: {
+    length: number;
+    [index: number]: {
+      isFinal: boolean;
+      [index: number]: { transcript: string };
+    };
+  };
+};
+
+type SpeechRecognitionInstance = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechResultEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
+
+function getSpeechRecognitionConstructor():
+  | SpeechRecognitionConstructor
+  | undefined {
+  const browser = window as Window & {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  };
+
+  return browser.SpeechRecognition ?? browser.webkitSpeechRecognition;
+}
+
 export default function MyDayWorkflow({
   initialPanel = "start",
   mode = "card",
@@ -78,7 +125,9 @@ export default function MyDayWorkflow({
     (state) => state.getTodayJournalStatus,
   );
   const accounts = useAccountsStore((state) => state.accounts);
-  const storeSelectedAccountId = useAccountsStore((state) => state.selectedAccountId);
+  const storeSelectedAccountId = useAccountsStore(
+    (state) => state.selectedAccountId,
+  );
   const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
   const createAccount = useAccountsStore((state) => state.createAccount);
   const selectAccount = useAccountsStore((state) => state.selectAccount);
@@ -93,11 +142,31 @@ export default function MyDayWorkflow({
   const [accountError, setAccountError] = useState<string | null>(null);
   const [panel, setPanel] = useState<WorkflowPanel>(initialPanel);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  //---BROWSER AUDIO STATES---/
+  const [isRecording, setIsRecording] = useState(false);
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
+  const [savedAudioUrl, setSavedAudioUrl] = useState<string | null>(null);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const [transcriptionSupported, setTranscriptionSupported] = useState(true);
+
+  //---BROWSER AUDIO REFS---/
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const speechRecognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const finalTranscriptRef = useRef("");
+  const audioPreviewUrlRef = useRef<string | null>(null);
 
   const journal = journalStatus?.journal;
   const hasJournalToday = Boolean(journalStatus?.hasJournalToday && journal);
   const journalPrompts = hasJournalToday
-    ? ["Welcome back.", "You've already started your day.", "Continue your journal."]
+    ? [
+        "Welcome back.",
+        "You've already started your day.",
+        "Continue your journal.",
+      ]
     : [
         "Good morning.",
         "Let's prepare for today's trading.",
@@ -120,6 +189,223 @@ export default function MyDayWorkflow({
   const mustCreateAccount = needsNewAccount(accounts);
   const canTradeOnSelected = isAccountInPlay(selectedAccount);
 
+  // BROWSER FUNCTIONS FOR AUDIO
+
+  const startRecording = async () => {
+    setAudioError(null);
+
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+      setAudioError("Audio recording is not supported by this browser.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+
+      mediaStreamRef.current = stream;
+      audioChunksRef.current = [];
+      finalTranscriptRef.current = "";
+      setAudioBlob(null);
+      setSavedAudioUrl(null);
+
+      const preferredMimeType = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/mp4",
+      ].find((type) => MediaRecorder.isTypeSupported(type));
+
+      const recorder = preferredMimeType
+        ? new MediaRecorder(stream, { mimeType: preferredMimeType })
+        : new MediaRecorder(stream);
+
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, {
+          type: recorder.mimeType || "audio/webm",
+        });
+
+        setAudioBlob(blob);
+        setIsRecording(false);
+
+        stream.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+
+        const recognition = speechRecognitionRef.current;
+        speechRecognitionRef.current = null;
+
+        try {
+          recognition?.stop();
+        } catch {
+          // Recording has already stopped.
+        }
+      };
+
+      recorder.start();
+      setIsRecording(true);
+
+      const Recognition = getSpeechRecognitionConstructor();
+
+      if (!Recognition) {
+        setTranscriptionSupported(false);
+        return;
+      }
+
+      setTranscriptionSupported(true);
+
+      const recognition = new Recognition();
+      speechRecognitionRef.current = recognition;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-NG";
+
+      recognition.onresult = (event) => {
+        let interimTranscript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i];
+          const transcript = result[0].transcript;
+
+          if (result.isFinal) {
+            finalTranscriptRef.current += `${transcript} `;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        setBeforeTrading(
+          `${finalTranscriptRef.current}${interimTranscript}`.trimStart(),
+        );
+      };
+
+      recognition.onerror = () => {
+        setTranscriptionSupported(false);
+      };
+
+      try {
+        recognition.start();
+      } catch {
+        setTranscriptionSupported(false);
+      }
+    } catch {
+      setAudioError(
+        "Unable to access your microphone. Check browser permissions and try again.",
+      );
+    }
+  };
+
+  const stopRecording = () => {
+    const recorder = mediaRecorderRef.current;
+
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    } else {
+      setIsRecording(false);
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    if (!audioBlob) {
+      setAudioPreviewUrl(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(audioBlob);
+    audioPreviewUrlRef.current = url;
+    setAudioPreviewUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+
+      if (audioPreviewUrlRef.current === url) {
+        audioPreviewUrlRef.current = null;
+      }
+    };
+  }, [audioBlob]);
+
+  useEffect(() => {
+    return () => {
+      const recorder = mediaRecorderRef.current;
+
+      if (recorder && recorder.state !== "inactive") {
+        recorder.onstop = null;
+        recorder.stop();
+      }
+
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+
+      try {
+        speechRecognitionRef.current?.abort();
+      } catch {
+        // The recognition session may already have ended.
+      }
+    };
+  }, []);
+
+  const saveVoiceNote = async (journalId: string): Promise<boolean> => {
+    console.log("Recording Audio Note...")
+    if (!audioBlob) return true;
+
+    setIsUploadingAudio(true);
+    setAudioError(null);
+
+    try {
+      await uploadBeforeTradingAudioService(
+        journalId,
+        audioBlob,
+        beforeTrading,
+      );
+
+      const playback = await getBeforeTradingAudioService(journalId);
+      setSavedAudioUrl(playback.data.playbackUrl);
+
+      return true;
+    } catch {
+      setAudioError(
+        "Your journal text was saved, but the voice note could not be uploaded. Your recording is still available to retry.",
+      );
+      return false;
+    } finally {
+      setIsUploadingAudio(false);
+    }
+  };
+
+  useEffect(() => {
+    const journalId = hasJournalToday ? journal?._id : undefined;
+
+    if (!journalId) {
+      setSavedAudioUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    getBeforeTradingAudioService(journalId)
+      .then((response) => {
+        if (!cancelled) {
+          setSavedAudioUrl(response.data.playbackUrl);
+        }
+      })
+      .catch(() => {
+        // A journal without a recording is normal.
+        if (!cancelled) setSavedAudioUrl(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hasJournalToday, journal?._id]);
+
   useEffect(() => {
     const loadWorkflow = async () => {
       setIsLoadingAccounts(true);
@@ -127,7 +413,10 @@ export default function MyDayWorkflow({
 
       try {
         const loadedAccounts = await fetchAccounts();
-        const preferred = getSelectedAccount(loadedAccounts, storeSelectedAccountId);
+        const preferred = getSelectedAccount(
+          loadedAccounts,
+          storeSelectedAccountId,
+        );
         const nextAccountId = preferred?._id || "";
         setSelectedAccountId(nextAccountId);
         const statusResponse = await getTodayJournalStatus();
@@ -138,7 +427,9 @@ export default function MyDayWorkflow({
         } else if (!isAccountInPlay(preferred)) {
           setAccountError(
             `${preferred?.accountName || "This account"} has ${
-              getAccountStatusLabel(preferred) === "Passed" ? "passed" : "been breached"
+              getAccountStatusLabel(preferred) === "Passed"
+                ? "passed"
+                : "been breached"
             }. Create a new account before taking another trade. Today's journal stays open.`,
           );
           setPanel(hasToday ? "trade" : "account");
@@ -156,7 +447,12 @@ export default function MyDayWorkflow({
     };
 
     loadWorkflow();
-  }, [fetchAccounts, getTodayJournalStatus, initialPanel, storeSelectedAccountId]);
+  }, [
+    fetchAccounts,
+    getTodayJournalStatus,
+    initialPanel,
+    storeSelectedAccountId,
+  ]);
 
   useEffect(() => {
     const handleOpenMyDay = (event: Event) => {
@@ -222,14 +518,33 @@ export default function MyDayWorkflow({
   const handleStartDay = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSuccessMessage(null);
+    setAudioError(null);
+
+    if (isRecording) {
+      setAudioError("Stop recording before continuing.");
+      return;
+    }
 
     if (hasJournalToday) {
+      if (audioBlob && journal?._id) {
+        const uploaded = await saveVoiceNote(journal._id);
+
+        setSuccessMessage(
+          uploaded
+            ? "Your voice note and transcript have been saved."
+            : "Your journal is open, but your voice note still needs uploading.",
+        );
+      }
+
       setPanel(canTradeOnSelected ? "trade" : "account");
+
       if (!canTradeOnSelected) {
         setAccountError(
           "Create a new account before taking another trade. Today's journal stays open.",
         );
       }
+
+      onJournalUpdated?.();
       return;
     }
 
@@ -243,15 +558,36 @@ export default function MyDayWorkflow({
       return;
     }
 
-    await selectAccount(selectedAccountId);
-    await createJournal({
-      tradingAccount: selectedAccountId,
-      beforeTrading,
-      confidenceBefore,
-    });
-    setSuccessMessage("Your day journal is ready.");
-    setPanel("trade");
-    onJournalUpdated?.();
+    try {
+      await selectAccount(selectedAccountId);
+
+      const response = await createJournal({
+        tradingAccount: selectedAccountId,
+        beforeTrading,
+        confidenceBefore,
+      });
+
+      const createdJournalId = response.data.journal?._id;
+
+      let uploaded = true;
+
+      if (audioBlob && createdJournalId) {
+        uploaded = await saveVoiceNote(createdJournalId);
+      }
+
+      setSuccessMessage(
+        uploaded
+          ? "Your day journal is ready."
+          : "Your day journal is ready, but the voice note still needs uploading.",
+      );
+
+      setPanel("trade");
+      onJournalUpdated?.();
+    } catch (error) {
+      setAccountError(
+        getApiErrorMessage(error, "Unable to start today's journal."),
+      );
+    }
   };
 
   const handleCreateTrade = async (event: FormEvent<HTMLFormElement>) => {
@@ -337,7 +673,11 @@ export default function MyDayWorkflow({
           </h2>
         </div>
         <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-          {hasJournalToday ? <CheckCircle2 size={21} /> : <NotebookPen size={21} />}
+          {hasJournalToday ? (
+            <CheckCircle2 size={21} />
+          ) : (
+            <NotebookPen size={21} />
+          )}
         </div>
       </div>
 
@@ -424,98 +764,190 @@ export default function MyDayWorkflow({
       {panel === "start" && (
         <form className="mt-5 space-y-4" onSubmit={handleStartDay}>
           <div data-journal-body className="space-y-4">
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-            Trading account
-            <select
-              className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              value={selectedAccountId}
-              onChange={(event) => {
-                const accountId = event.target.value;
-                setSelectedAccountId(accountId);
-                if (accountId) selectAccount(accountId).catch(() => undefined);
-              }}
-              disabled={isLoadingAccounts || !accounts.length}
-              required
-            >
-              <option value="">Select account</option>
-              {accounts.map((account) => {
-                const inPlay = isAccountInPlay(account);
-                return (
-                  <option key={account._id} value={account._id} disabled={!inPlay}>
-                    {account.accountName} - {account.broker} · {account.accountCurrency || account.currency}
-                    {inPlay ? "" : ` · ${getAccountStatusLabel(account)}`}
-                  </option>
-                );
-              })}
-            </select>
-          </label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Trading account
+              <select
+                className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                value={selectedAccountId}
+                onChange={(event) => {
+                  const accountId = event.target.value;
+                  setSelectedAccountId(accountId);
+                  if (accountId)
+                    selectAccount(accountId).catch(() => undefined);
+                }}
+                disabled={isLoadingAccounts || !accounts.length}
+                required
+              >
+                <option value="">Select account</option>
+                {accounts.map((account) => {
+                  const inPlay = isAccountInPlay(account);
+                  return (
+                    <option
+                      key={account._id}
+                      value={account._id}
+                      disabled={!inPlay}
+                    >
+                      {account.accountName} - {account.broker} ·{" "}
+                      {account.accountCurrency || account.currency}
+                      {inPlay ? "" : ` · ${getAccountStatusLabel(account)}`}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
 
-          {selectedAccount && (
-            <div className="grid grid-cols-3 gap-2 border-y border-slate-200 py-3 text-sm dark:border-white/10">
-              <span>
-                <strong className="block text-slate-950 dark:text-white">
-                  {selectedAccount.accountCurrency || selectedAccount.currency} {selectedAccount.currentBalance.toLocaleString()}
-                </strong>
-                <small className="text-slate-500 dark:text-slate-400">Balance</small>
-              </span>
-              <span>
-                <strong className="block text-slate-950 dark:text-white">
-                  {selectedAccount.status || "Active"}
-                </strong>
-                <small className="text-slate-500 dark:text-slate-400">
-                  {selectedAccount.isActive ? "Active account" : "Status"}
-                </small>
-              </span>
-              <span>
-                <strong className="block text-slate-950 dark:text-white">
-                  {selectedAccount.leverage}
-                </strong>
-                <small className="text-slate-500 dark:text-slate-400">Leverage</small>
-              </span>
+            {selectedAccount && (
+              <div className="grid grid-cols-3 gap-2 border-y border-slate-200 py-3 text-sm dark:border-white/10">
+                <span>
+                  <strong className="block text-slate-950 dark:text-white">
+                    {selectedAccount.accountCurrency ||
+                      selectedAccount.currency}{" "}
+                    {selectedAccount.currentBalance.toLocaleString()}
+                  </strong>
+                  <small className="text-slate-500 dark:text-slate-400">
+                    Balance
+                  </small>
+                </span>
+                <span>
+                  <strong className="block text-slate-950 dark:text-white">
+                    {selectedAccount.status || "Active"}
+                  </strong>
+                  <small className="text-slate-500 dark:text-slate-400">
+                    {selectedAccount.isActive ? "Active account" : "Status"}
+                  </small>
+                </span>
+                <span>
+                  <strong className="block text-slate-950 dark:text-white">
+                    {selectedAccount.leverage}
+                  </strong>
+                  <small className="text-slate-500 dark:text-slate-400">
+                    Leverage
+                  </small>
+                </span>
+              </div>
+            )}
+
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Before trading
+              <textarea
+                className="mt-2 min-h-24 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                value={beforeTrading}
+                onChange={(event) => setBeforeTrading(event.target.value)}
+                placeholder="Bias, mood, risks, focus for today"
+              />
+            </label>
+
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {!isRecording ? (
+                  <button
+                    type="button"
+                    onClick={startRecording}
+                    disabled={isUploadingAudio}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50 dark:border-white/10 dark:text-slate-200"
+                  >
+                    <Mic size={16} />
+                    {audioBlob ? "Record again" : "Record voice note"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={stopRecording}
+                    className="inline-flex items-center gap-2 rounded-xl bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-600 dark:text-rose-300"
+                  >
+                    <Square size={16} />
+                    Stop recording
+                  </button>
+                )}
+
+                {audioBlob && (
+                  <span className="text-xs text-emerald-600 dark:text-emerald-300">
+                    Voice note ready
+                  </span>
+                )}
+              </div>
+
+              {isRecording && (
+                <p
+                  className="text-xs text-rose-600 dark:text-rose-300"
+                  aria-live="polite"
+                >
+                  Recording in progress. Speak clearly, then stop when finished.
+                </p>
+              )}
+
+              {!transcriptionSupported && (
+                <p className="text-xs text-amber-600 dark:text-amber-300">
+                  Live transcription is unavailable in this browser. You can
+                  still record your voice and type your notes manually.
+                </p>
+              )}
+
+              {audioError && (
+                <p
+                  className="text-xs text-rose-600 dark:text-rose-300"
+                  role="alert"
+                >
+                  {audioError}
+                </p>
+              )}
+
+              {(audioPreviewUrl || savedAudioUrl) && (
+                <audio
+                  key={audioPreviewUrl || savedAudioUrl}
+                  controls
+                  preload="none"
+                  className="w-full"
+                  src={audioPreviewUrl || savedAudioUrl || undefined}
+                />
+              )}
             </div>
-          )}
 
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-            Before trading
-            <textarea
-              className="mt-2 min-h-24 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              value={beforeTrading}
-              onChange={(event) => setBeforeTrading(event.target.value)}
-              placeholder="Bias, mood, risks, focus for today"
-            />
-          </label>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Confidence: {confidenceBefore}/10
+              <input
+                className="mt-2 w-full accent-cyan-400"
+                type="range"
+                min="1"
+                max="10"
+                value={confidenceBefore}
+                onChange={(event) =>
+                  setConfidenceBefore(Number(event.target.value))
+                }
+              />
+            </label>
 
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-            Confidence: {confidenceBefore}/10
-            <input
-              className="mt-2 w-full accent-cyan-400"
-              type="range"
-              min="1"
-              max="10"
-              value={confidenceBefore}
-              onChange={(event) => setConfidenceBefore(Number(event.target.value))}
-            />
-          </label>
-
-          {mustCreateAccount ? (
-            <Button
-              className="w-full"
-              type="button"
-              onClick={() => setPanel("account")}
-            >
-              <WalletCards size={18} />
-              Create an account first
-            </Button>
-          ) : (
-          <Button
-            className="w-full"
-            type="submit"
-            disabled={isJournalLoading || isLoadingAccounts || !canTradeOnSelected}
-          >
-            <ArrowRight size={18} />
-            {isJournalLoading ? "Starting..." : hasJournalToday ? "Refresh journal" : "Start My Day"}
-          </Button>
-          )}
+            {mustCreateAccount ? (
+              <Button
+                className="w-full"
+                type="button"
+                onClick={() => setPanel("account")}
+              >
+                <WalletCards size={18} />
+                Create an account first
+              </Button>
+            ) : (
+              <Button
+                className="w-full"
+                type="submit"
+                disabled={
+                  isJournalLoading ||
+                  isLoadingAccounts ||
+                  !canTradeOnSelected ||
+                  isRecording ||
+                  isUploadingAudio
+                }
+              >
+                <ArrowRight size={18} />
+                {isUploadingAudio
+                  ? "Uploading voice note..."
+                  : isJournalLoading
+                    ? "Starting..."
+                    : hasJournalToday
+                      ? "Refresh journal"
+                      : "Start My Day"}
+              </Button>
+            )}
           </div>
         </form>
       )}
@@ -527,7 +959,11 @@ export default function MyDayWorkflow({
               ? "You need a trading account before you can log a trade."
               : "This account has passed or been breached. Create a new account before taking another trade. Today's journal stays open and will keep recording every trade."}
           </p>
-          <Button className="mt-4 w-full" type="button" onClick={() => setPanel("account")}>
+          <Button
+            className="mt-4 w-full"
+            type="button"
+            onClick={() => setPanel("account")}
+          >
             <WalletCards size={18} />
             Create new account
           </Button>
@@ -537,85 +973,109 @@ export default function MyDayWorkflow({
       {panel === "trade" && canTradeOnSelected && (
         <form className="mt-5 space-y-4" onSubmit={handleCreateTrade}>
           <div data-journal-body className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              placeholder="Symbol"
-              value={tradeForm.symbol}
-              onChange={(event) => updateTradeForm("symbol", event.target.value)}
-              required
-            />
-            <select
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              value={tradeForm.instrument}
-              onChange={(event) => updateTradeForm("instrument", event.target.value)}
-            >
-              {["forex", "indices", "crypto", "stocks", "commodities", "others"].map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <select
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              value={tradeForm.direction}
-              onChange={(event) => updateTradeForm("direction", event.target.value)}
-            >
-              <option value="long">Long</option>
-              <option value="short">Short</option>
-            </select>
-            <select
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              value={tradeForm.session}
-              onChange={(event) => updateTradeForm("session", event.target.value)}
-            >
-              {["Asian", "Tokyo", "London", "New York"].map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              ["entryPrice", "Entry"],
-              ["stopLoss", "Stop"],
-              ["takeProfit", "Target"],
-              ["lotSize", "Size"],
-              ["riskPercentage", "Risk %"],
-              ["plannedRR", "RR"],
-            ].map(([key, label]) => (
+            <div className="grid grid-cols-2 gap-3">
               <input
-                key={key}
                 className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-                type="number"
-                min="0"
-                step="any"
-                placeholder={label}
-                value={String(tradeForm[key as keyof CreateTradePayload] || "")}
+                placeholder="Symbol"
+                value={tradeForm.symbol}
                 onChange={(event) =>
-                  updateTradeForm(key as keyof CreateTradePayload, event.target.value)
+                  updateTradeForm("symbol", event.target.value)
                 }
                 required
               />
-            ))}
-          </div>
+              <select
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                value={tradeForm.instrument}
+                onChange={(event) =>
+                  updateTradeForm("instrument", event.target.value)
+                }
+              >
+                {[
+                  "forex",
+                  "indices",
+                  "crypto",
+                  "stocks",
+                  "commodities",
+                  "others",
+                ].map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <textarea
-            className="min-h-20 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-            placeholder="Execution notes"
-            value={tradeForm.notes}
-            onChange={(event) => updateTradeForm("notes", event.target.value)}
-          />
+            <div className="grid grid-cols-2 gap-3">
+              <select
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                value={tradeForm.direction}
+                onChange={(event) =>
+                  updateTradeForm("direction", event.target.value)
+                }
+              >
+                <option value="long">Long</option>
+                <option value="short">Short</option>
+              </select>
+              <select
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                value={tradeForm.session}
+                onChange={(event) =>
+                  updateTradeForm("session", event.target.value)
+                }
+              >
+                {["Asian", "Tokyo", "London", "New York"].map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <Button className="w-full" type="submit" disabled={isJournalLoading || !hasJournalToday}>
-            <Plus size={18} />
-            {isJournalLoading ? "Saving..." : "Add Trade"}
-          </Button>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                ["entryPrice", "Entry"],
+                ["stopLoss", "Stop"],
+                ["takeProfit", "Target"],
+                ["lotSize", "Size"],
+                ["riskPercentage", "Risk %"],
+                ["plannedRR", "RR"],
+              ].map(([key, label]) => (
+                <input
+                  key={key}
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder={label}
+                  value={String(
+                    tradeForm[key as keyof CreateTradePayload] || "",
+                  )}
+                  onChange={(event) =>
+                    updateTradeForm(
+                      key as keyof CreateTradePayload,
+                      event.target.value,
+                    )
+                  }
+                  required
+                />
+              ))}
+            </div>
+
+            <textarea
+              className="min-h-20 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+              placeholder="Execution notes"
+              value={tradeForm.notes}
+              onChange={(event) => updateTradeForm("notes", event.target.value)}
+            />
+
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={isJournalLoading || !hasJournalToday}
+            >
+              <Plus size={18} />
+              {isJournalLoading ? "Saving..." : "Add Trade"}
+            </Button>
           </div>
         </form>
       )}
@@ -623,107 +1083,134 @@ export default function MyDayWorkflow({
       {panel === "account" && (
         <form className="mt-5 space-y-4" onSubmit={handleCreateAccount}>
           <div data-journal-body className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-200 pb-3 text-sm font-semibold text-slate-700 dark:border-white/10 dark:text-slate-200">
-            <WalletCards size={17} />
-            {mustCreateAccount ? "Create a trading account" : "Trading account"}
-          </div>
-          {accounts.length && !tradableAccounts.length ? (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Your last account has passed or been breached. Create a new one before taking another trade.
-            </p>
-          ) : null}
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              placeholder="Account name"
-              value={accountForm.accountName}
-              onChange={(event) => updateAccountForm("accountName", event.target.value)}
-              required
-            />
-            <input
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              placeholder="Account number"
-              value={accountForm.accountNumber}
-              onChange={(event) => updateAccountForm("accountNumber", event.target.value)}
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <select
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              value={accountForm.accountType}
-              onChange={(event) => updateAccountForm("accountType", event.target.value)}
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-3 text-sm font-semibold text-slate-700 dark:border-white/10 dark:text-slate-200">
+              <WalletCards size={17} />
+              {mustCreateAccount
+                ? "Create a trading account"
+                : "Trading account"}
+            </div>
+            {accounts.length && !tradableAccounts.length ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Your last account has passed or been breached. Create a new one
+                before taking another trade.
+              </p>
+            ) : null}
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                placeholder="Account name"
+                value={accountForm.accountName}
+                onChange={(event) =>
+                  updateAccountForm("accountName", event.target.value)
+                }
+                required
+              />
+              <input
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                placeholder="Account number"
+                value={accountForm.accountNumber}
+                onChange={(event) =>
+                  updateAccountForm("accountNumber", event.target.value)
+                }
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <select
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                value={accountForm.accountType}
+                onChange={(event) =>
+                  updateAccountForm("accountType", event.target.value)
+                }
+              >
+                {["demo", "live", "prop", "challenge"].map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+              <input
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                placeholder="Broker"
+                value={accountForm.broker}
+                onChange={(event) =>
+                  updateAccountForm("broker", event.target.value)
+                }
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                placeholder="Platform"
+                value={accountForm.platform}
+                onChange={(event) =>
+                  updateAccountForm("platform", event.target.value)
+                }
+                required
+              />
+              <input
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                placeholder="Leverage"
+                value={accountForm.leverage}
+                onChange={(event) =>
+                  updateAccountForm("leverage", event.target.value)
+                }
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                type="number"
+                min="0"
+                placeholder="Balance"
+                value={accountForm.initialBalance || ""}
+                onChange={(event) =>
+                  updateAccountForm("initialBalance", event.target.value)
+                }
+                required
+              />
+              <input
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                placeholder="Currency"
+                value={accountForm.currency}
+                onChange={(event) =>
+                  updateAccountForm("currency", event.target.value)
+                }
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                type="number"
+                min="0"
+                placeholder="Max drawdown %"
+                value={accountForm.maxDrawnDown || ""}
+                onChange={(event) =>
+                  updateAccountForm("maxDrawnDown", event.target.value)
+                }
+              />
+              <input
+                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                type="number"
+                min="0"
+                placeholder="Profit target %"
+                value={accountForm.profitTarget || ""}
+                onChange={(event) =>
+                  updateAccountForm("profitTarget", event.target.value)
+                }
+              />
+            </div>
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={isCreatingAccount}
             >
-              {["demo", "live", "prop", "challenge"].map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-            <input
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              placeholder="Broker"
-              value={accountForm.broker}
-              onChange={(event) => updateAccountForm("broker", event.target.value)}
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              placeholder="Platform"
-              value={accountForm.platform}
-              onChange={(event) => updateAccountForm("platform", event.target.value)}
-              required
-            />
-            <input
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              placeholder="Leverage"
-              value={accountForm.leverage}
-              onChange={(event) => updateAccountForm("leverage", event.target.value)}
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              type="number"
-              min="0"
-              placeholder="Balance"
-              value={accountForm.initialBalance || ""}
-              onChange={(event) => updateAccountForm("initialBalance", event.target.value)}
-              required
-            />
-            <input
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              placeholder="Currency"
-              value={accountForm.currency}
-              onChange={(event) => updateAccountForm("currency", event.target.value)}
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <input
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              type="number"
-              min="0"
-              placeholder="Max drawdown %"
-              value={accountForm.maxDrawnDown || ""}
-              onChange={(event) => updateAccountForm("maxDrawnDown", event.target.value)}
-            />
-            <input
-              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              type="number"
-              min="0"
-              placeholder="Profit target %"
-              value={accountForm.profitTarget || ""}
-              onChange={(event) => updateAccountForm("profitTarget", event.target.value)}
-            />
-          </div>
-          <Button className="w-full" type="submit" disabled={isCreatingAccount}>
-            <Plus size={18} />
-            {isCreatingAccount ? "Creating..." : "Create Account"}
-          </Button>
+              <Plus size={18} />
+              {isCreatingAccount ? "Creating..." : "Create Account"}
+            </Button>
           </div>
         </form>
       )}

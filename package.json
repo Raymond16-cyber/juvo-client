@@ -13,6 +13,7 @@
     "animejs": "^4.5.0",
     "aos": "^2.3.4",
     "axios": "^1.19.0",
+    "driver.js": "^1.10.2",
     "framer-motion": "^12.23.12",
     "gsap": "^3.13.0",
     "lucide-react": "^0.542.0",

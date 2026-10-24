@@ -71,7 +71,11 @@ export interface TradeSummary extends CreateTradePayload {
   profitLossCurrency?: string | null;
   source?: "manual" | "ctrader" | "metatrader";
   platform?: "ctrader" | "mt4" | "mt5";
-  brokerMetadata?: { magic?: number | string; comment?: string; origin?: "manual" | "ea" | "unknown" };
+  brokerMetadata?: {
+    magic?: number | string;
+    comment?: string;
+    origin?: "manual" | "ea" | "unknown";
+  };
   externalId?: string;
   externalPositionId?: string;
   externalOrderId?: string;
@@ -93,7 +97,11 @@ export interface JournalListTradeSummary {
   achievedRR?: number;
   source?: "manual" | "ctrader" | "metatrader";
   platform?: "ctrader" | "mt4" | "mt5";
-  brokerMetadata?: { magic?: number | string; comment?: string; origin?: "manual" | "ea" | "unknown" };
+  brokerMetadata?: {
+    magic?: number | string;
+    comment?: string;
+    origin?: "manual" | "ea" | "unknown";
+  };
   externalId?: string;
   externalPositionId?: string;
   externalOrderId?: string;
@@ -225,4 +233,24 @@ export interface UserJournalsResponse {
 export interface JournalDetailResponse {
   data: JournalDetail;
   message: string;
+}
+
+export interface BeforeTradingAudioResponse {
+  message: string;
+  data: {
+    beforeTradingAudio: {
+      publicId: string;
+      format: string;
+      bytes: number;
+      duration: number | null;
+    };
+  };
+}
+
+export interface BeforeTradingAudioPlaybackResponse {
+  message: string;
+  data: {
+    playbackUrl: string;
+    expiresAt: number;
+  };
 }

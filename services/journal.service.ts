@@ -10,6 +10,8 @@ import {
   JournalExport,
   JournalStatusResponse,
   UserJournalsResponse,
+  BeforeTradingAudioResponse,
+  BeforeTradingAudioPlaybackResponse,
 } from "@/types/journal.types";
 
 export const getJournalExportService = async (): Promise<JournalExport> => {
@@ -88,6 +90,40 @@ export const closeJournalTradeService = async (
   const response = await api.patch<CloseTradeResponse>(
     `/journal/${journalId}/trades/${tradeId}/close`,
     { data },
+  );
+  return response.data;
+};
+
+export const uploadBeforeTradingAudioService = async (
+  journalId: string,
+  audioBlob: Blob,
+  transcript: string,
+): Promise<BeforeTradingAudioResponse> => {
+  const formData = new FormData();
+
+  const extension = audioBlob.type.includes("mp4") ? "mp4" : "webm";
+
+  formData.append("audio", audioBlob, `before-trading.${extension}`);
+  formData.append("transcript", transcript);
+
+  const response = await api.post<BeforeTradingAudioResponse>(
+    `/journal/${journalId}/before-trading-audio`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return response.data;
+};
+
+export const getBeforeTradingAudioService = async (
+  journalId: string,
+): Promise<BeforeTradingAudioPlaybackResponse> => {
+  const response = await api.get<BeforeTradingAudioPlaybackResponse>(
+    `/journal/${journalId}/before-trading-audio`,
   );
 
   return response.data;
