@@ -1,5 +1,6 @@
 "use client";
 
+
 import { animateDashboardEntrance } from "@/animations/dashboard";
 import AccountSummary from "@/components/dashboard/AccountSummary";
 import BehavioralInsights from "@/components/dashboard/BehavioralInsights";
@@ -25,6 +26,13 @@ import { useBrokerStore } from "@/stores/broker.store";
 import { useGoalsStore } from "@/stores/goals.store";
 import { useJournalStore } from "@/stores/journal.store";
 
+import {
+  getDashboardGuide,
+  updateDashboardGuide,
+  type DashboardGuideState,
+  type UpdateDashboardGuidePayload,
+} from "@/services/dashboardGuide.service";
+
 import { Activity, Percent, TrendingDown, TrendingUp } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -41,7 +49,7 @@ type WorkflowPanel = "start" | "trade" | "account";
 
 export default function DashboardOverview() {
   const dashboardRef = useRef<HTMLDivElement>(null);
-
+  
   const [isMyDayOpen, setIsMyDayOpen] = useState(false);
   const [workflowPanel, setWorkflowPanel] = useState<WorkflowPanel>("start");
 
@@ -159,43 +167,294 @@ export default function DashboardOverview() {
   // DRIVER.JS: PRODUCT TOUR, HINTS AND CHECKLIST
   // --------------------------------------------------
 
-  useEffect(() => {
-    if (!user || typeof window === "undefined") return;
+  
+useEffect(() => {
+  if (!user || typeof window === "undefined") return;
 
-    const currentUser = user as {
-      _id?: string;
-      id?: string;
-      email?: string;
-    };
+  const currentUser = user as {
+    _id?: string;
+    id?: string;
+    email?: string;
+  };
 
-    const userKey =
-      currentUser._id ?? currentUser.id ?? currentUser.email ?? "current-user";
+  const userKey =
+    currentUser._id ?? currentUser.id ?? currentUser.email ?? "current-user";
 
-    const storagePrefix = `juvo:dashboard-guide:v1:${userKey}`;
+  // These keys are retained only for migration and offline recovery.
+  const storagePrefix = `juvo:dashboard-guide:v1:${userKey}`;
+  const dismissedHintsKey = `${storagePrefix}:dismissed-hints`;
+  const completedChecklistKey = `${storagePrefix}:completed-checklist`;
+  const completedTourKey = `${storagePrefix}:tour-completed`;
 
-    const dismissedHintsKey = `${storagePrefix}:dismissed-hints`;
+  const readStringArray = (key: string): string[] => {
+    try {
+      const saved: unknown = JSON.parse(
+        window.localStorage.getItem(key) ?? "[]",
+      );
 
-    const completedChecklistKey = `${storagePrefix}:completed-checklist`;
+      return Array.isArray(saved)
+        ? saved.filter((item): item is string => typeof item === "string")
+        : [];
+    } catch {
+      return [];
+    }
+  };
 
-    // Safely read arrays from localStorage.
-    const readStringArray = (key: string): string[] => {
-      try {
-        const saved: unknown = JSON.parse(
-          window.localStorage.getItem(key) ?? "[]",
-        );
+  const readBoolean = (key: string): boolean => {
+    try {
+      return JSON.parse(window.localStorage.getItem(key) ?? "false") === true;
+    } catch {
+      return false;
+    }
+  };
 
-        return Array.isArray(saved)
-          ? saved.filter((item): item is string => typeof item === "string")
-          : [];
-      } catch {
-        return [];
+  const removeBackup = (key: string) => {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      // Storage may be unavailable.
+    }
+  };
+
+  let cancelled = false;
+  let autoStartFrame: number | undefined;
+  let destroyInstances: (() => void) | undefined;
+
+  let canPersist = true;
+  let saveQueue: Promise<void> = Promise.resolve();
+
+  let dismissedHintIds = new Set<string>();
+  let completedChecklistIds: string[] = [];
+  let tourCompleted = false;
+
+  // Keep a recovery copy only if the API cannot save progress.
+  const writeLocalBackup = () => {
+    try {
+      window.localStorage.setItem(
+        dismissedHintsKey,
+        JSON.stringify([...dismissedHintIds]),
+      );
+
+      window.localStorage.setItem(
+        completedChecklistKey,
+        JSON.stringify(completedChecklistIds),
+      );
+
+      window.localStorage.setItem(
+        completedTourKey,
+        JSON.stringify(tourCompleted),
+      );
+    } catch {
+      console.warn("Could not create a local dashboard-guide backup.");
+    }
+  };
+
+  // Serialize writes so older requests cannot overwrite newer progress.
+  const persistGuide = (payload: UpdateDashboardGuidePayload) => {
+    if (!canPersist) {
+      writeLocalBackup();
+      return;
+    }
+
+    saveQueue = saveQueue
+      .catch(() => undefined)
+      .then(async () => {
+        await updateDashboardGuide(payload);
+
+        // Clear only the recovery copies confirmed by this request.
+        if ("dismissedHints" in payload) {
+          removeBackup(dismissedHintsKey);
+        }
+
+        if ("completedChecklist" in payload) {
+          removeBackup(completedChecklistKey);
+        }
+
+        if ("tourCompleted" in payload) {
+          removeBackup(completedTourKey);
+        }
+      })
+      .catch((error) => {
+        console.error("Could not save dashboard-guide progress:", error);
+
+        writeLocalBackup();
+      });
+  };
+
+  const initializeGuide = async () => {
+    const legacyDismissed = readStringArray(dismissedHintsKey);
+    const legacyCompleted = readStringArray(completedChecklistKey);
+    const legacyTourCompleted = readBoolean(completedTourKey);
+
+    let savedState: DashboardGuideState;
+
+    // 1. Load the user's saved progress from MongoDB.
+    try {
+      savedState = await getDashboardGuide();
+    } catch (error) {
+      if (cancelled) return;
+
+      console.error("Could not load dashboard-guide progress:", error);
+
+      // Keep the guide usable during a temporary API outage.
+      // Do not write potentially incomplete state to MongoDB.
+      canPersist = false;
+
+      savedState = {
+        version: 1,
+        dismissedHints: legacyDismissed,
+        completedChecklist: legacyCompleted,
+        tourCompleted: legacyTourCompleted,
+        completedAt: null,
+        updatedAt: null,
+      };
+    }
+
+    if (cancelled) return;
+
+    // 2. Migrate progress saved by the previous localStorage version.
+    if (canPersist) {
+      const serverDismissed = savedState.dismissedHints ?? [];
+      const serverCompleted = savedState.completedChecklist ?? [];
+
+      // Merge old progress with the server state instead of discarding it.
+      const mergedDismissed = [
+        ...new Set([...serverDismissed, ...legacyDismissed]),
+      ];
+
+      const mergedCompleted = [
+        ...new Set([...serverCompleted, ...legacyCompleted]),
+      ];
+
+      const mergedTourCompleted =
+        Boolean(savedState.tourCompleted) || legacyTourCompleted;
+
+      const migration: UpdateDashboardGuidePayload = {};
+
+      if (
+        mergedDismissed.length !== serverDismissed.length ||
+        mergedDismissed.some((id) => !serverDismissed.includes(id))
+      ) {
+        migration.dismissedHints = mergedDismissed;
       }
-    };
 
-    // 1. GUIDED DASHBOARD TOUR
-    // ------------------------------------------------
+      if (
+        mergedCompleted.length !== serverCompleted.length ||
+        mergedCompleted.some((id) => !serverCompleted.includes(id))
+      ) {
+        migration.completedChecklist = mergedCompleted;
+      }
 
-    const tour = driver({
+      if (mergedTourCompleted && !savedState.tourCompleted) {
+        migration.tourCompleted = true;
+      }
+
+      const hasLegacyProgress =
+        legacyDismissed.length > 0 ||
+        legacyCompleted.length > 0 ||
+        legacyTourCompleted;
+
+      if (hasLegacyProgress) {
+        if (Object.keys(migration).length > 0) {
+          try {
+            savedState = await updateDashboardGuide(migration);
+          } catch (error) {
+            console.error(
+              "Could not migrate local dashboard-guide progress:",
+              error,
+            );
+
+            // Keep the merged state available without risking a
+            // partial migration overwriting existing server progress.
+            canPersist = false;
+
+            savedState = {
+              ...savedState,
+              dismissedHints: mergedDismissed,
+              completedChecklist: mergedCompleted,
+              tourCompleted: mergedTourCompleted,
+            };
+          }
+        }
+
+        if (canPersist) {
+          removeBackup(dismissedHintsKey);
+          removeBackup(completedChecklistKey);
+          removeBackup(completedTourKey);
+        }
+      }
+    }
+
+    if (cancelled) return;
+
+    // 3. Initialize Driver.js from the saved state.
+    dismissedHintIds = new Set(savedState.dismissedHints ?? []);
+    completedChecklistIds = [...(savedState.completedChecklist ?? [])];
+    tourCompleted = Boolean(savedState.tourCompleted);
+
+    // 4. Guided dashboard tour.
+    const tourSteps = [
+      {
+        element: "[data-tour='dashboard-metrics']",
+        popover: {
+          title: "Your performance at a glance",
+          description:
+            "Review your key trading metrics to understand how your account is performing.",
+        },
+      },
+      {
+        element: "[data-tour='account-summary']",
+        popover: {
+          title: "Your trading account",
+          description:
+            "Review your selected account, balance and available account information.",
+        },
+      },
+      {
+        element: "[data-tour='performance-chart']",
+        popover: {
+          title: "Track your progress",
+          description:
+            "Observe how your trading performance changes over time. Look for patterns rather than judging yourself by one trade.",
+        },
+      },
+      {
+        element: "[data-tour='recent-trades']",
+        popover: {
+          title: "Your recent trades",
+          description:
+            "Review your recent trading activity and revisit the decisions behind your results.",
+        },
+      },
+      {
+        element: "[data-tour='trading-goals']",
+        popover: {
+          title: "Stay focused on your goals",
+          description:
+            "Keep your trading objectives visible as you work towards them.",
+        },
+      },
+      {
+        element: "[data-tour='behavioral-insights']",
+        popover: {
+          title: "Understand your trading behaviour",
+          description:
+            "Explore behavioural insights that can help you recognise patterns in your trading decisions.",
+        },
+      },
+      {
+        element: "[data-tour='quick-actions']",
+        popover: {
+          title: "Your shortcuts",
+          description:
+            "Use these shortcuts to access important dashboard actions more quickly.",
+        },
+      },
+    ];
+
+    let tour: ReturnType<typeof driver> | undefined;
+
+    tour = driver({
       showProgress: true,
       progressText: "{{current}} of {{total}}",
 
@@ -213,71 +472,33 @@ export default function DashboardOverview() {
       stagePadding: 8,
       popoverClass: "juvo-driver-popover",
 
-      steps: [
-        {
-          element: "[data-tour='dashboard-metrics']",
-          popover: {
-            title: "Your performance at a glance",
-            description:
-              "Review your key trading metrics to understand how your account is performing.",
-          },
-        },
-        {
-          element: "[data-tour='account-summary']",
-          popover: {
-            title: "Your trading account",
-            description:
-              "Review your selected account, balance and available account information.",
-          },
-        },
-        {
-          element: "[data-tour='performance-chart']",
-          popover: {
-            title: "Track your progress",
-            description:
-              "Observe how your trading performance changes over time. Look for patterns rather than judging yourself by one trade.",
-          },
-        },
-        {
-          element: "[data-tour='recent-trades']",
-          popover: {
-            title: "Your recent trades",
-            description:
-              "Review your recent trading activity and revisit the decisions behind your results.",
-          },
-        },
-        {
-          element: "[data-tour='trading-goals']",
-          popover: {
-            title: "Stay focused on your goals",
-            description:
-              "Keep your trading objectives visible as you work towards them.",
-          },
-        },
-        {
-          element: "[data-tour='behavioral-insights']",
-          popover: {
-            title: "Understand your trading behaviour",
-            description:
-              "Explore behavioural insights that can help you recognise patterns in your trading decisions.",
-          },
-        },
-        {
-          element: "[data-tour='quick-actions']",
-          popover: {
-            title: "Your shortcuts",
-            description:
-              "Use these shortcuts to access important dashboard actions more quickly.",
-          },
-        },
-      ],
+      steps: tourSteps,
+
+      // Driver.js lets us override the Next button behaviour.
+      // Save completion only when the user finishes the final step.
+      onNextClick: () => {
+        if (!tour) return;
+
+        const activeIndex = tour.getState().activeIndex;
+
+        if (activeIndex === tourSteps.length - 1) {
+          tourCompleted = true;
+
+          persistGuide({
+            tourCompleted: true,
+          });
+
+          tour.destroy();
+          return;
+        }
+
+        tour.moveNext();
+      },
     });
 
-    // 2. INTERACTIVE HINTS
-    // ------------------------------------------------
+    const activeTour = tour;
 
-    const dismissedHintIds = new Set(readStringArray(dismissedHintsKey));
-
+    // 5. Interactive hints.
     const hintDefinitions = [
       {
         id: "metrics-hint",
@@ -336,22 +557,13 @@ export default function DashboardOverview() {
 
         dismissedHintIds.add(hint.id);
 
-        try {
-          window.localStorage.setItem(
-            dismissedHintsKey,
-            JSON.stringify([...dismissedHintIds]),
-          );
-        } catch {
-          // The hints still work if storage is unavailable.
-        }
+        persistGuide({
+          dismissedHints: [...dismissedHintIds],
+        });
       },
     });
 
-    
-
-    // 3. PERSISTENT ONBOARDING CHECKLIST
-    // ------------------------------------------------
-
+    // 6. Persistent onboarding checklist.
     const guide = checklist({
       id: `juvo-dashboard-guide-${userKey}`,
 
@@ -371,7 +583,7 @@ export default function DashboardOverview() {
           id: "dashboard-tour",
           title: "Explore your dashboard",
           description: "Take a guided tour of the main dashboard sections.",
-          tour,
+          tour: activeTour,
         },
         {
           id: "show-dashboard-tips",
@@ -391,59 +603,68 @@ export default function DashboardOverview() {
         },
       ],
 
-      completed: readStringArray(completedChecklistKey),
+      completed: completedChecklistIds,
 
       onProgress: ({ completed }) => {
-        try {
-          window.localStorage.setItem(
-            completedChecklistKey,
-            JSON.stringify(completed),
-          );
-        } catch {
-          // The checklist remains usable without storage.
-        }
+        completedChecklistIds = [
+          ...new Set(
+            completed.filter(
+              (item): item is string => typeof item === "string",
+            ),
+          ),
+        ];
+
+        persistGuide({
+          completedChecklist: completedChecklistIds,
+        });
       },
     });
 
+    destroyInstances = () => {
+      productHints.hide();
+      guide.hide();
+      activeTour.destroy();
+    };
+
     guide.show();
 
-    // 4. AUTO-START AFTER SUCCESSFUL ONBOARDING
-    // ------------------------------------------------
-
-    let autoStartFrame: number | undefined;
-
+    // 7. Auto-start after successful onboarding.
     try {
       if (window.localStorage.getItem("juvo:start-dashboard-tour") === "1") {
         autoStartFrame = window.requestAnimationFrame(() => {
-          // Remove the flag only when the scheduled callback
-          // actually runs. This avoids losing it if React
-          // cancels the first effect during development checks.
+          autoStartFrame = undefined;
+
+          if (cancelled) return;
+
           try {
             window.localStorage.removeItem("juvo:start-dashboard-tour");
           } catch {
-            // The tour can still run without storage access.
+            // The guide can still be started manually.
           }
 
-          tour.drive();
+          activeTour.drive();
         });
       }
     } catch {
-      // The user can still start the tour from JUVO Guide.
+      // The user can start the tour from JUVO Guide instead.
+    }
+  };
+
+  void initializeGuide().catch((error) => {
+    console.error("Could not initialize the JUVO dashboard guide:", error);
+  });
+
+  return () => {
+    cancelled = true;
+
+    if (autoStartFrame !== undefined) {
+      window.cancelAnimationFrame(autoStartFrame);
     }
 
-    // 5. CLEANUP
-    // ------------------------------------------------
+    destroyInstances?.();
+  };
+}, [user]);
 
-    return () => {
-      if (autoStartFrame !== undefined) {
-        window.cancelAnimationFrame(autoStartFrame);
-      }
-
-      productHints.hide();
-      guide.hide();
-      tour.destroy();
-    };
-  }, [user]);
 
   // --------------------------------------------------
   // REFRESH DASHBOARD DATA
