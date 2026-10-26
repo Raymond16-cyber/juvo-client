@@ -12,6 +12,7 @@ import {
   UserJournalsResponse,
   BeforeTradingAudioResponse,
   BeforeTradingAudioPlaybackResponse,
+  ScreenshotReviewResponse,
 } from "@/types/journal.types";
 
 export const getJournalExportService = async (): Promise<JournalExport> => {
@@ -124,6 +125,39 @@ export const getBeforeTradingAudioService = async (
 ): Promise<BeforeTradingAudioPlaybackResponse> => {
   const response = await api.get<BeforeTradingAudioPlaybackResponse>(
     `/journal/${journalId}/before-trading-audio`,
+  );
+
+  return response.data;
+};
+
+export const analyzeTradeScreenshotService = async (
+  journalId: string,
+  tradeId: string,
+  screenshot: File,
+): Promise<ScreenshotReviewResponse> => {
+  const formData = new FormData();
+  formData.append("screenshot", screenshot);
+
+  const response = await api.post<ScreenshotReviewResponse>(
+    `/journal/${journalId}/trades/${tradeId}/screenshot-review`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 70000,
+    },
+  );
+
+  return response.data;
+};
+
+export const getTradeScreenshotReviewService = async (
+  journalId: string,
+  tradeId: string,
+): Promise<ScreenshotReviewResponse> => {
+  const response = await api.get<ScreenshotReviewResponse>(
+    `/journal/${journalId}/trades/${tradeId}/screenshot-review`,
   );
 
   return response.data;

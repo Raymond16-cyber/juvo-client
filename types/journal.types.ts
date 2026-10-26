@@ -154,6 +154,28 @@ export interface JournalHistoryItem extends JournalSummary {
   };
 }
 
+export interface ScreenshotReviewSections {
+  chartObservations: string;
+  marketStructure: string;
+  setupAnalysis: string;
+  entryExitReview: string;
+  riskManagement: string;
+  whatWentWell: string;
+  whatCouldBeImproved: string;
+  keyLesson: string;
+  confidenceAndLimitations: string;
+}
+
+export interface TradeScreenshotAnalysis {
+  status: "ready";
+  mimeType?: string | null;
+  model?: string | null;
+  analyzedAt?: string | null;
+  review: ScreenshotReviewSections;
+  imageUrl?: string | null;
+  imageExpiresAt?: string | null;
+}
+
 export interface JournalDetailTrade extends JournalListTradeSummary {
   pips?: number;
   screenshots?: string[];
@@ -164,6 +186,7 @@ export interface JournalDetailTrade extends JournalListTradeSummary {
   lotSize?: number;
   riskPercentage?: number;
   notes?: string;
+  screenshotAnalysis?: TradeScreenshotAnalysis;
 }
 
 export interface JournalDetail extends JournalHistoryItem {
@@ -252,5 +275,14 @@ export interface BeforeTradingAudioPlaybackResponse {
   data: {
     playbackUrl: string;
     expiresAt: number;
+  };
+}
+
+export interface ScreenshotReviewResponse {
+  success: boolean;
+  message: string;
+  reused?: boolean;
+  data: TradeScreenshotAnalysis & {
+    tradeId: string;
   };
 }

@@ -1,19 +1,28 @@
 "use client";
 
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import TradeScreenshotReview, {
+  ScreenshotReviewDisplay,
+} from "@/components/journal/TradeScreenshotReview";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 import { getJournalDisplayPnl, getRecordCurrency } from "@/lib/account";
+import { getApiErrorMessage } from "@/lib/axios";
 import { formatDate, formatMoney, pnlClass } from "@/lib/format";
 import { controlClassName, textareaClassName } from "@/lib/ui";
+import {
+  analyzeTradeScreenshotService,
+} from "@/services/journal.service";
+import { getAiAccessService } from "@/services/ai.service";
 import { useJournalStore } from "@/stores/journal.store";
+import { AiAccess } from "@/types/ai.types";
 import { CompleteJournalPayload } from "@/types/journal.types";
 import { ArrowLeft, Bot, CheckCircle2, NotebookPen } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 const defaultReview: CompleteJournalPayload = {
   afterTrading: "",
@@ -88,11 +97,39 @@ export default function JournalDetailPage() {
     "Closed" | "Breakeven" | "Cancelled"
   >("Closed");
   const [message, setMessage] = useState<string | null>(null);
+  const [aiAccess, setAiAccess] = useState<AiAccess | null>(null);
+  const [aiAccessLoading, setAiAccessLoading] = useState(true);
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [analyzingScreenshot, setAnalyzingScreenshot] = useState(false);
+  const [screenshotError, setScreenshotError] = useState<string | null>(null);
+  const [followUpTradeId, setFollowUpTradeId] = useState<string | null>(null);
+  const [followUpFile, setFollowUpFile] = useState<File | null>(null);
+  const [followUpError, setFollowUpError] = useState<string | null>(null);
+  const [followUpAnalyzing, setFollowUpAnalyzing] = useState(false);
+  const closingInFlight = useRef(false);
 
   useEffect(() => {
     if (!journalId) return;
     getJournalById(journalId).catch(() => undefined);
   }, [getJournalById, journalId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setAiAccessLoading(true);
+    getAiAccessService()
+      .then((response) => {
+        if (!cancelled) setAiAccess(response.data);
+      })
+      .catch(() => {
+        if (!cancelled) setAiAccess(null);
+      })
+      .finally(() => {
+        if (!cancelled) setAiAccessLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!journal) return;
@@ -148,24 +185,84 @@ export default function JournalDetailPage() {
       })
     : null;
 
-  const handleCloseTrade = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!journal || !closingTradeId) return;
-    const response = await closeTrade(journal._id, closingTradeId, {
-      exitPrice: Number(exitPrice),
-      status: closeStatus,
-    });
+  const resetCloseForm = () => {
     setClosingTradeId(null);
     setExitPrice("");
-    const accountStatus = response.tradingAccount?.status;
-    setMessage(
-      accountStatus === "Passed"
-        ? "Trade closed. This trading account has passed its profit target."
-        : accountStatus === "Breached"
-          ? "Trade closed. This trading account has been breached."
-          : response.message || "Trade closed.",
-    );
-    await getJournalById(journal._id);
+    setCloseStatus("Closed");
+    setScreenshotFile(null);
+    setScreenshotError(null);
+    setAnalyzingScreenshot(false);
+  };
+
+  const handleCloseTrade = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!journal || !closingTradeId || closingInFlight.current) return;
+    closingInFlight.current = true;
+    setScreenshotError(null);
+
+    try {
+      const tradeId = closingTradeId;
+      const response = await closeTrade(journal._id, tradeId, {
+        exitPrice: Number(exitPrice),
+        status: closeStatus,
+      });
+
+      const accountStatus = response.tradingAccount?.status;
+      let closeMessage =
+        accountStatus === "Passed"
+          ? "Trade closed. This trading account has passed its profit target."
+          : accountStatus === "Breached"
+            ? "Trade closed. This trading account has been breached."
+            : response.message || "Trade closed.";
+
+      if (screenshotFile && aiAccess?.hasAccess) {
+        setAnalyzingScreenshot(true);
+        try {
+          await analyzeTradeScreenshotService(
+            journal._id,
+            tradeId,
+            screenshotFile,
+          );
+          closeMessage = `${closeMessage} Screenshot review saved.`;
+        } catch (error) {
+          const reviewError = getApiErrorMessage(
+            error,
+            "Trade saved. Screenshot review failed.",
+          );
+          setScreenshotError(reviewError);
+          closeMessage = `${closeMessage} Screenshot review failed.`;
+        } finally {
+          setAnalyzingScreenshot(false);
+        }
+      }
+
+      setMessage(closeMessage);
+      resetCloseForm();
+      await getJournalById(journal._id);
+    } catch {
+      // closeTrade already stores the error in the journal store.
+    } finally {
+      closingInFlight.current = false;
+    }
+  };
+
+  const handleFollowUpReview = async (tradeId: string) => {
+    if (!journal || !followUpFile || followUpAnalyzing) return;
+    setFollowUpAnalyzing(true);
+    setFollowUpError(null);
+    try {
+      await analyzeTradeScreenshotService(journal._id, tradeId, followUpFile);
+      setFollowUpTradeId(null);
+      setFollowUpFile(null);
+      setMessage("Screenshot review saved.");
+      await getJournalById(journal._id);
+    } catch (error) {
+      setFollowUpError(
+        getApiErrorMessage(error, "Unable to analyze this screenshot."),
+      );
+    } finally {
+      setFollowUpAnalyzing(false);
+    }
   };
 
   const handleComplete = async (event: FormEvent<HTMLFormElement>) => {
@@ -317,13 +414,65 @@ export default function JournalDetailPage() {
                               onClick={() => {
                                 setClosingTradeId(trade._id);
                                 setExitPrice(String(trade.takeProfit || ""));
+                                setScreenshotFile(null);
+                                setScreenshotError(null);
                               }}
                             >
                               Close trade
                             </Button>
                           ) : null}
+                          {trade.status !== "Open" &&
+                          !trade.screenshotAnalysis &&
+                          followUpTradeId !== trade._id ? (
+                            <Button
+                              variant="ghost"
+                              className="mt-3 h-9 px-3"
+                              onClick={() => {
+                                setFollowUpTradeId(trade._id);
+                                setFollowUpFile(null);
+                                setFollowUpError(null);
+                              }}
+                            >
+                              Add chart review
+                            </Button>
+                          ) : null}
                         </div>
                       </div>
+                      {trade.screenshotAnalysis ? (
+                        <ScreenshotReviewDisplay
+                          analysis={trade.screenshotAnalysis}
+                        />
+                      ) : null}
+                      {followUpTradeId === trade._id ? (
+                        <div className="mt-4 space-y-3">
+                          <TradeScreenshotReview
+                            access={aiAccess}
+                            accessLoading={aiAccessLoading}
+                            selectedFile={followUpFile}
+                            onFileChange={setFollowUpFile}
+                            analyzing={followUpAnalyzing}
+                            error={followUpError}
+                            mode="picker"
+                            onRequestReview={() =>
+                              handleFollowUpReview(trade._id)
+                            }
+                            requestDisabled={!followUpFile}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="h-9 px-3"
+                            disabled={followUpAnalyzing}
+                            onClick={() => {
+                              setFollowUpTradeId(null);
+                              setFollowUpFile(null);
+                              setFollowUpError(null);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : null}
                     </article>
                   ))
                 ) : (
@@ -339,34 +488,53 @@ export default function JournalDetailPage() {
                   <h3 className="text-lg font-bold text-slate-950 dark:text-white">
                     Close trade
                   </h3>
-                  <form
-                    className="mt-4 grid gap-3 sm:grid-cols-3"
-                    onSubmit={handleCloseTrade}
-                  >
-                    <input
-                      className={controlClassName}
-                      type="number"
-                      min="0"
-                      step="any"
-                      required
-                      placeholder="Exit price"
-                      value={exitPrice}
-                      onChange={(event) => setExitPrice(event.target.value)}
+                  <form className="mt-4 space-y-4" onSubmit={handleCloseTrade}>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <input
+                        className={controlClassName}
+                        type="number"
+                        min="0"
+                        step="any"
+                        required
+                        placeholder="Exit price"
+                        value={exitPrice}
+                        disabled={analyzingScreenshot}
+                        onChange={(event) => setExitPrice(event.target.value)}
+                      />
+                      <select
+                        className={controlClassName}
+                        value={closeStatus}
+                        disabled={analyzingScreenshot}
+                        onChange={(event) =>
+                          setCloseStatus(
+                            event.target.value as typeof closeStatus,
+                          )
+                        }
+                      >
+                        <option value="Closed">Closed</option>
+                        <option value="Breakeven">Breakeven</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
+                      <Button
+                        type="submit"
+                        disabled={isLoading || analyzingScreenshot}
+                      >
+                        {analyzingScreenshot
+                          ? "Saving and reviewing…"
+                          : isLoading
+                            ? "Saving…"
+                            : "Save close"}
+                      </Button>
+                    </div>
+                    <TradeScreenshotReview
+                      access={aiAccess}
+                      accessLoading={aiAccessLoading}
+                      selectedFile={screenshotFile}
+                      onFileChange={setScreenshotFile}
+                      analyzing={analyzingScreenshot}
+                      error={screenshotError}
+                      mode="picker"
                     />
-                    <select
-                      className={controlClassName}
-                      value={closeStatus}
-                      onChange={(event) =>
-                        setCloseStatus(event.target.value as typeof closeStatus)
-                      }
-                    >
-                      <option value="Closed">Closed</option>
-                      <option value="Breakeven">Breakeven</option>
-                      <option value="Cancelled">Cancelled</option>
-                    </select>
-                    <Button type="submit" disabled={isLoading}>
-                      Save close
-                    </Button>
                   </form>
                   <div className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
                     {estimatedClose ? (
@@ -392,6 +560,15 @@ export default function JournalDetailPage() {
                       </p>
                     )}
                   </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="mt-3 h-9 px-3"
+                    disabled={analyzingScreenshot}
+                    onClick={resetCloseForm}
+                  >
+                    Cancel
+                  </Button>
                 </Card>
               ) : null}
             </div>
