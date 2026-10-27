@@ -5,7 +5,7 @@ import { getSelectedAccount, isAccountInPlay } from "@/lib/account";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useAuthStore } from "@/stores/auth.store";
 import { useJournalStore } from "@/stores/journal.store";
-import { Bell, CalendarDays, Plus, Rocket } from "lucide-react";
+import { Bell, CalendarDays, Flame, Plus, Rocket } from "lucide-react";
 import Link from "next/link";
 import { ReactNode, useEffect } from "react";
 
@@ -28,7 +28,10 @@ export default function DashboardHeader({
   );
   const canTrade = isAccountInPlay(selectedAccount);
 
-  const streak = user?.stats?.currentJournalStreak || 0;
+  const streak =
+    journalStatus?.streak?.currentStreak ??
+    user?.stats?.currentJournalStreak ??
+    0;
   const primaryJournalLabel = !canTrade
     ? "New Account"
     : journalStatus?.hasJournalToday
@@ -63,8 +66,9 @@ export default function DashboardHeader({
             Trading Dashboard
           </h1>
           {streak > 0 ? (
-            <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-cyan-700 dark:text-primary">
-              {streak}-day journal streak
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500/15 to-amber-400/15 px-3 py-1 text-xs font-bold text-orange-700 dark:text-orange-300">
+              <Flame size={13} className="fill-orange-500/30" />
+              {streak}-day streak
             </span>
           ) : null}
         </div>

@@ -5,6 +5,7 @@ import { animateDashboardEntrance } from "@/animations/dashboard";
 import AccountSummary from "@/components/dashboard/AccountSummary";
 import BehavioralInsights from "@/components/dashboard/BehavioralInsights";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import JournalStreakCard from "@/components/dashboard/JournalStreakCard";
 import MetricCard from "@/components/dashboard/MetricCard";
 import MyDayWorkflowModal from "@/components/dashboard/MyDayWorkflowModal";
 import PerformanceChart from "@/components/dashboard/PerformanceChart";
@@ -60,7 +61,13 @@ export default function DashboardOverview() {
   const user = useAuthStore((state) => state.user);
 
   const journals = useJournalStore((state) => state.journals);
+  const journalStatus = useJournalStore((state) => state.journalStatus);
+  const isJournalLoading = useJournalStore((state) => state.isLoading);
   const getUserJournals = useJournalStore((state) => state.getUserJournals);
+  const getTodayJournalStatus = useJournalStore(
+    (state) => state.getTodayJournalStatus,
+  );
+  const fetchCurrentUser = useAuthStore((state) => state.fetchCurrentUser);
 
   const analytics = useAnalyticsStore((state) => state.data);
   const fetchAnalytics = useAnalyticsStore((state) => state.fetchAnalytics);
@@ -673,6 +680,8 @@ useEffect(() => {
   const refreshWorkspace = () => {
     fetchAccounts().catch(() => undefined);
     getUserJournals().catch(() => undefined);
+    getTodayJournalStatus().catch(() => undefined);
+    fetchCurrentUser().catch(() => undefined);
     fetchGoals().catch(() => undefined);
     fetchBrokerPositions("open").catch(() => undefined);
 
@@ -684,9 +693,16 @@ useEffect(() => {
   useEffect(() => {
     fetchAccounts().catch(() => undefined);
     getUserJournals().catch(() => undefined);
+    getTodayJournalStatus().catch(() => undefined);
     fetchGoals().catch(() => undefined);
     fetchBrokerPositions("open").catch(() => undefined);
-  }, [fetchAccounts, fetchBrokerPositions, fetchGoals, getUserJournals]);
+  }, [
+    fetchAccounts,
+    fetchBrokerPositions,
+    fetchGoals,
+    getTodayJournalStatus,
+    getUserJournals,
+  ]);
 
   useEffect(() => {
     if (!selectedAccount?._id) return;
@@ -847,6 +863,17 @@ useEffect(() => {
 
         {/* Sidebar */}
         <div className="order-1 space-y-5 xl:order-2 xl:space-y-6">
+          <JournalStreakCard
+            streak={journalStatus?.streak}
+            loading={isJournalLoading && !journalStatus?.streak}
+            onOpenJournal={() => {
+              openMyDayWorkflow(
+                Boolean(journalStatus?.hasJournalToday) &&
+                  isAccountInPlay(selectedAccount),
+              );
+            }}
+          />
+
           <div data-tour="account-summary">
             <AccountSummary
               account={dashboardAccount}

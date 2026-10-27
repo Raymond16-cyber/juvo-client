@@ -9,6 +9,7 @@ import {
   JournalDetailResponse,
   JournalExport,
   JournalStatusResponse,
+  JournalStreakResponse,
   UserJournalsResponse,
   BeforeTradingAudioResponse,
   BeforeTradingAudioPlaybackResponse,
@@ -26,6 +27,12 @@ export const getTodayJournalStatusService =
       "/journal/get-today-journal-status",
     );
 
+    return response.data;
+  };
+
+export const getJournalStreakService =
+  async (): Promise<JournalStreakResponse> => {
+    const response = await api.get<JournalStreakResponse>("/journal/streak");
     return response.data;
   };
 

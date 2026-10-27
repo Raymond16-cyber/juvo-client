@@ -224,11 +224,35 @@ export type CloseTradePayload = {
   notes?: string;
 };
 
+export interface JournalStreakDay {
+  date: string;
+  completed: boolean;
+  isToday: boolean;
+}
+
+export interface JournalStreakData {
+  currentStreak: number;
+  longestStreak: number;
+  todayCompleted: boolean;
+  todayKey: string;
+  lastQualifyingJournalDayKey?: string | null;
+  lastQualifyingJournalAt?: string | null;
+  week: JournalStreakDay[];
+  headline: string;
+  message: string;
+}
+
+export interface JournalStreakResponse {
+  data: JournalStreakData;
+  message: string;
+}
+
 export interface JournalStatusData {
   hasJournalToday: boolean;
   journal: JournalSummary | null;
   date: string;
   timeZone: string;
+  streak?: JournalStreakData | null;
 }
 
 export interface JournalStatusResponse {
