@@ -1,6 +1,7 @@
 "use client";
 
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
+import { cn } from "@/lib/ui";
 import { LucideIcon } from "lucide-react";
 
 type MetricCardProps = {
@@ -47,18 +48,23 @@ export default function MetricCard({
     loss: "text-rose-600 dark:text-rose-400",
     neutral: "text-slate-500 dark:text-slate-400",
   }[tone];
+  const iconTone = {
+    profit: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+    loss: "bg-rose-500/10 text-rose-600 dark:text-rose-300",
+    neutral: "bg-slate-100 text-slate-600 dark:bg-white/[0.06] dark:text-slate-300",
+  }[tone];
 
   return (
     <section
       data-dashboard-card
-      className="dashboard-card rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/70 dark:border-white/10 dark:bg-card dark:hover:shadow-black/30 sm:min-h-40 sm:p-6"
+      className="dashboard-card rounded-2xl border border-slate-200/90 bg-white p-4 dark:border-white/10 dark:bg-card sm:p-5"
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
             {label}
           </p>
-          <p className="mt-3 text-2xl font-bold leading-none text-slate-950 dark:text-white sm:mt-4 sm:text-2xl">
+          <p className="mt-3 text-2xl font-bold tabular-nums leading-none text-slate-950 dark:text-white">
             {counter ? (
               <AnimatedCounter
                 value={counter.value}
@@ -69,11 +75,16 @@ export default function MetricCard({
             )}
           </p>
         </div>
-        <div className="pulse-profit grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-700 dark:bg-white/[0.06] dark:text-primary">
-          <Icon size={20} />
+        <div
+          className={cn(
+            "grid h-10 w-10 shrink-0 place-items-center rounded-xl",
+            iconTone,
+          )}
+        >
+          <Icon size={18} />
         </div>
       </div>
-      <p className={`mt-4 text-sm font-semibold sm:mt-6 ${toneClass}`}>{change}</p>
+      <p className={cn("mt-4 text-sm font-medium", toneClass)}>{change}</p>
     </section>
   );
 }

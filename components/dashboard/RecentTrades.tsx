@@ -47,19 +47,22 @@ export default function RecentTrades({
   return (
     <section
       data-dashboard-card
-      className="dashboard-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card"
+      className="dashboard-card rounded-2xl border border-slate-200/90 bg-white p-4 dark:border-white/10 dark:bg-card sm:p-5"
     >
-      <div className="mb-5 flex items-center justify-between gap-4">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-            Trades
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+            Activity
           </p>
           <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">
-            Live & Recent
+            Live & recent trades
           </h2>
         </div>
-        <Link href="/home/journal" className="text-sm font-bold text-primary">
-          View all
+        <Link
+          href="/home/journal"
+          className="text-sm font-semibold text-primary hover:underline"
+        >
+          View history
         </Link>
       </div>
 
@@ -104,24 +107,21 @@ export default function RecentTrades({
                 <motion.div key={trade._id} variants={subtleListItem}>
                   <Link
                     href={`/home/journal/${trade.journalId}`}
-                    className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.04]"
+                    className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/80 px-3.5 py-3 transition hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-white/20"
                   >
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-bold text-slate-950 dark:text-white">
                           {trade.symbol}
                         </p>
-                        {trade.direction === "long" ? (
-                          <ArrowUpRight size={14} className="text-emerald-500" />
-                        ) : (
-                          <TrendingDown size={14} className="text-rose-500" />
-                        )}
-                        {trade.source === "ctrader" || trade.source === "metatrader" ? (
-                          <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-bold text-primary">
-                            {trade.source === "ctrader" ? "cTrader" : trade.platform?.toUpperCase() || "MetaTrader"}
-                            {trade.brokerMetadata?.origin === "ea" ? " / EA" : ""}
-                          </span>
-                        ) : null}
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                          {trade.direction === "long" ? (
+                            <ArrowUpRight size={13} className="text-emerald-500" />
+                          ) : (
+                            <TrendingDown size={13} className="text-rose-500" />
+                          )}
+                          {trade.direction}
+                        </span>
                         <span
                           className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                             trade.status === "Open"
@@ -136,19 +136,20 @@ export default function RecentTrades({
                           {trade.status}
                         </span>
                       </div>
-                      <p className="mt-2 truncate text-sm text-slate-500 dark:text-slate-400">
-                        {trade.direction} · {trade.session || "No session"} ·{" "}
+                      <p className="mt-1.5 truncate text-sm text-slate-500 dark:text-slate-400">
+                        {formatDate(trade.openedAt || trade.journalDate || trade.createdAt)} ·{" "}
                         {trade.instrument}
+                        {trade.session ? ` · ${trade.session}` : ""}
                       </p>
                     </div>
-                    <div className="shrink-0 text-right">
+                    <div className="shrink-0 text-right tabular-nums">
                       <p className={`font-bold ${pnlClass(trade.profitLoss || 0)}`}>
                         {formatMoney(
                           trade.profitLoss || 0,
                           trade.displayCurrency,
                         )}
                       </p>
-                      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         RR {trade.achievedRR ?? trade.plannedRR ?? "N/A"}
                       </p>
                     </div>
@@ -158,9 +159,14 @@ export default function RecentTrades({
             })}
           </motion.div>
         ) : (
-          <p className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500 dark:bg-white/[0.04] dark:text-slate-400">
-            No journal trades yet. Start your day or sync broker history.
-          </p>
+          <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 px-4 py-5 dark:border-white/10 dark:bg-white/[0.03]">
+            <p className="text-sm font-semibold text-slate-950 dark:text-white">
+              No journal trades yet
+            </p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Start My Day, log a trade, or sync broker history to populate this feed.
+            </p>
+          </div>
         )}
       </div>
     </section>

@@ -118,19 +118,19 @@ export default function DashboardShell({
             fillViewport ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
           }`}
         >
-          <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between border-b border-slate-200 bg-white/85 px-4 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-background/80 lg:hidden">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+          <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between border-b border-slate-200/90 bg-white/90 px-4 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-background/85 lg:hidden">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                 JUVO
               </p>
-              <h1 className="text-lg font-bold">{title}</h1>
+              <h1 className="truncate text-lg font-bold tracking-tight">{title}</h1>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle compact />
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}
-                className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-white"
                 aria-label="Open sidebar"
               >
                 <Menu size={20} />

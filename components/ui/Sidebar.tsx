@@ -91,10 +91,10 @@ const Sidebar = ({
     <motion.aside
       layout
       transition={panelTransition}
-      className={`fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 transform flex-col border-r border-slate-200 bg-white px-4 py-5 text-slate-700 shadow-2xl shadow-slate-200/60 transition-[transform,width] duration-300 dark:border-white/10 dark:bg-[#070b14] dark:text-slate-200 dark:shadow-black/40 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:shadow-none ${
-        isCollapsed ? "lg:w-24 lg:px-4" : "lg:w-72"
+      className={`fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 transform flex-col border-r border-slate-200/90 bg-white/95 px-3 py-5 text-slate-700 backdrop-blur-xl transition-[transform,width] duration-300 dark:border-white/10 dark:bg-[#070b14]/95 dark:text-slate-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+        isCollapsed ? "lg:w-20 lg:px-2.5" : "lg:w-72"
       } ${
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        isOpen ? "translate-x-0 shadow-2xl shadow-slate-300/40 dark:shadow-black/50" : "-translate-x-full"
       }`}
     >
       <div className={`flex items-center justify-between ${isCollapsed ? "mb-10 lg:flex-col lg:gap-4" : "mb-8"}`}>
@@ -164,24 +164,26 @@ const Sidebar = ({
                     href={item.href}
                     onClick={onClose}
                     title={isCollapsed ? item.name : undefined}
-                    className={`group relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition ${
-                      isCollapsed ? "lg:h-12 lg:justify-center lg:px-0 lg:py-0" : ""
+                    className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                      isCollapsed ? "lg:h-11 lg:justify-center lg:px-0 lg:py-0" : ""
                     } ${
                       isActive
-                        ? "bg-slate-950 text-white shadow-lg shadow-slate-300/50 dark:bg-primary dark:text-slate-950 dark:shadow-primary/20"
-                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                        ? "bg-slate-950/95 text-white dark:bg-primary/15 dark:text-primary"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
                     }`}
                   >
                     {isActive ? (
                       <motion.span
-                        layoutId="sidebar-active-item"
-                        className="absolute inset-0 rounded-2xl bg-slate-950 dark:bg-primary"
+                        layoutId="sidebar-active-rail"
+                        className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-primary"
                         transition={{ duration: 0.2, ease: juvoEase }}
                       />
                     ) : null}
                     <Icon
                       size={18}
-                      className="relative z-10 shrink-0 transition-transform group-hover:-translate-y-0.5"
+                      className={`relative z-10 shrink-0 ${
+                        isActive ? "text-primary dark:text-primary" : ""
+                      }`}
                     />
                     <span className={`relative z-10 truncate ${isCollapsed ? "lg:hidden" : ""}`}>
                       {item.name}

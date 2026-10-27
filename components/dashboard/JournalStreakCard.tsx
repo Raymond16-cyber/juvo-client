@@ -140,7 +140,7 @@ export default function JournalStreakCard({
         data-tour="journal-streak"
         className="block w-full rounded-2xl text-left transition hover:-translate-y-0.5 hover:shadow-md"
       >
-        <Card className="border-orange-500/10 p-5 dark:border-orange-400/10">
+        <Card className="border-orange-500/15 p-4 dark:border-orange-400/15 sm:p-5">
           {content}
         </Card>
       </button>
@@ -153,7 +153,7 @@ export default function JournalStreakCard({
       data-tour="journal-streak"
       className="block rounded-2xl transition hover:-translate-y-0.5 hover:shadow-md"
     >
-      <Card className="border-orange-500/10 p-5 dark:border-orange-400/10">
+      <Card className="border-orange-500/15 p-4 dark:border-orange-400/15 sm:p-5">
         {content}
       </Card>
     </Link>

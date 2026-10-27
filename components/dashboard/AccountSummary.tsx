@@ -28,7 +28,7 @@ export default function AccountSummary({ account, livePnl = 0 }: AccountSummaryP
   return (
     <section
       data-dashboard-card
-      className="dashboard-card rounded-2xl border border-slate-200 bg-slate-950 p-7 text-white shadow-sm dark:border-white/10 dark:bg-[#08111f]"
+      className="dashboard-card rounded-2xl border border-slate-800 bg-slate-950 p-5 text-white dark:border-white/10 dark:bg-[#08111f] sm:p-6"
     >
       <div className="flex items-center justify-between gap-4">
         <div>

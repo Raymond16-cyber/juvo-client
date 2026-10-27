@@ -45,14 +45,19 @@ export default function BehavioralInsights({ insights = [] }: BehavioralInsights
     <section
       ref={insightsRef}
       data-dashboard-card
-      className="dashboard-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card"
+      className="dashboard-card rounded-2xl border border-slate-200/90 bg-white p-4 dark:border-white/10 dark:bg-card sm:p-5"
     >
-      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-        Behavioural Insights
+      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+        Behaviour
       </p>
       <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">
-        Juvo AI Notes
+        Actionable insights
       </h2>
+      {!insights.length ? (
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Guidance below is general until you complete enough journaled sessions for personalised notes.
+        </p>
+      ) : null}
 
       <div className="mt-6 space-y-4">
         {items.map((insight) => {

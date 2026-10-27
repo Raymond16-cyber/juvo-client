@@ -12,6 +12,7 @@ import NoTradeDayModal from "@/components/dashboard/NoTradeDayModal";
 import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentTrades from "@/components/dashboard/RecentTrades";
+import TodayJournalStatus from "@/components/dashboard/TodayJournalStatus";
 import TradingGoals from "@/components/dashboard/TradingGoals";
 
 import {
@@ -36,7 +37,7 @@ import {
 } from "@/services/dashboardGuide.service";
 
 import { Activity, Percent, TrendingDown, TrendingUp } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
@@ -155,7 +156,7 @@ export default function DashboardOverview() {
   // MY DAY WORKFLOW
   // --------------------------------------------------
 
-  const openMyDayWorkflow = (hasJournalToday?: boolean) => {
+  const openMyDayWorkflow = useCallback((hasJournalToday?: boolean) => {
     if (hasJournalToday) {
       setWorkflowPanel("trade");
     } else if (!selectedAccount || !isAccountInPlay(selectedAccount)) {
@@ -165,12 +166,14 @@ export default function DashboardOverview() {
     }
 
     setIsMyDayOpen(true);
-  };
+  }, [selectedAccount]);
 
   // Keep the latest workflow handler available to the
   // checklist without recreating the Driver.js instances.
   const openMyDayWorkflowRef = useRef(openMyDayWorkflow);
-  openMyDayWorkflowRef.current = openMyDayWorkflow;
+  useEffect(() => {
+    openMyDayWorkflowRef.current = openMyDayWorkflow;
+  }, [openMyDayWorkflow]);
 
   // --------------------------------------------------
   // DRIVER.JS: PRODUCT TOUR, HINTS AND CHECKLIST
@@ -461,9 +464,7 @@ useEffect(() => {
       },
     ];
 
-    let tour: ReturnType<typeof driver> | undefined;
-
-    tour = driver({
+    const tour = driver({
       showProgress: true,
       progressText: "{{current}} of {{total}}",
 
@@ -777,64 +778,39 @@ useEffect(() => {
   // --------------------------------------------------
 
   return (
-    <div ref={dashboardRef} data-dashboard-main>
+    <div ref={dashboardRef} data-dashboard-main className="space-y-5 lg:space-y-6">
       <DashboardHeader onOpenMyDay={openMyDayWorkflow} />
 
       {/* Mobile dashboard heading */}
-      <div className="mb-5 lg:hidden">
-        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          Welcome back, {user?.fullName || "Trader"}!
+      <div className="lg:hidden">
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          Welcome back, {user?.fullName || "Trader"}
         </p>
-
-        <h1 className="mt-1 text-2xl font-bold text-slate-950 dark:text-white sm:text-3xl">
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
           Trading Dashboard
         </h1>
       </div>
 
-      {/* Trading discipline ticker */}
-      <div
-        data-dashboard-card
-        className="dashboard-card mb-5 overflow-hidden rounded-2xl border border-slate-200 bg-white py-2 shadow-sm dark:border-white/10 dark:bg-card lg:mb-6"
-      >
-        <div
-          data-dashboard-ticker
-          className="dashboard-ticker-track flex w-max gap-8 px-5 text-xs font-bold text-slate-500 dark:text-slate-400"
-        >
-          {[
-            "Journal before you trade",
-            "Risk first. Size second.",
-            "One A+ setup beats five impulses",
-            "Review the day, not the tick",
-            "Discipline compounds",
-            "Juvo is your process coach",
-            "Journal before you trade",
-            "Risk first. Size second.",
-            "One A+ setup beats five impulses",
-            "Review the day, not the tick",
-            "Discipline compounds",
-            "Juvo is your process coach",
-          ].map((item, index) => (
-            <span key={`${item}-${index}`}>{item}</span>
-          ))}
-        </div>
-      </div>
+      <TodayJournalStatus
+        status={journalStatus}
+        loading={isJournalLoading}
+        onOpenMyDay={openMyDayWorkflow}
+        onLogTrade={() => openMyDayWorkflow(true)}
+        onNoTradeDay={() => setIsNoTradeOpen(true)}
+      />
 
-      {/* Main dashboard layout */}
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,380px)] xl:gap-6">
-        {/* Main content */}
-        <div className="order-2 space-y-5 xl:order-1 xl:space-y-6">
-          {/* Metrics */}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)] xl:gap-6">
+        <div className="order-2 space-y-5 xl:order-1">
           <div
             data-tour="dashboard-metrics"
-            className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4"
+            className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
           >
             {metrics.map((metric) => (
               <MetricCard key={metric.label} {...metric} />
             ))}
           </div>
 
-          {/* Performance chart and recent trades */}
-          <div className="grid gap-5 2xl:grid-cols-[minmax(0,1.3fr)_minmax(300px,0.8fr)]">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.9fr)]">
             <div data-tour="performance-chart" className="min-w-0">
               <PerformanceChart
                 curve={analytics?.equityCurve}
@@ -851,7 +827,6 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Goals and behavioural insights */}
           <div className="grid gap-5 lg:grid-cols-2">
             <div data-tour="trading-goals" className="min-w-0">
               <TradingGoals goals={accountGoals} />
@@ -863,17 +838,13 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="order-1 space-y-5 xl:order-2 xl:space-y-6">
+        <div className="order-1 space-y-5 xl:order-2">
           <JournalStreakCard
             streak={journalStatus?.streak}
             loading={isJournalLoading && !journalStatus?.streak}
-            onOpenJournal={() => {
-              openMyDayWorkflow(
-                Boolean(journalStatus?.hasJournalToday) &&
-                  isAccountInPlay(selectedAccount),
-              );
-            }}
+            onOpenJournal={() =>
+              openMyDayWorkflow(Boolean(journalStatus?.hasJournalToday))
+            }
           />
 
           <div data-tour="account-summary">
@@ -892,7 +863,6 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* My Day workflow modal */}
       <MyDayWorkflowModal
         isOpen={isMyDayOpen}
         initialPanel={workflowPanel}

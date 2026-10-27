@@ -23,18 +23,21 @@ export default function TradingGoals({ goals = [] }: TradingGoalsProps) {
     <section
       ref={goalsRef}
       data-dashboard-card
-      className="dashboard-card rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-card"
+      className="dashboard-card rounded-2xl border border-slate-200/90 bg-white p-4 dark:border-white/10 dark:bg-card sm:p-5"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
             Growth
           </p>
           <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">
-            Trading Goals
+            Trading goals
           </h2>
         </div>
-        <Link href="/home/growth" className="text-sm font-bold text-primary">
+        <Link
+          href="/home/growth"
+          className="text-sm font-semibold text-primary hover:underline"
+        >
           Manage
         </Link>
       </div>
