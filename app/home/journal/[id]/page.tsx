@@ -106,6 +106,9 @@ export default function JournalDetailPage() {
   const [followUpFile, setFollowUpFile] = useState<File | null>(null);
   const [followUpError, setFollowUpError] = useState<string | null>(null);
   const [followUpAnalyzing, setFollowUpAnalyzing] = useState(false);
+  const [expandedReviewTradeId, setExpandedReviewTradeId] = useState<
+    string | null
+  >(null);
   const closingInFlight = useRef(false);
 
   useEffect(() => {
@@ -223,6 +226,7 @@ export default function JournalDetailPage() {
             tradeId,
             screenshotFile,
           );
+          setExpandedReviewTradeId(tradeId);
           closeMessage = `${closeMessage} Screenshot review saved.`;
         } catch (error) {
           const reviewError = getApiErrorMessage(
@@ -254,6 +258,7 @@ export default function JournalDetailPage() {
       await analyzeTradeScreenshotService(journal._id, tradeId, followUpFile);
       setFollowUpTradeId(null);
       setFollowUpFile(null);
+      setExpandedReviewTradeId(tradeId);
       setMessage("Screenshot review saved.");
       await getJournalById(journal._id);
     } catch (error) {
@@ -440,7 +445,9 @@ export default function JournalDetailPage() {
                       </div>
                       {trade.screenshotAnalysis ? (
                         <ScreenshotReviewDisplay
+                          key={`${trade._id}-${expandedReviewTradeId === trade._id ? "open" : "closed"}`}
                           analysis={trade.screenshotAnalysis}
+                          defaultOpen={expandedReviewTradeId === trade._id}
                         />
                       ) : null}
                       {followUpTradeId === trade._id ? (

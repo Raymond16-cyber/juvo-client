@@ -7,9 +7,16 @@ import {
   ScreenshotReviewSections,
   TradeScreenshotAnalysis,
 } from "@/types/journal.types";
-import { ImagePlus, Lock, Sparkles, Trash2, Upload } from "lucide-react";
+import {
+  ChevronDown,
+  ImagePlus,
+  Lock,
+  Sparkles,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import Link from "next/link";
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useId, useMemo, useState } from "react";
 
 const REVIEW_SECTIONS: Array<{
   key: keyof ScreenshotReviewSections;
@@ -81,43 +88,103 @@ function entitlementCopy(access: AiAccess | null) {
 
 export function ScreenshotReviewDisplay({
   analysis,
+  defaultOpen = false,
 }: {
   analysis: TradeScreenshotAnalysis;
+  defaultOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const panelId = useId();
+  const keyLesson = analysis.review.keyLesson?.trim() || "";
+  const savedLabel = analysis.analyzedAt
+    ? `Saved ${new Date(analysis.analyzedAt).toLocaleString()}`
+    : null;
+
   return (
-    <div className="mt-4 space-y-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-      <div className="flex items-center gap-2 text-primary">
-        <Sparkles size={16} />
-        <h4 className="text-sm font-bold text-slate-950 dark:text-white">
-          AI chart review
-        </h4>
-      </div>
-      {analysis.imageUrl ? (
-        // Signed Cloudinary URL; expires shortly after load.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={analysis.imageUrl}
-          alt="Trade chart screenshot"
-          className="max-h-72 w-full rounded-xl object-contain bg-white dark:bg-black/20"
-        />
-      ) : null}
-      <div className="space-y-3">
-        {REVIEW_SECTIONS.map(({ key, label }) => (
-          <div key={key}>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
-              {label}
-            </p>
-            <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
-              {analysis.review[key]}
-            </p>
+    <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/80 dark:border-white/10 dark:bg-white/[0.03]">
+      <button
+        type="button"
+        className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-100/80 dark:hover:bg-white/[0.04]"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <Sparkles size={16} className="mt-0.5 shrink-0 text-primary" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-3">
+            <h4 className="text-sm font-bold text-slate-950 dark:text-white">
+              AI chart review
+            </h4>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              {open ? "Hide" : "View"}
+              <ChevronDown
+                size={16}
+                className={`transition-transform ${open ? "rotate-180" : ""}`}
+              />
+            </span>
           </div>
-        ))}
-      </div>
-      {analysis.analyzedAt ? (
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Saved {new Date(analysis.analyzedAt).toLocaleString()}
-          {analysis.model ? ` · ${analysis.model}` : ""}
-        </p>
+          {!open ? (
+            <>
+              {keyLesson ? (
+                <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-600 dark:text-slate-300">
+                  {keyLesson}
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Chart review saved. Expand to read the full notes.
+                </p>
+              )}
+              {savedLabel ? (
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  {savedLabel}
+                </p>
+              ) : null}
+            </>
+          ) : null}
+        </div>
+        {!open && analysis.imageUrl ? (
+          // Signed Cloudinary URL; expires shortly after load.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={analysis.imageUrl}
+            alt=""
+            className="h-14 w-20 shrink-0 rounded-lg object-cover bg-white dark:bg-black/20"
+          />
+        ) : null}
+      </button>
+
+      {open ? (
+        <div
+          id={panelId}
+          className="space-y-4 border-t border-slate-200 px-4 py-4 dark:border-white/10"
+        >
+          {analysis.imageUrl ? (
+            // Signed Cloudinary URL; expires shortly after load.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={analysis.imageUrl}
+              alt="Trade chart screenshot"
+              className="max-h-72 w-full rounded-xl object-contain bg-white dark:bg-black/20"
+            />
+          ) : null}
+          <div className="space-y-3">
+            {REVIEW_SECTIONS.map(({ key, label }) => (
+              <div key={key}>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                  {label}
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
+                  {analysis.review[key]}
+                </p>
+              </div>
+            ))}
+          </div>
+          {savedLabel ? (
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {savedLabel}
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
