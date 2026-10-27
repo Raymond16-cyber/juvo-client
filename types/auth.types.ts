@@ -4,6 +4,7 @@ export interface User {
   email: string;
   avatar: string | null;
   authProvider: "local" | "google" | "apple";
+  emailVerified?: boolean;
   profile?: {
     country?: string;
     timezone?: string;
