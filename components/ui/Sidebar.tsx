@@ -2,7 +2,7 @@
 
 import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { juvoEase, panelTransition } from "@/lib/motion";
+import { panelTransition } from "@/lib/motion";
 import { useAuthStore } from "@/stores/auth.store";
 import {
   BadgeDollarSign,
@@ -175,8 +175,8 @@ const Sidebar = ({
                     {isActive ? (
                       <motion.span
                         layoutId="sidebar-active-rail"
-                        className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-primary"
-                        transition={{ duration: 0.2, ease: juvoEase }}
+                        className="pointer-events-none absolute bottom-2 left-0 top-2 w-1 rounded-full bg-primary"
+                        transition={{ type: "spring", stiffness: 420, damping: 36 }}
                       />
                     ) : null}
                     <Icon
