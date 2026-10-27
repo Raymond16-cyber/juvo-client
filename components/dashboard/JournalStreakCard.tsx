@@ -126,7 +126,7 @@ export default function JournalStreakCard({
           </span>
         </p>
         <p className="font-semibold text-orange-600 dark:text-orange-300">
-          {todayCompleted ? "Habit protected" : "Open journal"}
+          {todayCompleted ? "Habit protected" : "Log trade or no-trade day"}
         </p>
       </div>
     </>

@@ -10,6 +10,8 @@ import {
   JournalExport,
   JournalStatusResponse,
   JournalStreakResponse,
+  NoTradeDayPayload,
+  NoTradeDayResponse,
   UserJournalsResponse,
   BeforeTradingAudioResponse,
   BeforeTradingAudioPlaybackResponse,
@@ -35,6 +37,27 @@ export const getJournalStreakService =
     const response = await api.get<JournalStreakResponse>("/journal/streak");
     return response.data;
   };
+
+export const getTodayNoTradeDayService = async () => {
+  const response = await api.get<{
+    message: string;
+    data: {
+      localDayKey: string;
+      timezone: string;
+      entry: NoTradeDayResponse["data"]["entry"] | null;
+    };
+  }>("/journal/no-trade-day/today");
+  return response.data;
+};
+
+export const upsertNoTradeDayService = async (
+  data: NoTradeDayPayload,
+): Promise<NoTradeDayResponse> => {
+  const response = await api.post<NoTradeDayResponse>("/journal/no-trade-day", {
+    data,
+  });
+  return response.data;
+};
 
 export const getUserJournalsService =
   async (): Promise<UserJournalsResponse> => {

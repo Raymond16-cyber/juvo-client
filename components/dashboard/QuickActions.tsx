@@ -1,13 +1,17 @@
 import Button from "@/components/ui/Button";
 import { useJournalStore } from "@/stores/journal.store";
-import { Bot, FileDown, Link2, Plus, Rocket } from "lucide-react";
+import { Bot, Coffee, FileDown, Link2, Plus, Rocket } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type QuickActionsProps = {
   onOpenMyDay?: (hasJournalToday?: boolean) => void;
+  onOpenNoTradeDay?: () => void;
 };
 
-export default function QuickActions({ onOpenMyDay }: QuickActionsProps) {
+export default function QuickActions({
+  onOpenMyDay,
+  onOpenNoTradeDay,
+}: QuickActionsProps) {
   const router = useRouter();
   const journalStatus = useJournalStore((state) => state.journalStatus);
   const isLoadingJournalStatus = useJournalStore((state) => state.isLoading);
@@ -15,9 +19,12 @@ export default function QuickActions({ onOpenMyDay }: QuickActionsProps) {
     (state) => state.getTodayJournalStatus,
   );
   const primaryJournalLabel = journalStatus?.hasJournalToday
-    ? "Add Trade"
+    ? "Log Trade"
     : "Start My Day";
   const PrimaryIcon = journalStatus?.hasJournalToday ? Plus : Rocket;
+  const noTradeLogged =
+    journalStatus?.journalingStatus === "no_trade_day" ||
+    (journalStatus?.noTradeDay && !journalStatus.noTradeDay.supersededByTrade);
   const actions = [
     {
       label: isLoadingJournalStatus ? "Checking..." : primaryJournalLabel,
@@ -31,6 +38,12 @@ export default function QuickActions({ onOpenMyDay }: QuickActionsProps) {
         }
       },
       disabled: isLoadingJournalStatus,
+    },
+    {
+      label: noTradeLogged ? "View no-trade day" : "No Trade Today",
+      icon: Coffee,
+      onClick: () => onOpenNoTradeDay?.(),
+      disabled: !onOpenNoTradeDay,
     },
     {
       label: "Ask Juvo AI",

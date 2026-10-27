@@ -247,12 +247,63 @@ export interface JournalStreakResponse {
   message: string;
 }
 
+export type NoTradeDayReason =
+  | "no_valid_setup"
+  | "followed_plan"
+  | "rest_day"
+  | "market_unsuitable"
+  | "other";
+
+export interface NoTradeDayEntry {
+  _id: string;
+  localDayKey: string;
+  timezone: string;
+  confirmed: boolean;
+  reason?: NoTradeDayReason | null;
+  reflection?: string;
+  recordedAt?: string;
+  supersededByTrade?: boolean;
+  supersededAt?: string | null;
+  journal?: string | null;
+  tradingAccount?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface NoTradeDayPayload {
+  confirmed?: boolean;
+  reason?: NoTradeDayReason | null;
+  reflection?: string;
+  tradingAccount?: string | null;
+}
+
+export interface NoTradeDayResponse {
+  success?: boolean;
+  message: string;
+  created?: boolean;
+  data: {
+    entry: NoTradeDayEntry;
+    streak?: JournalStreakData | null;
+    message?: string;
+  };
+}
+
+export type JournalingStatus =
+  | "not_started"
+  | "day_started"
+  | "preparation_recorded"
+  | "trade_recorded"
+  | "review_completed"
+  | "no_trade_day";
+
 export interface JournalStatusData {
   hasJournalToday: boolean;
   journal: JournalSummary | null;
   date: string;
   timeZone: string;
   streak?: JournalStreakData | null;
+  noTradeDay?: NoTradeDayEntry | null;
+  journalingStatus?: JournalingStatus;
 }
 
 export interface JournalStatusResponse {

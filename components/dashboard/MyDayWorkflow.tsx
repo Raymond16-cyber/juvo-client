@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import NoTradeDayModal from "@/components/dashboard/NoTradeDayModal";
 import VoiceNoteTextarea from "@/components/journal/VoiceNoteTextarea";
 import {
   animateJournalSequence,
@@ -26,6 +27,7 @@ import {
   ArrowRight,
   CheckCircle2,
   CircleAlert,
+  Coffee,
   NotebookPen,
   Plus,
   WalletCards,
@@ -103,6 +105,7 @@ export default function MyDayWorkflow({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
   const [voiceBusy, setVoiceBusy] = useState(false);
+  const [isNoTradeOpen, setIsNoTradeOpen] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
   const [savedAudioUrl, setSavedAudioUrl] = useState<string | null>(null);
@@ -631,6 +634,29 @@ export default function MyDayWorkflow({
               </div>
             )}
 
+            <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 px-4 py-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold text-slate-950 dark:text-white">
+                    Staying out today?
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                    Record a no-trade day in a few seconds. It keeps your
+                    journaling streak without creating a fake trade.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-10 shrink-0"
+                  onClick={() => setIsNoTradeOpen(true)}
+                >
+                  <Coffee size={16} />
+                  No Trade Today
+                </Button>
+              </div>
+            </div>
+
             <VoiceNoteTextarea
               label="Before trading"
               value={beforeTrading}
@@ -989,13 +1015,44 @@ export default function MyDayWorkflow({
         </form>
       )}
 
+      {hasJournalToday && panel === "trade" ? (
+        <div className="mt-4">
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => setIsNoTradeOpen(true)}
+          >
+            <Coffee size={16} />
+            {journalStatus?.noTradeDay && !journalStatus.noTradeDay.supersededByTrade
+              ? "View / edit no-trade day"
+              : "No Trade Today"}
+          </Button>
+        </div>
+      ) : null}
+
       <div className="mt-5 border-t border-slate-200 pt-4 text-sm text-slate-500 dark:border-white/10 dark:text-slate-400">
-        {hasJournalToday
-          ? `${journal?.tradesCount || 0} trade${journal?.tradesCount === 1 ? "" : "s"} logged today.`
-          : accounts.length
-            ? "Select an account and start today's journal."
-            : "Create a trading account to begin."}
+        {journalStatus?.journalingStatus === "no_trade_day"
+          ? "No-trade day logged ✓"
+          : hasJournalToday
+            ? `${journal?.tradesCount || 0} trade${journal?.tradesCount === 1 ? "" : "s"} logged today.`
+            : accounts.length
+              ? "Select an account and start today's journal."
+              : "Create a trading account to begin."}
       </div>
+
+      <NoTradeDayModal
+        isOpen={isNoTradeOpen}
+        onClose={() => setIsNoTradeOpen(false)}
+        tradingAccountId={selectedAccountId || null}
+        onSaved={() => {
+          setSuccessMessage(
+            "No-trade day recorded. Your journaling streak is up to date.",
+          );
+          getTodayJournalStatus().catch(() => undefined);
+          onJournalUpdated?.();
+        }}
+      />
     </section>
   );
 }

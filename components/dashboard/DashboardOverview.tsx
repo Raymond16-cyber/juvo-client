@@ -8,6 +8,7 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import JournalStreakCard from "@/components/dashboard/JournalStreakCard";
 import MetricCard from "@/components/dashboard/MetricCard";
 import MyDayWorkflowModal from "@/components/dashboard/MyDayWorkflowModal";
+import NoTradeDayModal from "@/components/dashboard/NoTradeDayModal";
 import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import QuickActions from "@/components/dashboard/QuickActions";
 import RecentTrades from "@/components/dashboard/RecentTrades";
@@ -52,6 +53,7 @@ export default function DashboardOverview() {
   const dashboardRef = useRef<HTMLDivElement>(null);
   
   const [isMyDayOpen, setIsMyDayOpen] = useState(false);
+  const [isNoTradeOpen, setIsNoTradeOpen] = useState(false);
   const [workflowPanel, setWorkflowPanel] = useState<WorkflowPanel>("start");
 
   // --------------------------------------------------
@@ -882,7 +884,10 @@ useEffect(() => {
           </div>
 
           <div data-tour="quick-actions">
-            <QuickActions onOpenMyDay={openMyDayWorkflow} />
+            <QuickActions
+              onOpenMyDay={openMyDayWorkflow}
+              onOpenNoTradeDay={() => setIsNoTradeOpen(true)}
+            />
           </div>
         </div>
       </div>
@@ -893,6 +898,15 @@ useEffect(() => {
         initialPanel={workflowPanel}
         onClose={() => setIsMyDayOpen(false)}
         onJournalUpdated={refreshWorkspace}
+      />
+
+      <NoTradeDayModal
+        isOpen={isNoTradeOpen}
+        onClose={() => setIsNoTradeOpen(false)}
+        tradingAccountId={selectedAccount?._id || null}
+        onSaved={() => {
+          refreshWorkspace();
+        }}
       />
     </div>
   );
