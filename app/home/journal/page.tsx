@@ -2,6 +2,7 @@
 
 import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import VoiceNoteTextarea from "@/components/journal/VoiceNoteTextarea";
 import Button from "@/components/ui/Button";
 import {
   getJournalDisplayPnl,
@@ -409,15 +410,14 @@ export default function JournalPage() {
                   </select>
                 </label>
 
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  Pre-market note
-                  <textarea
-                    className="mt-2 min-h-28 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-                    value={beforeTrading}
-                    onChange={(event) => setBeforeTrading(event.target.value)}
-                    placeholder="Bias, setup focus, emotional state"
-                  />
-                </label>
+                <VoiceNoteTextarea
+                  label="Pre-market note"
+                  value={beforeTrading}
+                  onChange={setBeforeTrading}
+                  placeholder="Bias, setup focus, emotional state"
+                  helperText="Dictate your prep note if typing feels heavy."
+                  textareaClassNameOverride="mt-0 min-h-28 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                />
 
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
                   Confidence: {confidenceBefore}/10

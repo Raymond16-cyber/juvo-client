@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import VoiceNoteTextarea from "@/components/journal/VoiceNoteTextarea";
 import {
   animateJournalSequence,
   animateJournalStateChange,
@@ -28,10 +29,6 @@ import {
   NotebookPen,
   Plus,
   WalletCards,
-  Mic,
-  Square,
-  Play,
-  LoaderCircle,
 } from "lucide-react";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -72,44 +69,6 @@ const defaultTradeForm: CreateTradePayload = {
   notes: "",
 };
 
-//  BROWSER AUDIO CONFIGURATION
-
-type SpeechResultEvent = Event & {
-  resultIndex: number;
-  results: {
-    length: number;
-    [index: number]: {
-      isFinal: boolean;
-      [index: number]: { transcript: string };
-    };
-  };
-};
-
-type SpeechRecognitionInstance = {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onresult: ((event: SpeechResultEvent) => void) | null;
-  onerror: ((event: Event) => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-};
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
-
-function getSpeechRecognitionConstructor():
-  | SpeechRecognitionConstructor
-  | undefined {
-  const browser = window as Window & {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-  };
-
-  return browser.SpeechRecognition ?? browser.webkitSpeechRecognition;
-}
-
 export default function MyDayWorkflow({
   initialPanel = "start",
   mode = "card",
@@ -142,21 +101,12 @@ export default function MyDayWorkflow({
   const [accountError, setAccountError] = useState<string | null>(null);
   const [panel, setPanel] = useState<WorkflowPanel>(initialPanel);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  //---BROWSER AUDIO STATES---/
-  const [isRecording, setIsRecording] = useState(false);
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const [voiceBusy, setVoiceBusy] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
   const [savedAudioUrl, setSavedAudioUrl] = useState<string | null>(null);
   const [audioError, setAudioError] = useState<string | null>(null);
-  const [transcriptionSupported, setTranscriptionSupported] = useState(true);
-
-  //---BROWSER AUDIO REFS---/
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const speechRecognitionRef = useRef<SpeechRecognitionInstance | null>(null);
-  const finalTranscriptRef = useRef("");
   const audioPreviewUrlRef = useRef<string | null>(null);
 
   const journal = journalStatus?.journal;
@@ -189,131 +139,6 @@ export default function MyDayWorkflow({
   const mustCreateAccount = needsNewAccount(accounts);
   const canTradeOnSelected = isAccountInPlay(selectedAccount);
 
-  // BROWSER FUNCTIONS FOR AUDIO
-
-  const startRecording = async () => {
-    setAudioError(null);
-
-    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
-      setAudioError("Audio recording is not supported by this browser.");
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-
-      mediaStreamRef.current = stream;
-      audioChunksRef.current = [];
-      finalTranscriptRef.current = "";
-      setAudioBlob(null);
-      setSavedAudioUrl(null);
-
-      const preferredMimeType = [
-        "audio/webm;codecs=opus",
-        "audio/webm",
-        "audio/mp4",
-      ].find((type) => MediaRecorder.isTypeSupported(type));
-
-      const recorder = preferredMimeType
-        ? new MediaRecorder(stream, { mimeType: preferredMimeType })
-        : new MediaRecorder(stream);
-
-      mediaRecorderRef.current = recorder;
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      recorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, {
-          type: recorder.mimeType || "audio/webm",
-        });
-
-        setAudioBlob(blob);
-        setIsRecording(false);
-
-        stream.getTracks().forEach((track) => track.stop());
-        mediaStreamRef.current = null;
-
-        const recognition = speechRecognitionRef.current;
-        speechRecognitionRef.current = null;
-
-        try {
-          recognition?.stop();
-        } catch {
-          // Recording has already stopped.
-        }
-      };
-
-      recorder.start();
-      setIsRecording(true);
-
-      const Recognition = getSpeechRecognitionConstructor();
-
-      if (!Recognition) {
-        setTranscriptionSupported(false);
-        return;
-      }
-
-      setTranscriptionSupported(true);
-
-      const recognition = new Recognition();
-      speechRecognitionRef.current = recognition;
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "en-NG";
-
-      recognition.onresult = (event) => {
-        let interimTranscript = "";
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i];
-          const transcript = result[0].transcript;
-
-          if (result.isFinal) {
-            finalTranscriptRef.current += `${transcript} `;
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-
-        setBeforeTrading(
-          `${finalTranscriptRef.current}${interimTranscript}`.trimStart(),
-        );
-      };
-
-      recognition.onerror = () => {
-        setTranscriptionSupported(false);
-      };
-
-      try {
-        recognition.start();
-      } catch {
-        setTranscriptionSupported(false);
-      }
-    } catch {
-      setAudioError(
-        "Unable to access your microphone. Check browser permissions and try again.",
-      );
-    }
-  };
-
-  const stopRecording = () => {
-    const recorder = mediaRecorderRef.current;
-
-    if (recorder && recorder.state !== "inactive") {
-      recorder.stop();
-    } else {
-      setIsRecording(false);
-      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-      mediaStreamRef.current = null;
-    }
-  };
-
   useEffect(() => {
     if (!audioBlob) {
       setAudioPreviewUrl(null);
@@ -326,34 +151,13 @@ export default function MyDayWorkflow({
 
     return () => {
       URL.revokeObjectURL(url);
-
       if (audioPreviewUrlRef.current === url) {
         audioPreviewUrlRef.current = null;
       }
     };
   }, [audioBlob]);
 
-  useEffect(() => {
-    return () => {
-      const recorder = mediaRecorderRef.current;
-
-      if (recorder && recorder.state !== "inactive") {
-        recorder.onstop = null;
-        recorder.stop();
-      }
-
-      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-
-      try {
-        speechRecognitionRef.current?.abort();
-      } catch {
-        // The recognition session may already have ended.
-      }
-    };
-  }, []);
-
   const saveVoiceNote = async (journalId: string): Promise<boolean> => {
-    console.log("Recording Audio Note...")
     if (!audioBlob) return true;
 
     setIsUploadingAudio(true);
@@ -520,8 +324,8 @@ export default function MyDayWorkflow({
     setSuccessMessage(null);
     setAudioError(null);
 
-    if (isRecording) {
-      setAudioError("Stop recording before continuing.");
+    if (voiceBusy) {
+      setAudioError("Finish speaking or wait for transcription before continuing.");
       return;
     }
 
@@ -827,70 +631,37 @@ export default function MyDayWorkflow({
               </div>
             )}
 
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-              Before trading
-              <textarea
-                className="mt-2 min-h-24 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-                value={beforeTrading}
-                onChange={(event) => setBeforeTrading(event.target.value)}
-                placeholder="Bias, mood, risks, focus for today"
-              />
-            </label>
+            <VoiceNoteTextarea
+              label="Before trading"
+              value={beforeTrading}
+              onChange={setBeforeTrading}
+              placeholder="Bias, mood, risks, focus for today"
+              helperText="Speak your prep note. JUVO transcribes it into this box and can save the recording with your journal."
+              captureAudio
+              onAudioChange={(blob) => {
+                setAudioError(null);
+                setAudioBlob(blob);
+                if (blob) setSavedAudioUrl(null);
+              }}
+              onBusyChange={setVoiceBusy}
+              disabled={isUploadingAudio}
+            />
 
             <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                {!isRecording ? (
-                  <button
-                    type="button"
-                    onClick={startRecording}
-                    disabled={isUploadingAudio}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50 dark:border-white/10 dark:text-slate-200"
-                  >
-                    <Mic size={16} />
-                    {audioBlob ? "Record again" : "Record voice note"}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={stopRecording}
-                    className="inline-flex items-center gap-2 rounded-xl bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-600 dark:text-rose-300"
-                  >
-                    <Square size={16} />
-                    Stop recording
-                  </button>
-                )}
-
-                {audioBlob && (
-                  <span className="text-xs text-emerald-600 dark:text-emerald-300">
-                    Voice note ready
-                  </span>
-                )}
-              </div>
-
-              {isRecording && (
-                <p
-                  className="text-xs text-rose-600 dark:text-rose-300"
-                  aria-live="polite"
-                >
-                  Recording in progress. Speak clearly, then stop when finished.
+              {audioBlob ? (
+                <p className="text-xs text-emerald-600 dark:text-emerald-300">
+                  Voice note ready to upload with your journal.
                 </p>
-              )}
+              ) : null}
 
-              {!transcriptionSupported && (
-                <p className="text-xs text-amber-600 dark:text-amber-300">
-                  Live transcription is unavailable in this browser. You can
-                  still record your voice and type your notes manually.
-                </p>
-              )}
-
-              {audioError && (
+              {audioError ? (
                 <p
                   className="text-xs text-rose-600 dark:text-rose-300"
                   role="alert"
                 >
                   {audioError}
                 </p>
-              )}
+              ) : null}
 
               {(audioPreviewUrl || savedAudioUrl) && (
                 <audio
@@ -934,7 +705,7 @@ export default function MyDayWorkflow({
                   isJournalLoading ||
                   isLoadingAccounts ||
                   !canTradeOnSelected ||
-                  isRecording ||
+                  voiceBusy ||
                   isUploadingAudio
                 }
               >
@@ -1061,11 +832,14 @@ export default function MyDayWorkflow({
               ))}
             </div>
 
-            <textarea
-              className="min-h-20 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              placeholder="Execution notes"
-              value={tradeForm.notes}
-              onChange={(event) => updateTradeForm("notes", event.target.value)}
+            <VoiceNoteTextarea
+              label="Execution notes"
+              value={tradeForm.notes || ""}
+              onChange={(next) => updateTradeForm("notes", next)}
+              placeholder="What you saw, why you entered, how you managed it"
+              helperText="Dictate the story of the trade instead of typing it all out."
+              className="min-h-0"
+              textareaClassNameOverride="min-h-20 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
             />
 
             <Button

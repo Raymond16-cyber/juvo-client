@@ -1,6 +1,7 @@
 "use client";
 
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import VoiceNoteTextarea from "@/components/journal/VoiceNoteTextarea";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
@@ -173,13 +174,15 @@ export default function GrowthPage() {
                 }
                 required
               />
-              <textarea
-                className={textareaClassName}
-                placeholder="Why this matters"
-                value={form.description}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, description: event.target.value }))
+              <VoiceNoteTextarea
+                label="Why this matters"
+                value={form.description || ""}
+                onChange={(next) =>
+                  setForm((current) => ({ ...current, description: next }))
                 }
+                placeholder="Why this matters"
+                helperText="Dictate the reason behind the goal."
+                textareaClassNameOverride={textareaClassName}
               />
               <div className="grid grid-cols-2 gap-3">
                 <select

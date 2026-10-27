@@ -4,6 +4,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import TradeScreenshotReview, {
   ScreenshotReviewDisplay,
 } from "@/components/journal/TradeScreenshotReview";
+import VoiceNoteTextarea from "@/components/journal/VoiceNoteTextarea";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
@@ -608,20 +609,18 @@ export default function JournalDetailPage() {
                   </h2>
                 </div>
                 <form className="mt-4 space-y-4" onSubmit={handleComplete}>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    After trading
-                    <textarea
-                      className={`mt-2 ${textareaClassName}`}
-                      value={review.afterTrading}
-                      onChange={(event) =>
-                        setReview((current) => ({
-                          ...current,
-                          afterTrading: event.target.value,
-                        }))
-                      }
-                      placeholder="How did the session actually feel?"
-                    />
-                  </label>
+                  <VoiceNoteTextarea
+                    label="After trading"
+                    value={review.afterTrading || ""}
+                    onChange={(next) =>
+                      setReview((current) => ({
+                        ...current,
+                        afterTrading: next,
+                      }))
+                    }
+                    placeholder="How did the session actually feel?"
+                    helperText="Speak the debrief. JUVO will write it into this box."
+                  />
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
                     Confidence after: {review.confidenceAfter}/10
                     <input
@@ -644,24 +643,21 @@ export default function JournalDetailPage() {
                     ["lessonLearned", "Lesson learned"],
                     ["improvementsTomorrow", "Improve tomorrow"],
                   ].map(([key, label]) => (
-                    <label
+                    <VoiceNoteTextarea
                       key={key}
-                      className="block text-sm font-semibold text-slate-700 dark:text-slate-200"
-                    >
-                      {label}
-                      <input
-                        className={`mt-2 ${controlClassName}`}
-                        value={String(
-                          review[key as keyof CompleteJournalPayload] || "",
-                        )}
-                        onChange={(event) =>
-                          setReview((current) => ({
-                            ...current,
-                            [key]: event.target.value,
-                          }))
-                        }
-                      />
-                    </label>
+                      label={label}
+                      value={String(
+                        review[key as keyof CompleteJournalPayload] || "",
+                      )}
+                      onChange={(next) =>
+                        setReview((current) => ({
+                          ...current,
+                          [key]: next,
+                        }))
+                      }
+                      placeholder={label}
+                      textareaClassNameOverride={`min-h-20 ${textareaClassName}`}
+                    />
                   ))}
                   <div className="space-y-2 text-sm">
                     {[
