@@ -10,6 +10,8 @@ export type JuvoNotice = {
   tone: JuvoNoticeTone;
   duration: number;
   journalId?: string;
+  href?: string;
+  linkLabel?: string;
 };
 
 type NoticeInput = {
@@ -19,6 +21,8 @@ type NoticeInput = {
   tone?: JuvoNoticeTone;
   duration?: number;
   journalId?: string;
+  href?: string;
+  linkLabel?: string;
 };
 
 const SEEN_KEY = "juvo.seenAccountOutcomes";
@@ -80,6 +84,8 @@ export const useNoticeStore = create<NoticeStore>((set, get) => ({
       tone: notice.tone || "info",
       duration: notice.duration ?? 7000,
       journalId: notice.journalId,
+      href: notice.href,
+      linkLabel: notice.linkLabel,
     };
 
     if (get().notices.some((item) => item.id === id)) return id;

@@ -1,6 +1,8 @@
 "use client";
 
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import PlanComplianceCard from "@/components/journal/PlanComplianceCard";
+import SmartJournalInterviewer from "@/components/journal/SmartJournalInterviewer";
 import TradeScreenshotReview, {
   ScreenshotReviewDisplay,
 } from "@/components/journal/TradeScreenshotReview";
@@ -582,6 +584,9 @@ export default function JournalDetailPage() {
             </div>
 
             <aside className="space-y-6">
+              <SmartJournalInterviewer journalId={journal._id} />
+              <PlanComplianceCard journalId={journal._id} />
+
               {journal.ai?.summary || journal.ai?.feedback ? (
                 <Card className="p-5">
                   <div className="flex items-center gap-2 text-primary">

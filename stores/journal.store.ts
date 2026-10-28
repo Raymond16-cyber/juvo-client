@@ -1,3 +1,4 @@
+import { showAchievementUnlocks } from "@/lib/achievements";
 import {
   closeJournalTradeService,
   completeJournalService,
@@ -61,6 +62,7 @@ export const useJournalStore = create<JournalStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await createJournalService(data);
+      showAchievementUnlocks(response.newlyEarned);
       set((state) => ({
         journalStatus: response.data,
         journals: response.data.journal
@@ -94,6 +96,7 @@ export const useJournalStore = create<JournalStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await createJournalTradeService(journalId, data);
+      showAchievementUnlocks(response.newlyEarned);
       set((state) => ({
         message: response.message,
         journalStatus: state.journalStatus?.journal
@@ -145,6 +148,7 @@ export const useJournalStore = create<JournalStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await completeJournalService(journalId, data);
+      showAchievementUnlocks(response.newlyEarned);
       set((state) => ({
         currentJournal: response.data,
         journals: state.journals.map((journal) =>

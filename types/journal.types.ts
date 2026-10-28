@@ -1,3 +1,4 @@
+import { NewlyEarnedAchievement } from "@/types/achievement.types";
 import {
   TradingAccount,
   TradingAccountOutcome,
@@ -281,6 +282,7 @@ export interface NoTradeDayResponse {
   success?: boolean;
   message: string;
   created?: boolean;
+  newlyEarned?: NewlyEarnedAchievement[];
   data: {
     entry: NoTradeDayEntry;
     streak?: JournalStreakData | null;
@@ -309,12 +311,14 @@ export interface JournalStatusData {
 export interface JournalStatusResponse {
   data: JournalStatusData;
   message: string;
+  newlyEarned?: NewlyEarnedAchievement[];
 }
 
 export interface CreateTradeResponse {
   data: TradeSummary;
   message: string;
   attachedToAccount?: boolean;
+  newlyEarned?: NewlyEarnedAchievement[];
 }
 
 export interface CloseTradeResponse {
@@ -331,6 +335,7 @@ export interface UserJournalsResponse {
 export interface JournalDetailResponse {
   data: JournalDetail;
   message: string;
+  newlyEarned?: NewlyEarnedAchievement[];
 }
 
 export interface BeforeTradingAudioResponse {

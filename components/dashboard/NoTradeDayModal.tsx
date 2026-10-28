@@ -1,6 +1,8 @@
 "use client";
 
+import SmartJournalInterviewer from "@/components/journal/SmartJournalInterviewer";
 import Button from "@/components/ui/Button";
+import { showAchievementUnlocks } from "@/lib/achievements";
 import { getApiErrorMessage } from "@/lib/axios";
 import { controlClassName, textareaClassName } from "@/lib/ui";
 import {
@@ -120,6 +122,7 @@ export default function NoTradeDayModal({
         reflection,
         tradingAccount: tradingAccountId || null,
       });
+      showAchievementUnlocks(response.newlyEarned);
       setExisting(response.data.entry);
       setSuccess(
         response.data.message ||
@@ -258,6 +261,10 @@ export default function NoTradeDayModal({
                 <p className="text-sm text-emerald-700 dark:text-emerald-300">
                   {success}
                 </p>
+              ) : null}
+
+              {existing?._id ? (
+                <SmartJournalInterviewer noTradeDayId={existing._id} />
               ) : null}
 
               <div className="flex flex-wrap justify-end gap-2 pt-1">

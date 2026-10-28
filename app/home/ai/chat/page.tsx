@@ -1,5 +1,6 @@
 "use client";
 
+import JournalAttachPicker from "@/components/ai/JournalAttachPicker";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import { getApiErrorMessage } from "@/lib/axios";
@@ -9,11 +10,13 @@ import {
   deleteConversationsService,
   getAiAccessService,
   getConversationService,
+  hasAiFeature,
   listConversationsService,
   startAiTrialService,
 } from "@/services/ai.service";
 import { AiAccess, AiConversationSummary, AiMessage } from "@/types/ai.types";
 import {
+  BookOpenText,
   Bot,
   Check,
   ChevronDown,
@@ -98,9 +101,13 @@ export default function JuvoAIChatPage() {
     string[]
   >([]);
   const [isDeletingConversations, setIsDeletingConversations] = useState(false);
+  const [journalPickerOpen, setJournalPickerOpen] = useState(false);
+  const [attachedJournalIds, setAttachedJournalIds] = useState<string[]>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
   const canUseAi = Boolean(access?.hasAccess);
+  const canAskJournal =
+    canUseAi && hasAiFeature(access, "ask_your_journal");
   const trialStatus = access?.trial.status || "available";
   const trialLabel =
     access?.source === "trial" ? getTrialTimeLeft(access.trial.expiresAt) : "";
@@ -263,6 +270,11 @@ export default function JuvoAIChatPage() {
     const content = text.trim();
     if (!content || isLoading || !canUseAi) return;
 
+    const journalIds =
+      canAskJournal && attachedJournalIds.length
+        ? attachedJournalIds
+        : undefined;
+
     setInput("");
     setError(null);
     stickToBottomRef.current = true;
@@ -274,14 +286,29 @@ export default function JuvoAIChatPage() {
       const response = await chatWithJuvoService({
         message: content,
         conversationId,
+        journalIds,
       });
       setConversationId(response.data.conversationId);
       stickToBottomRef.current = true;
       setMessages(response.data.messages);
       await loadConversations();
     } catch (sendError) {
-      if (getApiErrorCode(sendError) === "JUVO_AI_ACCESS_REQUIRED") {
+      const code = getApiErrorCode(sendError);
+      if (
+        code === "JUVO_AI_ACCESS_REQUIRED" ||
+        code === "ENTITLEMENT_REQUIRED" ||
+        code === "AI_USAGE_LIMIT"
+      ) {
         await loadAccess();
+        if (code === "ENTITLEMENT_REQUIRED" || code === "AI_USAGE_LIMIT") {
+          setError(
+            getApiErrorMessage(
+              sendError,
+              "Upgrade your plan or wait for next month's AI quota.",
+            ),
+          );
+          return;
+        }
       }
       setError(
         getApiErrorMessage(
@@ -343,6 +370,11 @@ export default function JuvoAIChatPage() {
   };
 
   const handleComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "\\" && canAskJournal) {
+      event.preventDefault();
+      setJournalPickerOpen(true);
+      return;
+    }
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       void sendMessage(input);
@@ -693,19 +725,51 @@ export default function JuvoAIChatPage() {
                 className="shrink-0 border-t border-slate-200 p-3 dark:border-white/10 sm:p-4"
                 onSubmit={handleSubmit}
               >
+                {canAskJournal && attachedJournalIds.length ? (
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
+                      <BookOpenText size={12} />
+                      {attachedJournalIds.length} journal
+                      {attachedJournalIds.length === 1 ? "" : "s"} attached
+                    </span>
+                    <button
+                      type="button"
+                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                      onClick={() => setAttachedJournalIds([])}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                ) : null}
                 <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 shadow-sm transition focus-within:border-primary/60 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10 dark:border-white/10 dark:bg-white/[0.035] dark:focus-within:bg-white/[0.06]">
+                  {canAskJournal ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-14 w-14 shrink-0 rounded-lg px-0"
+                      aria-label="Attach journals"
+                      title="Press \\ to attach journals"
+                      onClick={() => setJournalPickerOpen(true)}
+                    >
+                      <BookOpenText size={16} />
+                    </Button>
+                  ) : null}
                   <textarea
                     className={`${controlClassName} min-h-[48px] max-h-32 resize-none border-0 bg-transparent py-3 shadow-none focus:border-transparent focus:ring-0 dark:bg-transparent`}
                     rows={2}
                     value={input}
                     onChange={(event) => setInput(event.target.value)}
                     onKeyDown={handleComposerKeyDown}
-                    placeholder="Ask about your process, not the next setup"
+                    placeholder={
+                      canAskJournal
+                        ? "Ask about your process — press \\ to attach journals"
+                        : "Ask about your process, not the next setup"
+                    }
                   />
                   <Button
                     type="submit"
                     disabled={isLoading || !input.trim()}
-                    className="h-11 w-11 shrink-0 rounded-lg px-0"
+                    className="h-14 w-14 rounded-lg px-0 py-0 shrink-0"
                     aria-label="Send message"
                     title="Send message"
                   >
@@ -713,6 +777,15 @@ export default function JuvoAIChatPage() {
                   </Button>
                 </div>
               </form>
+              <JournalAttachPicker
+                open={journalPickerOpen}
+                selectedIds={attachedJournalIds}
+                onClose={() => setJournalPickerOpen(false)}
+                onConfirm={(ids) => {
+                  setAttachedJournalIds(ids);
+                  setJournalPickerOpen(false);
+                }}
+              />
             </>
           )}
         </section>

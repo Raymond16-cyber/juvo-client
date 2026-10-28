@@ -5,8 +5,6 @@ export type TranscriptionResponse = {
   message: string;
   data: {
     text: string;
-    provider: "xai" | "gemini";
-    model: string;
     language: string | null;
   };
 };

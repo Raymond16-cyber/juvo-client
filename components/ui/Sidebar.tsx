@@ -23,6 +23,7 @@ import {
   Settings,
   Sparkles,
   Target,
+  Trophy,
   UserRound,
   X,
 } from "lucide-react";
@@ -65,6 +66,7 @@ const navigationGroups = [
     items: [
       { name: "Referrals", href: "/home/general/referrals", icon: Gift },
       { name: "Subscriptions", href: "/home/general/subscriptions", icon: CreditCard },
+      { name: "Achievements", href: "/home/general/achievements", icon: Trophy },
       { name: "Settings", href: "/home/general/settings", icon: Settings },
       { name: "Help Center", href: "/home/general/help", icon: CircleHelp },
     ],

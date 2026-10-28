@@ -14,11 +14,19 @@ import {
   WEEK_START_OPTIONS,
 } from "@/constants/onboarding";
 import { cn, controlClassName } from "@/lib/ui";
+import {
+  getAiAccessService,
+  getAiCheckinService,
+  hasAiFeature,
+  updateAiCheckinPreferencesService,
+} from "@/services/ai.service";
 import { useAuthStore } from "@/stores/auth.store";
 import { useThemeStore } from "@/stores/theme.store";
+import { AiAccess } from "@/types/ai.types";
 import {
   ArrowUpRight,
   Bell,
+  Bot,
   Check,
   CreditCard,
   Download,
@@ -31,6 +39,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
+  Trophy,
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
@@ -155,11 +164,25 @@ export default function SettingsPage() {
   const [reminderTime, setReminderTime] = useState(
     user?.preferences?.notifications?.reminderTime || "08:00",
   );
+  const [aiAccess, setAiAccess] = useState<AiAccess | null>(null);
+  const [aiCheckinsEnabled, setAiCheckinsEnabled] = useState(false);
+  const [aiCheckinSaving, setAiCheckinSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     fetchCurrentUser().catch(() => undefined);
   }, [fetchCurrentUser]);
+
+  useEffect(() => {
+    getAiAccessService()
+      .then((response) => setAiAccess(response.data))
+      .catch(() => undefined);
+    getAiCheckinService({ preferencesOnly: true })
+      .then((response) => {
+        setAiCheckinsEnabled(Boolean(response.data?.enabled));
+      })
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -496,6 +519,15 @@ export default function SettingsPage() {
                     </p>
                   </Field>
                 </div>
+
+                <div className="mt-5">
+                  <LinkCard
+                    href="/home/general/achievements"
+                    icon={Trophy}
+                    title="Achievements"
+                    body="View earned badges, track progress, and feature up to three on your profile."
+                  />
+                </div>
               </SettingsSection>
             </section>
 
@@ -633,6 +665,34 @@ export default function SettingsPage() {
                     setNotificationsEnabled(next);
                   }}
                 />
+
+                {hasAiFeature(aiAccess, "contextual_ai_checkins") ? (
+                  <ToggleRow
+                    icon={Bot}
+                    title="Contextual AI check-ins"
+                    description={
+                      aiCheckinsEnabled
+                        ? "Occasional Super coaching prompts when useful"
+                        : "Off — Juvo will not nudge with proactive AI questions"
+                    }
+                    checked={aiCheckinsEnabled}
+                    onChange={(next) => {
+                      setAiCheckinsEnabled(next);
+                      setAiCheckinSaving(true);
+                      updateAiCheckinPreferencesService({ enabled: next })
+                        .catch(() => {
+                          setAiCheckinsEnabled(!next);
+                        })
+                        .finally(() => setAiCheckinSaving(false));
+                    }}
+                  />
+                ) : null}
+                {hasAiFeature(aiAccess, "contextual_ai_checkins") &&
+                aiCheckinSaving ? (
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Saving check-in preference…
+                  </p>
+                ) : null}
               </SettingsSection>
             </section>
 

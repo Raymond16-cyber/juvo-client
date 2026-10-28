@@ -10,6 +10,8 @@ type MetricCardProps = {
   change: string;
   tone: "profit" | "loss" | "neutral";
   icon: LucideIcon;
+  onExplain?: () => void;
+  explainLabel?: string;
 };
 
 function getCounterConfig(value: string) {
@@ -41,6 +43,8 @@ export default function MetricCard({
   change,
   tone,
   icon: Icon,
+  onExplain,
+  explainLabel = "Explain",
 }: MetricCardProps) {
   const counter = getCounterConfig(value);
   const toneClass = {
@@ -84,7 +88,18 @@ export default function MetricCard({
           <Icon size={18} />
         </div>
       </div>
-      <p className={cn("mt-4 text-sm font-medium", toneClass)}>{change}</p>
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <p className={cn("text-sm font-medium", toneClass)}>{change}</p>
+        {onExplain ? (
+          <button
+            type="button"
+            onClick={onExplain}
+            className="text-xs font-semibold text-primary transition hover:underline"
+          >
+            {explainLabel}
+          </button>
+        ) : null}
+      </div>
     </section>
   );
 }

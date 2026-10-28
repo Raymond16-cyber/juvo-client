@@ -8,10 +8,18 @@ import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 import { controlClassName, textareaClassName } from "@/lib/ui";
 import { getSelectedAccount, getTradableAccounts } from "@/lib/account";
+import { getApiErrorMessage } from "@/lib/axios";
+import {
+  getAiAccessService,
+  goalCoachService,
+  hasAiFeature,
+} from "@/services/ai.service";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useGoalsStore } from "@/stores/goals.store";
+import { AiAccess } from "@/types/ai.types";
 import { CreateGoalPayload } from "@/types/goal.types";
-import { Target } from "lucide-react";
+import { Sparkles, Target } from "lucide-react";
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 
 const defaultGoal: CreateGoalPayload = {
@@ -38,11 +46,50 @@ export default function GrowthPage() {
   const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
   const [form, setForm] = useState(defaultGoal);
   const [error, setError] = useState<string | null>(null);
+  const [aiAccess, setAiAccess] = useState<AiAccess | null>(null);
+  const [coachByGoal, setCoachByGoal] = useState<Record<string, string>>({});
+  const [coachLoadingId, setCoachLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGoals().catch(() => undefined);
     fetchAccounts().catch(() => undefined);
+    getAiAccessService()
+      .then((response) => setAiAccess(response.data))
+      .catch(() => undefined);
   }, [fetchAccounts, fetchGoals]);
+
+  const canUseGoalCoach = hasAiFeature(aiAccess, "goal_coach");
+
+  const runGoalCoach = async (goalId: string) => {
+    if (!canUseGoalCoach) {
+      setCoachByGoal((current) => ({
+        ...current,
+        [goalId]: "Goal Coach is included on Super. Upgrade to unlock.",
+      }));
+      return;
+    }
+    setCoachLoadingId(goalId);
+    try {
+      const response = await goalCoachService({ goalId, action: "plan" });
+      const steps = response.data.steps?.length
+        ? `\n${response.data.steps.map((step) => `• ${step}`).join("\n")}`
+        : "";
+      setCoachByGoal((current) => ({
+        ...current,
+        [goalId]: `${response.data.summary}${steps}`,
+      }));
+    } catch (coachError) {
+      setCoachByGoal((current) => ({
+        ...current,
+        [goalId]: getApiErrorMessage(
+          coachError,
+          "Juvo could not coach this goal right now.",
+        ),
+      }));
+    } finally {
+      setCoachLoadingId(null);
+    }
+  };
 
   useEffect(() => {
     const preferred =
@@ -96,7 +143,7 @@ export default function GrowthPage() {
                           {goal.category} · {goal.priority} · {goal.status}
                         </p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           variant="ghost"
                           className="h-9 px-3"
@@ -118,6 +165,19 @@ export default function GrowthPage() {
                         <Button
                           variant="ghost"
                           className="h-9 px-3"
+                          onClick={() => void runGoalCoach(goal._id)}
+                          disabled={coachLoadingId === goal._id}
+                        >
+                          <Sparkles size={14} />
+                          {coachLoadingId === goal._id
+                            ? "Coaching…"
+                            : canUseGoalCoach
+                              ? "Goal coach"
+                              : "Unlock coach"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="h-9 px-3"
                           onClick={() => deleteGoal(goal._id)}
                         >
                           Remove
@@ -130,6 +190,21 @@ export default function GrowthPage() {
                         style={{ width: `${progress}%` }}
                       />
                     </div>
+                    {coachByGoal[goal._id] ? (
+                      <div className="mt-3 rounded-2xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm whitespace-pre-wrap text-slate-700 dark:border-primary/30 dark:bg-primary/10 dark:text-slate-200">
+                        {coachByGoal[goal._id]}
+                        {!canUseGoalCoach ? (
+                          <div className="mt-2">
+                            <Link
+                              href="/home/general/subscriptions"
+                              className="font-semibold text-primary"
+                            >
+                              Upgrade to Super
+                            </Link>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </article>
                 );
               })

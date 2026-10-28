@@ -1,5 +1,6 @@
 "use client";
 
+import PeriodReviewCard from "@/components/analytics/PeriodReviewCard";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import Card from "@/components/ui/Card";
@@ -209,6 +210,8 @@ export default function AnalyticsPage() {
             <MetricCard key={metric.label} {...metric} />
           ))}
         </div>
+
+        <PeriodReviewCard />
 
         <div className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">

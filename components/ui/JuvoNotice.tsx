@@ -108,7 +108,24 @@ function NoticeCard({ notice }: { notice: JuvoNotice }) {
             >
               {notice.body}
             </p>
-            {notice.journalId && <Link href={`/home/journal/${encodeURIComponent(notice.journalId)}`} onClick={() => void dismiss()} className="mt-3 inline-block text-sm font-semibold text-cyan-700 underline underline-offset-4 dark:text-primary">Review in journal</Link>}
+            {notice.journalId ? (
+              <Link
+                href={`/home/journal/${encodeURIComponent(notice.journalId)}`}
+                onClick={() => void dismiss()}
+                className="mt-3 inline-block text-sm font-semibold text-cyan-700 underline underline-offset-4 dark:text-primary"
+              >
+                Review in journal
+              </Link>
+            ) : null}
+            {!notice.journalId && notice.href ? (
+              <Link
+                href={notice.href}
+                onClick={() => void dismiss()}
+                className="mt-3 inline-block text-sm font-semibold text-cyan-700 underline underline-offset-4 dark:text-primary"
+              >
+                {notice.linkLabel || "Open"}
+              </Link>
+            ) : null}
           </div>
           <button
             type="button"

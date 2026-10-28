@@ -36,6 +36,13 @@ import {
   type UpdateDashboardGuidePayload,
 } from "@/services/dashboardGuide.service";
 
+import { getApiErrorMessage } from "@/lib/axios";
+import {
+  explainMetricService,
+  getAiAccessService,
+  hasAiFeature,
+} from "@/services/ai.service";
+import { AiAccess } from "@/types/ai.types";
 import { Activity, Percent, TrendingDown, TrendingUp } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -56,6 +63,9 @@ export default function DashboardOverview() {
   const [isMyDayOpen, setIsMyDayOpen] = useState(false);
   const [isNoTradeOpen, setIsNoTradeOpen] = useState(false);
   const [workflowPanel, setWorkflowPanel] = useState<WorkflowPanel>("start");
+  const [aiAccess, setAiAccess] = useState<AiAccess | null>(null);
+  const [metricExplain, setMetricExplain] = useState<string | null>(null);
+  const [metricExplainLoading, setMetricExplainLoading] = useState(false);
 
   // --------------------------------------------------
   // STORES
@@ -729,6 +739,31 @@ useEffect(() => {
       ? accountBalance
       : Number(summary?.netPnl || 0);
 
+  useEffect(() => {
+    getAiAccessService()
+      .then((response) => setAiAccess(response.data))
+      .catch(() => undefined);
+  }, []);
+
+  const explainWinRate = async () => {
+    if (!hasAiFeature(aiAccess, "explain_metrics")) {
+      setMetricExplain("Upgrade to Pro or Super to explain metrics with Juvo AI.");
+      return;
+    }
+    setMetricExplainLoading(true);
+    setMetricExplain(null);
+    try {
+      const response = await explainMetricService({ metricKey: "winRate" });
+      setMetricExplain(response.data.explanation);
+    } catch (error) {
+      setMetricExplain(
+        getApiErrorMessage(error, "Juvo could not explain this metric."),
+      );
+    } finally {
+      setMetricExplainLoading(false);
+    }
+  };
+
   const metrics = [
     {
       label: "Net P&L",
@@ -751,6 +786,10 @@ useEffect(() => {
           ? ("profit" as const)
           : ("neutral" as const),
       icon: Percent,
+      onExplain: () => {
+        void explainWinRate();
+      },
+      explainLabel: metricExplainLoading ? "Explaining…" : "Explain",
     },
     {
       label: "Discipline",
@@ -809,6 +848,11 @@ useEffect(() => {
               <MetricCard key={metric.label} {...metric} />
             ))}
           </div>
+          {metricExplain ? (
+            <p className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-slate-700 dark:border-primary/30 dark:bg-primary/10 dark:text-slate-200">
+              {metricExplain}
+            </p>
+          ) : null}
 
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.9fr)]">
             <div data-tour="performance-chart" className="min-w-0">
