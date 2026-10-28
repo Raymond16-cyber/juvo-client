@@ -21,17 +21,17 @@ export default function OnboardingNavigation({
   const isLast = currentStep === totalSteps - 1;
 
   return (
-    <div className="mt-10 flex items-center justify-between gap-4">
+    <div className="mt-8 flex items-center justify-between gap-3 sm:mt-10 sm:gap-4">
       <button
         type="button"
         onClick={onBack}
         disabled={isFirst || isLoading}
-        className="px-4 py-3 text-sm font-semibold text-slate-500 transition hover:text-slate-950 disabled:invisible dark:text-slate-400 dark:hover:text-white"
+        className="min-h-11 px-3 py-3 text-sm font-semibold text-slate-500 transition hover:text-slate-950 disabled:invisible dark:text-slate-400 dark:hover:text-white sm:px-4"
       >
         Back
       </button>
 
-      <Button type="button" onClick={onNext} disabled={isLoading}>
+      <Button type="button" className="min-h-11" onClick={onNext} disabled={isLoading}>
         {isLoading ? "Saving..." : isLast ? "Finish" : "Continue"}
       </Button>
     </div>

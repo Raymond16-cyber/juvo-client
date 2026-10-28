@@ -53,11 +53,36 @@ body {
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-saira), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Avoid blanket overflow-x:hidden — fix overflow at the source. */
+  overflow-x: clip;
+}
+
+/* Shared responsive helpers (Tailwind breakpoints: sm 640 / md 768 / lg 1024 / xl 1280 / 2xl 1536) */
+@layer utilities {
+  .juvo-safe-pb {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .juvo-safe-pt {
+    padding-top: max(0px, env(safe-area-inset-top, 0px));
+  }
+
+  .juvo-break-words {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .juvo-scroll-x {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .dark-page-shell {

@@ -84,7 +84,7 @@ export default function QuickActions({
               variant={index === 0 ? "primary" : "ghost"}
               onClick={action.onClick}
               disabled={action.disabled}
-              className="h-11 w-full justify-start whitespace-nowrap"
+              className="h-11 w-full justify-start whitespace-normal sm:whitespace-nowrap"
             >
               <Icon size={17} />
               {action.label}

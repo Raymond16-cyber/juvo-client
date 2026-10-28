@@ -59,7 +59,7 @@ export default function PerformanceChart({
               type="button"
               onClick={() => setRange(item)}
               className={cn(
-                "rounded-lg px-3 py-1.5 transition",
+                "min-h-9 rounded-lg px-2.5 py-1.5 transition sm:px-3",
                 range === item
                   ? "bg-slate-950 text-white dark:bg-primary dark:text-slate-950"
                   : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white",
@@ -72,9 +72,12 @@ export default function PerformanceChart({
       </div>
 
       {hasRealData ? (
-        <div className="h-56 min-h-56 sm:h-72 sm:min-h-72">
+        <div className="h-48 min-h-48 min-w-0 sm:h-72 sm:min-h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+            <AreaChart
+              data={data}
+              margin={{ left: -8, right: 2, top: 8, bottom: 0 }}
+            >
               <defs>
                 <linearGradient id="equityGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#00D4FF" stopOpacity={0.28} />
@@ -90,16 +93,18 @@ export default function PerformanceChart({
                 dataKey="label"
                 tickLine={false}
                 axisLine={false}
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                interval="preserveStartEnd"
+                minTickGap={24}
+                tick={{ fill: "#94a3b8", fontSize: 10 }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                width={36}
+                tick={{ fill: "#94a3b8", fontSize: 10 }}
                 tickFormatter={(value) =>
                   formatCompactMoney(Number(value), currency)
                 }
-                width={56}
               />
               <Tooltip
                 contentStyle={{

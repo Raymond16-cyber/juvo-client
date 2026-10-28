@@ -4,6 +4,10 @@ import JuvoNoticeHost from "@/components/ui/JuvoNotice";
 import Sidebar from "@/components/ui/Sidebar";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { pageTransition, panelTransition, motionDuration } from "@/lib/motion";
+import {
+  pageShellClassName,
+  pageShellFillClassName,
+} from "@/lib/responsive";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -28,6 +32,7 @@ const titles: Record<string, string> = {
   "/home/accounts/export": "Export",
   "/home/general/referrals": "Referrals",
   "/home/general/subscriptions": "Plans",
+  "/home/general/achievements": "Achievements",
   "/home/general/settings": "Settings",
   "/home/general/help": "Help",
   "/home/general/juvo-tutorials": "JUVO Tutorials",
@@ -82,6 +87,15 @@ export default function DashboardShell({
     return titles[match || ""] || "JUVO";
   }, [pathname]);
 
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [sidebarOpen]);
+
   return (
     <div
       className={`bg-slate-50 text-slate-950 dark:bg-background dark:text-white ${
@@ -118,20 +132,23 @@ export default function DashboardShell({
             fillViewport ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
           }`}
         >
-          <div className="sticky top-0 z-30 flex shrink-0 items-center justify-between border-b border-slate-200/90 bg-white/90 px-4 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-background/85 lg:hidden">
+          <div className="juvo-safe-pt sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/90 bg-white/90 px-3 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-background/85 sm:px-4 lg:hidden">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                 JUVO
               </p>
-              <h1 className="truncate text-lg font-bold tracking-tight">{title}</h1>
+              <h1 className="truncate text-base font-bold tracking-tight sm:text-lg">
+                {title}
+              </h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               <ThemeToggle compact />
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}
-                className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                className="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-white"
                 aria-label="Open sidebar"
+                aria-expanded={sidebarOpen}
               >
                 <Menu size={20} />
               </button>
@@ -140,15 +157,17 @@ export default function DashboardShell({
 
           <div
             className={
-              fillViewport
-                ? "mx-auto flex min-h-0 w-full max-w-[1500px] flex-1 flex-col overflow-hidden px-3 py-3 sm:px-4 lg:px-6 lg:py-4"
-                : "mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8 lg:py-8"
+              fillViewport ? pageShellFillClassName : pageShellClassName
             }
           >
             <AnimatePresence mode="wait">
               <motion.div
                 key={pathname}
-                className={fillViewport ? "flex min-h-0 flex-1 flex-col" : ""}
+                className={
+                  fillViewport
+                    ? "flex min-h-0 min-w-0 flex-1 flex-col"
+                    : "min-w-0"
+                }
                 variants={pageTransition}
                 initial="initial"
                 animate="animate"

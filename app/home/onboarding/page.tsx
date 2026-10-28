@@ -195,10 +195,10 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        <div className="flex w-full max-w-xl flex-col justify-center px-6 py-12 lg:px-12">
+        <div className="flex w-full min-w-0 max-w-xl flex-col justify-center px-4 py-10 sm:px-6 sm:py-12 lg:px-12">
           <div
             ref={panelRef}
-            className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-card sm:p-8"
+            className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card sm:p-8"
           >
             <OnboardingProgress
               currentStep={currentStep}

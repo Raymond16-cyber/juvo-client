@@ -321,9 +321,9 @@ export default function JournalDetailPage() {
             />
           </Card>
         ) : journal ? (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-            <div className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-4">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
+            <div className="min-w-0 space-y-6">
+              <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
                 {[
                   [
                     "P/L",
@@ -337,12 +337,12 @@ export default function JournalDetailPage() {
                   ["Closed", String(journal.closedTrades || 0), ""],
                   ["Discipline", `${journal.discipline?.score ?? "—"}`, ""],
                 ].map(([label, value, tone]) => (
-                  <Card key={label} className="p-4">
+                  <Card key={label} className="min-w-0 p-3 sm:p-4">
                     <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                       {label}
                     </p>
                     <p
-                      className={`mt-2 text-2xl font-bold ${tone || "text-slate-950 dark:text-white"}`}
+                      className={`mt-2 break-words text-xl font-bold sm:text-2xl ${tone || "text-slate-950 dark:text-white"}`}
                     >
                       {value}
                     </p>
@@ -350,14 +350,14 @@ export default function JournalDetailPage() {
                 ))}
               </div>
 
-              <Card className="p-5">
+              <Card className="p-4 sm:p-5">
                 <div className="flex items-center gap-2">
-                  <NotebookPen size={18} className="text-primary" />
+                  <NotebookPen size={18} className="shrink-0 text-primary" />
                   <h2 className="text-lg font-bold text-slate-950 dark:text-white">
                     Pre-market note
                   </h2>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                <p className="juvo-break-words mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
                   {journal.psychology?.beforeTrading ||
                     "No pre-market note was captured."}
                 </p>
@@ -376,13 +376,13 @@ export default function JournalDetailPage() {
                 </div>
                 {journal.trades?.length ? (
                   journal.trades.map((trade) => (
-                    <article key={trade._id} className="p-5">
-                      <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                          <p className="text-base font-bold text-slate-950 dark:text-white">
+                    <article key={trade._id} className="min-w-0 p-4 sm:p-5">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+                        <div className="min-w-0 flex-1">
+                          <p className="break-words text-base font-bold text-slate-950 dark:text-white">
                             {trade.symbol} · {trade.direction}
                           </p>
-                          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                          <p className="juvo-break-words mt-1 text-sm text-slate-500 dark:text-slate-400">
                             {trade.instrument} · {trade.session || "No session"}{" "}
                             · {trade.status}
                             {trade.tradingAccount &&
@@ -390,20 +390,20 @@ export default function JournalDetailPage() {
                               ? ` · ${trade.tradingAccount.accountName}`
                               : ""}
                           </p>
-                          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                          <p className="juvo-break-words mt-2 text-sm text-slate-600 dark:text-slate-300">
                             Entry {trade.entryPrice} · SL{" "}
                             {trade.stopLoss ?? "N/A"} · TP{" "}
                             {trade.takeProfit ?? "N/A"} · Size {trade.lotSize}
                           </p>
                           {trade.notes ? (
-                            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                            <p className="juvo-break-words mt-2 text-sm text-slate-500 dark:text-slate-400">
                               {trade.notes}
                             </p>
                           ) : null}
                         </div>
-                        <div className="text-right">
+                        <div className="shrink-0 text-left sm:text-right">
                           <p
-                            className={`text-lg font-bold ${pnlClass(trade.profitLoss || 0)}`}
+                            className={`break-words text-lg font-bold ${pnlClass(trade.profitLoss || 0)}`}
                           >
                             {formatMoney(
                               trade.profitLoss || 0,
@@ -418,7 +418,7 @@ export default function JournalDetailPage() {
                           (!trade.source || trade.source === "manual") ? (
                             <Button
                               variant="ghost"
-                              className="mt-3 h-9 px-3"
+                              className="mt-3 h-11 px-3"
                               onClick={() => {
                                 setClosingTradeId(trade._id);
                                 setExitPrice(String(trade.takeProfit || ""));
@@ -434,7 +434,7 @@ export default function JournalDetailPage() {
                           followUpTradeId !== trade._id ? (
                             <Button
                               variant="ghost"
-                              className="mt-3 h-9 px-3"
+                              className="mt-3 h-11 px-3"
                               onClick={() => {
                                 setFollowUpTradeId(trade._id);
                                 setFollowUpFile(null);
@@ -499,7 +499,7 @@ export default function JournalDetailPage() {
                     Close trade
                   </h3>
                   <form className="mt-4 space-y-4" onSubmit={handleCloseTrade}>
-                    <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       <input
                         className={controlClassName}
                         type="number"
@@ -527,6 +527,7 @@ export default function JournalDetailPage() {
                       </select>
                       <Button
                         type="submit"
+                        className="w-full sm:col-span-2 lg:col-span-1"
                         disabled={isLoading || analyzingScreenshot}
                       >
                         {analyzingScreenshot
@@ -583,32 +584,32 @@ export default function JournalDetailPage() {
               ) : null}
             </div>
 
-            <aside className="space-y-6">
+            <aside className="min-w-0 space-y-6">
               <SmartJournalInterviewer journalId={journal._id} />
               <PlanComplianceCard journalId={journal._id} />
 
               {journal.ai?.summary || journal.ai?.feedback ? (
-                <Card className="p-5">
+                <Card className="p-4 sm:p-5">
                   <div className="flex items-center gap-2 text-primary">
-                    <Bot size={18} />
+                    <Bot size={18} className="shrink-0" />
                     <h2 className="text-lg font-bold text-slate-950 dark:text-white">
                       Juvo review
                     </h2>
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  <p className="juvo-break-words mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
                     {journal.ai.summary || journal.ai.feedback}
                   </p>
                   {journal.ai.feedback && journal.ai.summary ? (
-                    <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                    <p className="juvo-break-words mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
                       {journal.ai.feedback}
                     </p>
                   ) : null}
                 </Card>
               ) : null}
 
-              <Card className="p-5">
+              <Card className="p-4 sm:p-5">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 size={18} className="text-primary" />
+                  <CheckCircle2 size={18} className="shrink-0 text-primary" />
                   <h2 className="text-lg font-bold text-slate-950 dark:text-white">
                     End of day
                   </h2>
@@ -674,13 +675,14 @@ export default function JournalDetailPage() {
                     ].map(([key, label]) => (
                       <label
                         key={key}
-                        className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/[0.04]"
+                        className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/[0.04]"
                       >
-                        <span className="text-slate-600 dark:text-slate-300">
+                        <span className="min-w-0 text-slate-600 dark:text-slate-300">
                           {label}
                         </span>
                         <input
                           type="checkbox"
+                          className="h-5 w-5 shrink-0 accent-cyan-400"
                           checked={Boolean(
                             review[key as keyof CompleteJournalPayload],
                           )}

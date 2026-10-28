@@ -52,7 +52,7 @@ export default function AccountSwitcher({
         </span>
       )}
       <select
-        className={`${controlClassName} ${compact ? "h-10 min-w-[180px] text-xs" : "h-11"}`}
+        className={`${controlClassName} ${compact ? "h-10 min-w-0 text-xs sm:min-w-[160px]" : "h-11"}`}
         value={selectedAccount?._id || ""}
         disabled={isLoading}
         onChange={async (event) => {

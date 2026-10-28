@@ -125,18 +125,18 @@ export default function GrowthPage() {
           description="Track discipline, journaling, and risk — not a monthly profit fantasy."
         />
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-          <Card className="divide-y divide-slate-200 dark:divide-white/10">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
+          <Card className="min-w-0 divide-y divide-slate-200 dark:divide-white/10">
             {goals.length ? (
               goals.map((goal) => {
                 const progress = goal.targetValue
                   ? Math.min(100, Math.round((goal.currentValue / goal.targetValue) * 100))
                   : 0;
                 return (
-                  <article key={goal._id} className="p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <p className="text-base font-bold text-slate-950 dark:text-white">
+                  <article key={goal._id} className="min-w-0 p-4 sm:p-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="break-words text-base font-bold text-slate-950 dark:text-white">
                           {goal.title}
                         </p>
                         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -146,7 +146,7 @@ export default function GrowthPage() {
                       <div className="flex flex-wrap gap-2">
                         <Button
                           variant="ghost"
-                          className="h-9 px-3"
+                          className="h-11 px-3"
                           onClick={() =>
                             updateGoal(goal._id, {
                               currentValue: Math.min(
@@ -164,7 +164,7 @@ export default function GrowthPage() {
                         </Button>
                         <Button
                           variant="ghost"
-                          className="h-9 px-3"
+                          className="h-11 px-3"
                           onClick={() => void runGoalCoach(goal._id)}
                           disabled={coachLoadingId === goal._id}
                         >
@@ -177,7 +177,7 @@ export default function GrowthPage() {
                         </Button>
                         <Button
                           variant="ghost"
-                          className="h-9 px-3"
+                          className="h-11 px-3"
                           onClick={() => deleteGoal(goal._id)}
                         >
                           Remove
@@ -191,7 +191,7 @@ export default function GrowthPage() {
                       />
                     </div>
                     {coachByGoal[goal._id] ? (
-                      <div className="mt-3 rounded-2xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm whitespace-pre-wrap text-slate-700 dark:border-primary/30 dark:bg-primary/10 dark:text-slate-200">
+                      <div className="juvo-break-words mt-3 rounded-2xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm whitespace-pre-wrap text-slate-700 dark:border-primary/30 dark:bg-primary/10 dark:text-slate-200">
                         {coachByGoal[goal._id]}
                         {!canUseGoalCoach ? (
                           <div className="mt-2">
@@ -217,8 +217,8 @@ export default function GrowthPage() {
             )}
           </Card>
 
-          <form onSubmit={handleCreate}>
-            <Card className="space-y-4 p-5">
+          <form onSubmit={handleCreate} className="min-w-0">
+            <Card className="space-y-4 p-4 sm:p-5">
               <h2 className="text-lg font-bold text-slate-950 dark:text-white">New goal</h2>
               {error ? (
                 <p className="rounded-2xl bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">
@@ -259,7 +259,7 @@ export default function GrowthPage() {
                 helperText="Dictate the reason behind the goal."
                 textareaClassNameOverride={textareaClassName}
               />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                 <select
                   className={controlClassName}
                   value={form.category}

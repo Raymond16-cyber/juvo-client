@@ -59,9 +59,9 @@ export default function MyDayWorkflowModal({
             onClick={onClose}
           />
 
-          <div className="pointer-events-none absolute inset-0 flex items-end justify-center px-3 py-4 sm:items-center sm:p-6">
+          <div className="pointer-events-none absolute inset-0 flex items-end justify-center px-2 py-3 juvo-safe-pb sm:items-center sm:p-6">
           <motion.div
-            className="pointer-events-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 text-slate-950 shadow-2xl shadow-slate-950/20 dark:border-white/10 dark:bg-card dark:text-white dark:shadow-black/50 sm:p-6"
+            className="pointer-events-auto max-h-[min(92dvh,920px)] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-4 text-slate-950 shadow-2xl shadow-slate-950/20 dark:border-white/10 dark:bg-card dark:text-white dark:shadow-black/50 sm:p-6"
             initial={{ opacity: 0, y: 18, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 14, scale: 0.98 }}

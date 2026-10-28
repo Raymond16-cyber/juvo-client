@@ -57,11 +57,11 @@ export default function JournalStreakCard({
 
   const content = (
     <>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <div
             className={cn(
-              "relative grid h-12 w-12 place-items-center rounded-2xl",
+              "relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl",
               current > 0
                 ? "bg-gradient-to-br from-orange-500/25 via-amber-400/20 to-rose-500/10 text-orange-500 shadow-[0_0_24px_rgba(249,115,22,0.18)]"
                 : "bg-slate-100 text-slate-400 dark:bg-white/10 dark:text-slate-500",
@@ -72,17 +72,17 @@ export default function JournalStreakCard({
               className={cn(current > 0 && "fill-orange-500/30")}
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-orange-600/80 dark:text-orange-300/80">
               Journal streak
             </p>
-            <p className="mt-1 text-2xl font-bold text-slate-950 dark:text-white">
+            <p className="mt-1 break-words text-xl font-bold text-slate-950 sm:text-2xl dark:text-white">
               {headline}
             </p>
           </div>
         </div>
         {todayCompleted ? (
-          <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+          <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
             Today done
           </span>
         ) : null}
@@ -92,22 +92,22 @@ export default function JournalStreakCard({
         {message}
       </p>
 
-      <div className="mt-4 grid grid-cols-7 gap-1.5">
+      <div className="mt-4 grid grid-cols-7 gap-1 sm:gap-1.5">
         {week.map((day) => (
-          <div key={day.date} className="text-center">
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+          <div key={day.date} className="min-w-0 text-center">
+            <p className="mb-1 truncate text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 sm:text-[10px]">
               {day.date.startsWith("placeholder")
                 ? ""
                 : weekdayLabel(day.date)}
             </p>
             <div
               className={cn(
-                "mx-auto flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-bold transition",
+                "mx-auto flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-bold transition sm:h-8 sm:w-8",
                 day.completed
                   ? "border-orange-500/40 bg-gradient-to-br from-orange-500 to-amber-400 text-white shadow-sm shadow-orange-500/20"
                   : "border-slate-200 bg-slate-50 text-slate-400 dark:border-white/10 dark:bg-white/[0.04]",
                 day.isToday && !day.completed
-                  ? "ring-2 ring-orange-400/40 ring-offset-2 ring-offset-white dark:ring-offset-slate-950"
+                  ? "ring-2 ring-orange-400/40 ring-offset-1 ring-offset-white dark:ring-offset-slate-950 sm:ring-offset-2"
                   : null,
               )}
               aria-label={`${day.date}${day.completed ? " completed" : " incomplete"}`}
@@ -118,7 +118,7 @@ export default function JournalStreakCard({
         ))}
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-3 text-xs dark:border-white/10">
+      <div className="mt-4 flex flex-col gap-1 border-t border-slate-200 pt-3 text-xs sm:flex-row sm:items-center sm:justify-between sm:gap-3 dark:border-white/10">
         <p className="text-slate-500 dark:text-slate-400">
           Longest streak{" "}
           <span className="font-bold text-slate-950 dark:text-white">

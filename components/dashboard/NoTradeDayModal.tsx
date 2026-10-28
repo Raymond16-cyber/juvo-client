@@ -143,7 +143,7 @@ export default function NoTradeDayModal({
   return createPortal(
     <AnimatePresence>
       {isOpen ? (
-        <div className="fixed inset-0 z-[110] flex items-end justify-center p-4 sm:items-center">
+        <div className="fixed inset-0 z-[110] flex items-end justify-center p-2 juvo-safe-pb sm:items-center sm:p-4">
           <motion.button
             type="button"
             aria-label="Close no-trade day dialog"
@@ -157,7 +157,7 @@ export default function NoTradeDayModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="no-trade-day-title"
-            className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0b1220]"
+            className="relative z-10 max-h-[min(92dvh,900px)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0b1220]"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}

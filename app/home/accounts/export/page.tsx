@@ -92,23 +92,23 @@ export default function ExportPage() {
         } />
 
         <div className="grid gap-4 border-y border-slate-200 py-5 dark:border-white/10 sm:grid-cols-2 lg:grid-cols-4">
-          <label className="space-y-2 text-sm font-medium">
+          <label className="min-w-0 space-y-2 text-sm font-medium">
             <span>Account</span>
             <select className={controlClassName} value={filters.accountId} onChange={(event) => setFilters({ ...filters, accountId: event.target.value })}>
               <option value="">All accounts</option>
               {accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
             </select>
           </label>
-          <label className="space-y-2 text-sm font-medium">
+          <label className="min-w-0 space-y-2 text-sm font-medium">
             <span>From</span>
             <input type="date" className={controlClassName} value={filters.from} max={filters.to || undefined} onChange={(event) => setFilters({ ...filters, from: event.target.value })} />
           </label>
-          <label className="space-y-2 text-sm font-medium">
+          <label className="min-w-0 space-y-2 text-sm font-medium">
             <span>To</span>
             <input type="date" className={controlClassName} value={filters.to} min={filters.from || undefined} onChange={(event) => setFilters({ ...filters, to: event.target.value })} />
           </label>
           <div className="flex items-end">
-            <Button variant="ghost" onClick={() => setFilters({ accountId: "", from: "", to: "" })} disabled={!filters.accountId && !filters.from && !filters.to}>
+            <Button className="w-full sm:w-auto" variant="ghost" onClick={() => setFilters({ accountId: "", from: "", to: "" })} disabled={!filters.accountId && !filters.from && !filters.to}>
               <RotateCcw size={16} /> Reset filters
             </Button>
           </div>
@@ -134,11 +134,11 @@ export default function ExportPage() {
             { key: "journals", title: "Session CSV", count: `${journals.length} rows`, icon: Table2 },
             { key: "trades", title: "Trade CSV", count: `${tradeCount} rows`, icon: Table2 },
           ] as const).map((item) => (
-            <section key={item.key} className="flex min-w-0 flex-col items-start rounded-lg border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-card">
+            <section key={item.key} className="flex min-w-0 flex-col items-start rounded-lg border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-card sm:p-5">
               <item.icon size={22} className="text-primary" />
               <h2 className="mt-3 text-lg font-semibold">{item.title}</h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{item.count}</p>
-              <Button className="mt-5" onClick={() => exportData(item.key)} disabled={!canDownload || (item.key === "trades" && !tradeCount)} aria-label={`Download ${item.title}`}>
+              <Button className="mt-5 w-full sm:w-auto" onClick={() => exportData(item.key)} disabled={!canDownload || (item.key === "trades" && !tradeCount)} aria-label={`Download ${item.title}`}>
                 <Download size={16} /> Download
               </Button>
             </section>

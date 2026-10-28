@@ -173,7 +173,7 @@ export function ScreenshotReviewDisplay({
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
                   {label}
                 </p>
-                <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
+                <p className="juvo-break-words mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
                   {analysis.review[key]}
                 </p>
               </div>
@@ -290,12 +290,12 @@ export default function TradeScreenshotReview({
         />
       ) : null}
 
-      <p className="text-xs text-slate-500 dark:text-slate-400">{fileLabel}</p>
+      <p className="juvo-break-words text-xs text-slate-500 dark:text-slate-400">{fileLabel}</p>
 
       <div className="flex flex-wrap gap-2">
-        <label className={`${controlClassName} inline-flex cursor-pointer items-center gap-2 px-3 py-2`}>
-          <Upload size={14} />
-          {selectedFile ? "Replace screenshot" : "Upload screenshot"}
+        <label className={`${controlClassName} inline-flex min-h-11 cursor-pointer items-center gap-2 px-3 py-2`}>
+          <Upload size={14} className="shrink-0" />
+          <span className="min-w-0">{selectedFile ? "Replace screenshot" : "Upload screenshot"}</span>
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -308,7 +308,7 @@ export default function TradeScreenshotReview({
           <Button
             type="button"
             variant="ghost"
-            className="h-10 px-3"
+            className="h-11 px-3"
             disabled={analyzing}
             onClick={() => onFileChange(null)}
           >
@@ -319,7 +319,7 @@ export default function TradeScreenshotReview({
         {onRequestReview && selectedFile ? (
           <Button
             type="button"
-            className="h-10 px-3"
+            className="h-11 px-3"
             disabled={analyzing || requestDisabled}
             onClick={onRequestReview}
           >

@@ -29,15 +29,15 @@ const faqs = [
 export default function HelpPage() {
   return (
     <DashboardShell>
-      <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mx-auto w-full max-w-3xl space-y-6">
         <PageHeader
           eyebrow="General"
           title="Help Center"
           description="Short answers for a journal that is supposed to keep you honest."
         />
         {faqs.map((item) => (
-          <Card key={item.q} className="p-6">
-            <h2 className="text-lg font-bold text-slate-950 dark:text-white">
+          <Card key={item.q} className="p-4 sm:p-6">
+            <h2 className="break-words text-lg font-bold text-slate-950 dark:text-white">
               {item.q}
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
@@ -45,8 +45,8 @@ export default function HelpPage() {
             </p>
           </Card>
         ))}
-        <Card id="ctrader-walkthrough" className="scroll-mt-24 p-6">
-          <h2 className="text-lg font-bold text-slate-950 dark:text-white">
+        <Card id="ctrader-walkthrough" className="scroll-mt-24 p-4 sm:p-6">
+          <h2 className="break-words text-lg font-bold text-slate-950 dark:text-white">
             Want to see a demo walkthrough on JUVO?
           </h2>
           <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
@@ -56,26 +56,26 @@ export default function HelpPage() {
           </p>
           <Link
             href="/home/general/juvo-tutorials"
-            className="mt-5 inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-secondary"
+            className="mt-5 inline-flex min-h-11 items-center rounded-full bg-primary px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-secondary"
           >
             Open JUVO tutorials
           </Link>
         </Card>
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Still stuck? Ask Juvo from the workspace, or start with today&apos;s
             journal.
           </p>
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             <Link
               href="/home/ai/chat"
-              className="text-sm font-bold text-primary"
+              className="inline-flex min-h-11 items-center text-sm font-bold text-primary"
             >
               Open Juvo AI
             </Link>
             <Link
               href="/home/journal"
-              className="text-sm font-bold text-primary"
+              className="inline-flex min-h-11 items-center text-sm font-bold text-primary"
             >
               Open journal
             </Link>

@@ -12,6 +12,7 @@ import {
   needsNewAccount,
 } from "@/lib/account";
 import { formatMoney as formatAccountMoney } from "@/lib/format";
+import { metricGridClassName } from "@/lib/responsive";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
 import type { JournalHistoryItem } from "@/types/journal.types";
@@ -199,11 +200,11 @@ export default function JournalPage() {
     <DashboardShell>
       <div className="space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
               Journal
             </p>
-            <h1 className="mt-1 text-3xl font-bold text-slate-950 dark:text-white">
+            <h1 className="mt-1 break-words text-2xl font-bold text-slate-950 sm:text-3xl dark:text-white">
               Trading Journals
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
@@ -212,7 +213,7 @@ export default function JournalPage() {
             </p>
           </div>
 
-          <div className="relative w-full lg:max-w-sm">
+          <div className="relative w-full min-w-0 lg:max-w-sm">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               size={18}
@@ -226,7 +227,7 @@ export default function JournalPage() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className={metricGridClassName}>
           <StatCard
             icon={BookOpenText}
             label="Journals"
@@ -262,8 +263,8 @@ export default function JournalPage() {
 
         <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
           <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-card">
-            <div className="flex flex-col gap-3 border-b border-slate-200 p-5 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
-              <div>
+            <div className="flex flex-col gap-3 border-b border-slate-200 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+              <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="text-lg font-bold text-slate-950 dark:text-white">
                     Daily journals
@@ -290,7 +291,7 @@ export default function JournalPage() {
                     aria-pressed={journalView === "list"}
                     title="List view"
                     onClick={() => setJournalView("list")}
-                    className={`grid h-8 w-8 place-items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                    className={`grid h-11 w-11 place-items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                       journalView === "list"
                         ? "bg-white text-slate-950 shadow-sm dark:bg-card dark:text-white"
                         : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
@@ -304,7 +305,7 @@ export default function JournalPage() {
                     aria-pressed={journalView === "grid"}
                     title="Grid view"
                     onClick={() => setJournalView("grid")}
-                    className={`grid h-8 w-8 place-items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
+                    className={`grid h-11 w-11 place-items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                       journalView === "grid"
                         ? "bg-white text-slate-950 shadow-sm dark:bg-card dark:text-white"
                         : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
@@ -351,7 +352,7 @@ export default function JournalPage() {
 
           <aside className="min-w-0 space-y-4 xl:sticky xl:top-8">
             <form
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-card"
+              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card sm:p-5"
               onSubmit={handleCreateJournal}
             >
               <div className="flex items-start justify-between gap-4">
@@ -483,16 +484,18 @@ function StatCard({ icon: Icon, label, value, helper, tone }: StatCardProps) {
         : "text-slate-950 dark:text-white";
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-card">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+    <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="min-w-0 truncate text-sm font-semibold text-slate-500 dark:text-slate-400">
           {label}
         </p>
-        <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white">
           <Icon size={19} />
         </div>
       </div>
-      <p className={`mt-4 text-3xl font-bold ${toneClass}`}>{value}</p>
+      <p className={`mt-3 break-words text-2xl font-bold sm:mt-4 sm:text-3xl ${toneClass}`}>
+        {value}
+      </p>
       {helper && (
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           {helper}
@@ -517,7 +520,7 @@ function JournalRow({
   return (
     <Link
       href={`/home/journal/${journal._id}`}
-      className={`block p-5 transition hover:bg-slate-50 dark:hover:bg-white/[0.03] ${
+      className={`block p-4 transition hover:bg-slate-50 dark:hover:bg-white/[0.03] sm:p-5 ${
         view === "grid"
           ? "rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.025]"
           : ""
@@ -532,7 +535,7 @@ function JournalRow({
           }`}
         >
           <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h3 className="truncate text-base font-bold text-slate-950 dark:text-white">
                 {formatDate(journal.journalDate)}
               </h3>
@@ -544,7 +547,7 @@ function JournalRow({
               {getAccountName(journal)}
             </p>
             {view === "list" && journal.psychology?.beforeTrading ? (
-              <p className="mt-3 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
+              <p className="juvo-break-words mt-3 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
                 {journal.psychology.beforeTrading}
               </p>
             ) : null}

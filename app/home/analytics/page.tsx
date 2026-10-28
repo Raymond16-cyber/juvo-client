@@ -7,6 +7,7 @@ import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 import { formatMoney, formatNumber, pnlClass } from "@/lib/format";
+import { filterControlClassName, metricGridClassName } from "@/lib/responsive";
 import { controlClassName } from "@/lib/ui";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useAnalyticsStore } from "@/stores/analytics.store";
@@ -168,7 +169,7 @@ export default function AnalyticsPage() {
           title="All-Time Performance"
           description="Review every account together, or filter down to one account when you need a cleaner read."
           actions={
-            <label className="block min-w-[220px]">
+            <label className={filterControlClassName}>
               <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                 Account filter
               </span>
@@ -199,13 +200,13 @@ export default function AnalyticsPage() {
           </div>
         ) : null}
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className={metricGridClassName}>
           {topMetrics.map((metric) => (
             <MetricCard key={metric.label} {...metric} />
           ))}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className={metricGridClassName}>
           {secondaryMetrics.map((metric) => (
             <MetricCard key={metric.label} {...metric} />
           ))}

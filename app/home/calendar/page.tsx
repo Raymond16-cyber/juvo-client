@@ -9,6 +9,7 @@ import {
   getSelectedAccount,
 } from "@/lib/account";
 import { formatMoney, pnlClass } from "@/lib/format";
+import { filterControlClassName } from "@/lib/responsive";
 import { controlClassName } from "@/lib/ui";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
@@ -85,11 +86,11 @@ export default function CalendarPage() {
           title="Juvo Calendar"
           description="See which days you journaled across all accounts, or filter to one account."
           actions={
-            <div className="flex flex-wrap items-center gap-3">
-              <label className="block min-w-[190px]">
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+              <label className={filterControlClassName}>
                 <span className="sr-only">Calendar account filter</span>
                 <select
-                  className={`${controlClassName} h-10 text-xs`}
+                  className={`${controlClassName} h-11 text-xs sm:h-10`}
                   value={accountFilter}
                   onChange={(event) => setAccountFilter(event.target.value)}
                   aria-label="Filter calendar by account"
@@ -103,24 +104,24 @@ export default function CalendarPage() {
                   ))}
                 </select>
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2 sm:justify-start">
                 <button
                   type="button"
-                  className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 dark:border-white/10"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-slate-200 dark:border-white/10"
                   onClick={() => setCursor(new Date(year, month - 1, 1))}
                   aria-label="Previous month"
                 >
                   <ChevronLeft size={18} />
                 </button>
-                <p className="min-w-36 text-center text-sm font-bold text-slate-950 dark:text-white">
+                <p className="min-w-0 flex-1 text-center text-sm font-bold text-slate-950 dark:text-white sm:min-w-36 sm:flex-none">
                   {cursor.toLocaleString("en", {
-                    month: "long",
+                    month: "short",
                     year: "numeric",
                   })}
                 </p>
                 <button
                   type="button"
-                  className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 dark:border-white/10"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-slate-200 dark:border-white/10"
                   onClick={() => setCursor(new Date(year, month + 1, 1))}
                   aria-label="Next month"
                 >
@@ -131,15 +132,18 @@ export default function CalendarPage() {
           }
         />
 
-        <Card className="overflow-hidden p-5">
-          <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="py-2">
-                {day}
+        <Card className="overflow-hidden p-3 sm:p-5">
+          <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400 sm:gap-2 sm:text-xs">
+            {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
+              <div key={`${day}-${index}`} className="py-1 sm:py-2">
+                <span className="sm:hidden">{day}</span>
+                <span className="hidden sm:inline">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][index]}
+                </span>
               </div>
             ))}
           </div>
-          <div className="mt-2 grid grid-cols-7 gap-2">
+          <div className="mt-1 grid grid-cols-7 gap-1 sm:mt-2 sm:gap-2">
             {cells.map((day, index) => {
               if (!day) return <div key={`empty-${index}`} />;
               const key = toDateKey(new Date(year, month, day));
@@ -163,28 +167,28 @@ export default function CalendarPage() {
 
               const inner = (
                 <div
-                  className={`min-h-24 rounded-2xl border p-3 text-left ${
+                  className={`min-h-14 min-w-0 rounded-xl border p-1.5 text-left sm:min-h-24 sm:rounded-2xl sm:p-3 ${
                     dayJournals.length
                       ? "border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.04]"
                       : "border-transparent bg-transparent"
                   }`}
                 >
-                  <p className="text-sm font-bold text-slate-950 dark:text-white">
+                  <p className="text-xs font-bold text-slate-950 dark:text-white sm:text-sm">
                     {day}
                   </p>
                   {dayJournals.length ? (
                     <>
-                      <div className="mt-2 space-y-1">
-                        {dailyPnl.map((item) => (
+                      <div className="mt-1 space-y-0.5 sm:mt-2 sm:space-y-1">
+                        {dailyPnl.slice(0, 1).map((item) => (
                           <p
                             key={item.currency}
-                            className={`truncate text-xs font-semibold ${pnlClass(item.value)}`}
+                            className={`truncate text-[10px] font-semibold sm:text-xs ${pnlClass(item.value)}`}
                           >
                             {formatMoney(item.value, item.currency)}
                           </p>
                         ))}
                       </div>
-                      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                      <p className="mt-0.5 hidden text-[11px] text-slate-500 dark:text-slate-400 sm:mt-1 sm:block">
                         {dayJournals.reduce(
                           (total, journal) =>
                             total + (journal.tradesCount || 0),

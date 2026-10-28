@@ -122,10 +122,10 @@ export default function TradingAccountsPage() {
           title="Trading Accounts"
           description="Every journal is tied to an account. Active accounts can collect new trades; archived accounts stay available for review."
           actions={
-            <div className="grid grid-cols-2 gap-1 rounded-full bg-slate-100 p-1 text-sm font-semibold dark:bg-white/10">
+            <div className="grid w-full grid-cols-2 gap-1 rounded-full bg-slate-100 p-1 text-sm font-semibold dark:bg-white/10 sm:w-auto">
               <button
                 type="button"
-                className={`rounded-full px-4 py-2 ${
+                className={`min-h-11 rounded-full px-3 py-2 sm:px-4 ${
                   view === "active"
                     ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
                     : "text-slate-500 dark:text-slate-300"
@@ -136,7 +136,7 @@ export default function TradingAccountsPage() {
               </button>
               <button
                 type="button"
-                className={`rounded-full px-4 py-2 ${
+                className={`min-h-11 rounded-full px-3 py-2 sm:px-4 ${
                   view === "archived"
                     ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
                     : "text-slate-500 dark:text-slate-300"
@@ -149,8 +149,8 @@ export default function TradingAccountsPage() {
           }
         />
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
-          <div className="space-y-4">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,400px)]">
+          <div className="min-w-0 space-y-4">
             {view === "archived" ? (
               archivedAccounts.length ? (
                 archivedAccounts.map((account) => (
@@ -195,13 +195,13 @@ export default function TradingAccountsPage() {
                   : Math.max(0, account.drawdownPercent || 0);
 
                 return (
-                  <Card key={account._id} className="p-5">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <p className="text-lg font-bold text-slate-950 dark:text-white">
+                  <Card key={account._id} className="min-w-0 p-4 sm:p-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="break-words text-lg font-bold text-slate-950 dark:text-white">
                           {account.accountName}
                         </p>
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        <p className="juvo-break-words mt-1 text-sm text-slate-500 dark:text-slate-400">
                           {account.broker} · {account.platform} ·{" "}
                           {account.accountType}
                         </p>
@@ -214,7 +214,7 @@ export default function TradingAccountsPage() {
                         (account.status || "Active") === "Active" ? (
                           <Button
                             variant="ghost"
-                            className="h-9 px-3"
+                            className="h-11 px-3"
                             onClick={() => activateAccount(account._id)}
                             disabled={isLoading}
                           >
@@ -223,7 +223,7 @@ export default function TradingAccountsPage() {
                         ) : null}
                         <Button
                           variant="ghost"
-                          className="h-9 px-3"
+                          className="h-11 px-3"
                           onClick={() => archiveAccount(account._id)}
                         >
                           Archive
@@ -251,12 +251,12 @@ export default function TradingAccountsPage() {
                       ].map(([label, value]) => (
                         <div
                           key={label}
-                          className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/[0.04]"
+                          className="min-w-0 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/[0.04]"
                         >
                           <p className="text-xs text-slate-500 dark:text-slate-400">
                             {label}
                           </p>
-                          <p className="mt-1 text-sm font-bold text-slate-950 dark:text-white">
+                          <p className="mt-1 break-words text-sm font-bold text-slate-950 dark:text-white">
                             {value}
                           </p>
                         </div>
@@ -283,19 +283,19 @@ export default function TradingAccountsPage() {
                           {account.trades.slice(0, 6).map((trade) => (
                             <div
                               key={trade._id}
-                              className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm dark:bg-white/[0.04]"
+                              className="flex min-w-0 items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm dark:bg-white/[0.04]"
                             >
-                              <div>
-                                <p className="font-semibold text-slate-950 dark:text-white">
+                              <div className="min-w-0">
+                                <p className="truncate font-semibold text-slate-950 dark:text-white">
                                   {trade.symbol} · {trade.direction}
                                 </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
                                   {trade.status}
                                   {trade.session ? ` · ${trade.session}` : ""}
                                 </p>
                               </div>
                               <p
-                                className={`font-bold ${pnlClass(trade.profitLoss || 0)}`}
+                                className={`shrink-0 break-words font-bold ${pnlClass(trade.profitLoss || 0)}`}
                               >
                                 {formatMoney(
                                   trade.profitLoss || 0,
@@ -326,8 +326,8 @@ export default function TradingAccountsPage() {
             )}
           </div>
 
-          <form onSubmit={handleCreate} className={view === "archived" ? "hidden xl:block" : ""}>
-            <Card className="space-y-3 p-5">
+          <form onSubmit={handleCreate} className={`min-w-0 ${view === "archived" ? "hidden xl:block" : ""}`}>
+            <Card className="space-y-3 p-4 sm:p-5">
               <h2 className="text-lg font-bold text-slate-950 dark:text-white">
                 Add account
               </h2>
@@ -354,7 +354,7 @@ export default function TradingAccountsPage() {
                 }
                 required
               />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                 <select
                   className={controlClassName}
                   value={form.accountType}
@@ -381,7 +381,7 @@ export default function TradingAccountsPage() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                 <input
                   className={controlClassName}
                   placeholder="Platform"
@@ -400,7 +400,7 @@ export default function TradingAccountsPage() {
                   }
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                 <input
                   className={controlClassName}
                   type="number"
@@ -424,7 +424,7 @@ export default function TradingAccountsPage() {
                   }
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
                 <input
                   className={controlClassName}
                   type="number"

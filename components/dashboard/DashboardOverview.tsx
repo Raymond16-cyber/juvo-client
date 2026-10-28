@@ -43,7 +43,19 @@ import {
   hasAiFeature,
 } from "@/services/ai.service";
 import { AiAccess } from "@/types/ai.types";
-import { Activity, Percent, TrendingDown, TrendingUp } from "lucide-react";
+import Button from "@/components/ui/Button";
+import { metricGridClassName } from "@/lib/responsive";
+import {
+  Activity,
+  CalendarDays,
+  Flame,
+  Percent,
+  Plus,
+  Rocket,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { driver } from "driver.js";
@@ -820,14 +832,52 @@ useEffect(() => {
     <div ref={dashboardRef} data-dashboard-main className="space-y-5 lg:space-y-6">
       <DashboardHeader onOpenMyDay={openMyDayWorkflow} />
 
-      {/* Mobile dashboard heading */}
-      <div className="lg:hidden">
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-          Welcome back, {user?.fullName || "Trader"}
-        </p>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
-          Trading Dashboard
-        </h1>
+      {/* Mobile dashboard heading + primary actions */}
+      <div className="space-y-3 lg:hidden">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-slate-500 dark:text-slate-400">
+              Welcome back, {user?.fullName || "Trader"}
+            </p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+              Dashboard
+            </h1>
+          </div>
+          {(journalStatus?.streak?.currentStreak ||
+            user?.stats?.currentJournalStreak ||
+            0) > 0 ? (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-orange-500/15 to-amber-400/15 px-2.5 py-1 text-[11px] font-bold text-orange-700 dark:text-orange-300">
+              <Flame size={12} className="fill-orange-500/30" aria-hidden />
+              {journalStatus?.streak?.currentStreak ||
+                user?.stats?.currentJournalStreak}
+              d
+            </span>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            className="h-11 min-w-0 flex-1 px-3 sm:flex-none sm:px-5"
+            onClick={() =>
+              openMyDayWorkflow(Boolean(journalStatus?.hasJournalToday))
+            }
+          >
+            {journalStatus?.hasJournalToday ? (
+              <Plus size={16} />
+            ) : (
+              <Rocket size={16} />
+            )}
+            <span className="truncate">
+              {journalStatus?.hasJournalToday ? "Log trade" : "Start my day"}
+            </span>
+          </Button>
+          <Link
+            href="/home/calendar"
+            className="grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300"
+            aria-label="Open calendar"
+          >
+            <CalendarDays size={18} />
+          </Link>
+        </div>
       </div>
 
       <TodayJournalStatus
@@ -842,7 +892,7 @@ useEffect(() => {
         <div className="order-2 space-y-5 xl:order-1">
           <div
             data-tour="dashboard-metrics"
-            className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+            className={metricGridClassName}
           >
             {metrics.map((metric) => (
               <MetricCard key={metric.label} {...metric} />

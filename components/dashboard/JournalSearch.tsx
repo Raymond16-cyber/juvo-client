@@ -103,11 +103,15 @@ export default function JournalSearch() {
   };
 
   return (
-    <form ref={rootRef} onSubmit={handleSubmit} className="relative w-72">
-      <label className="flex h-11 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-500 shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400">
-        <Search size={17} />
+    <form
+      ref={rootRef}
+      onSubmit={handleSubmit}
+      className="relative w-full min-w-0 max-w-full sm:w-64 md:w-72"
+    >
+      <label className="flex h-11 min-w-0 items-center gap-3 rounded-full border border-slate-200 bg-white px-3 text-sm text-slate-500 shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 sm:px-4">
+        <Search size={17} className="shrink-0" />
         <input
-          className="w-full bg-transparent text-slate-700 outline-none placeholder:text-slate-400 dark:text-white"
+          className="min-w-0 w-full bg-transparent text-slate-700 outline-none placeholder:text-slate-400 dark:text-white"
           placeholder="Search journals..."
           value={query}
           onChange={(event) => {
@@ -143,7 +147,7 @@ export default function JournalSearch() {
           <motion.div
             id="journal-search-results"
             role="listbox"
-            className="absolute right-0 top-[calc(100%+8px)] z-50 w-[22rem] origin-top overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 dark:border-white/10 dark:bg-card dark:shadow-black/40"
+            className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(22rem,calc(100vw-1.5rem))] origin-top overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 dark:border-white/10 dark:bg-card dark:shadow-black/40"
             initial={{ opacity: 0, y: 8, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.98 }}

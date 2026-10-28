@@ -322,8 +322,8 @@ export default function JuvoAIChatPage() {
   };
 
   const accessPanel = (
-    <div className="flex min-h-0 flex-1 items-center justify-center p-4">
-      <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center dark:border-white/10 dark:bg-white/[0.04]">
+    <div className="flex min-h-0 flex-1 items-center justify-center p-3 sm:p-4">
+      <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-white/10 dark:bg-white/[0.04] sm:p-6">
         <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
           {trialStatus === "expired" ? (
             <LockKeyhole size={22} />
@@ -528,11 +528,11 @@ export default function JuvoAIChatPage() {
               aria-label="Close conversations"
               onClick={() => setThreadsOpen(false)}
             />
-            <div className="absolute inset-x-0 bottom-0 flex max-h-[80dvh] flex-col rounded-t-3xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-white/10 dark:bg-card">
+            <div className="juvo-safe-pb absolute inset-x-0 bottom-0 flex max-h-[min(85dvh,720px)] min-w-0 flex-col rounded-t-3xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-white/10 dark:bg-card">
               <div className="mb-3 flex justify-end">
                 <button
                   type="button"
-                  className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 text-slate-500 dark:border-white/10 dark:text-slate-300"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-slate-200 text-slate-500 dark:border-white/10 dark:text-slate-300"
                   onClick={() => setThreadsOpen(false)}
                   aria-label="Close conversations"
                 >
@@ -545,16 +545,16 @@ export default function JuvoAIChatPage() {
         ) : null}
 
         <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-card">
-          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 p-4 dark:border-white/10">
-            <div className="flex min-w-0 items-center gap-3">
+          <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 p-3 sm:gap-3 sm:p-4 dark:border-white/10">
+            <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary">
                 <Bot size={20} />
               </div>
               <div className="min-w-0">
-                <h1 className="truncate text-xl font-bold text-slate-950 dark:text-white">
+                <h1 className="truncate text-lg font-bold text-slate-950 sm:text-xl dark:text-white">
                   Process coach
                 </h1>
-                <p className="truncate text-sm text-slate-500 dark:text-slate-400">
+                <p className="truncate text-xs text-slate-500 sm:text-sm dark:text-slate-400">
                   {access?.source === "trial" && trialLabel
                     ? `Trial active - ${trialLabel}`
                     : "Juvo reads your journals. It will not give trade signals."}
@@ -563,11 +563,11 @@ export default function JuvoAIChatPage() {
             </div>
             <Button
               variant="ghost"
-              className="h-10 px-3 xl:hidden"
+              className="h-11 shrink-0 px-3 xl:hidden"
               onClick={() => setThreadsOpen(true)}
             >
               <MessageSquare size={16} />
-              Chats
+              <span className="hidden min-[380px]:inline">Chats</span>
             </Button>
           </div>
 
@@ -580,9 +580,11 @@ export default function JuvoAIChatPage() {
           ) : (
             <>
               {access?.source === "trial" ? (
-                <div className="flex shrink-0 items-center gap-2 border-b border-slate-200 px-4 py-2 text-xs font-semibold text-slate-500 dark:border-white/10 dark:text-slate-400">
-                  <Clock3 size={14} className="text-primary" />
-                  3-day trial active{trialLabel ? ` - ${trialLabel}` : ""}
+                <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-slate-200 px-3 py-2 text-xs font-semibold text-slate-500 sm:px-4 dark:border-white/10 dark:text-slate-400">
+                  <Clock3 size={14} className="shrink-0 text-primary" />
+                  <span className="min-w-0">
+                    3-day trial active{trialLabel ? ` - ${trialLabel}` : ""}
+                  </span>
                 </div>
               ) : null}
 
@@ -652,7 +654,7 @@ export default function JuvoAIChatPage() {
                               ) : null}
                             </div>
                             <div
-                              className={`group relative min-w-0 max-w-full whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-xl border px-4 py-3 text-sm leading-6 shadow-sm ${
+                              className={`group relative min-w-0 max-w-full whitespace-pre-wrap juvo-break-words rounded-xl border px-3 py-2.5 text-sm leading-6 shadow-sm sm:px-4 sm:py-3 ${
                                 fromUser
                                   ? "border-slate-950 bg-slate-950 text-white dark:border-primary dark:bg-primary dark:text-slate-950"
                                   : "border-slate-200 bg-slate-50 pr-10 text-slate-700 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-200"
@@ -722,7 +724,7 @@ export default function JuvoAIChatPage() {
               </div>
 
               <form
-                className="shrink-0 border-t border-slate-200 p-3 dark:border-white/10 sm:p-4"
+                className="juvo-safe-pb shrink-0 border-t border-slate-200 p-2.5 dark:border-white/10 sm:p-4"
                 onSubmit={handleSubmit}
               >
                 {canAskJournal && attachedJournalIds.length ? (
@@ -734,19 +736,19 @@ export default function JuvoAIChatPage() {
                     </span>
                     <button
                       type="button"
-                      className="text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                      className="min-h-9 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white"
                       onClick={() => setAttachedJournalIds([])}
                     >
                       Clear
                     </button>
                   </div>
                 ) : null}
-                <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 shadow-sm transition focus-within:border-primary/60 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10 dark:border-white/10 dark:bg-white/[0.035] dark:focus-within:bg-white/[0.06]">
+                <div className="flex min-w-0 items-end gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-1.5 shadow-sm transition focus-within:border-primary/60 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10 dark:border-white/10 dark:bg-white/[0.035] dark:focus-within:bg-white/[0.06] sm:gap-2 sm:p-2">
                   {canAskJournal ? (
                     <Button
                       type="button"
                       variant="ghost"
-                      className="h-14 w-14 shrink-0 rounded-lg px-0"
+                      className="h-11 w-11 shrink-0 rounded-lg px-0 sm:h-14 sm:w-14"
                       aria-label="Attach journals"
                       title="Press \\ to attach journals"
                       onClick={() => setJournalPickerOpen(true)}
@@ -755,21 +757,21 @@ export default function JuvoAIChatPage() {
                     </Button>
                   ) : null}
                   <textarea
-                    className={`${controlClassName} min-h-[48px] max-h-32 resize-none border-0 bg-transparent py-3 shadow-none focus:border-transparent focus:ring-0 dark:bg-transparent`}
+                    className={`${controlClassName} min-h-11 max-h-32 min-w-0 flex-1 resize-none border-0 bg-transparent py-2.5 shadow-none focus:border-transparent focus:ring-0 dark:bg-transparent sm:min-h-[48px] sm:py-3`}
                     rows={2}
                     value={input}
                     onChange={(event) => setInput(event.target.value)}
                     onKeyDown={handleComposerKeyDown}
                     placeholder={
                       canAskJournal
-                        ? "Ask about your process — press \\ to attach journals"
+                        ? "Ask about your process — \\ attaches journals"
                         : "Ask about your process, not the next setup"
                     }
                   />
                   <Button
                     type="submit"
                     disabled={isLoading || !input.trim()}
-                    className="h-14 w-14 rounded-lg px-0 py-0 shrink-0"
+                    className="h-11 w-11 shrink-0 rounded-lg px-0 py-0 sm:h-14 sm:w-14"
                     aria-label="Send message"
                     title="Send message"
                   >

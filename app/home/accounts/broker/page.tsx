@@ -265,16 +265,16 @@ export default function BrokerConnectionsPage() {
           </Card>
         ) : null}
 
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)]">
-          <Card className="p-6">
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,0.55fr)]">
+          <Card className="min-w-0 p-4 sm:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                  <ShieldCheck size={17} />
+                  <ShieldCheck size={17} className="shrink-0" />
                   Read-only broker access
                 </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <h2 className="text-2xl font-bold text-slate-950 dark:text-white">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <h2 className="break-words text-xl font-bold text-slate-950 sm:text-2xl dark:text-white">
                     {connectedCTrader
                       ? "cTrader is connected"
                       : needsReauth
@@ -396,9 +396,9 @@ export default function BrokerConnectionsPage() {
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="min-w-0 p-4 sm:p-6">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              <AlertTriangle size={17} />
+              <AlertTriangle size={17} className="shrink-0" />
               Permission boundary
             </div>
             <div className="mt-5 space-y-3">
@@ -437,11 +437,11 @@ export default function BrokerConnectionsPage() {
         </section>
 
         <section className="grid gap-4 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-          <Card className="p-6">
-            <div className="flex items-center justify-between gap-3">
-              <div>
+          <Card className="min-w-0 p-4 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                  <WalletCards size={17} />
+                  <WalletCards size={17} className="shrink-0" />
                   Linked accounts
                 </div>
                 <h2 className="mt-1 text-lg font-bold text-slate-950 dark:text-white">

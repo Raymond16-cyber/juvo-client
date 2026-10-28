@@ -33,29 +33,29 @@ export default function InsightsPage() {
 
   return (
     <DashboardShell>
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mx-auto w-full max-w-4xl space-y-6">
         <PageHeader
           eyebrow="Behavioural Insights"
           title="Trading Behavior Review"
           description="Juvo scores the process: plan adherence, revenge trading, overtrading, and session quality."
         />
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-3">
           {[
             ["Discipline", `${Math.round(data?.summary.avgDiscipline || 0)}%`],
             ["Revenge days", String(data?.summary.revengeDays || 0)],
             ["Overtrade days", String(data?.summary.overtradeDays || 0)],
           ].map(([label, value]) => (
-            <Card key={label} className="p-5">
+            <Card key={label} className="min-w-0 p-4 sm:p-5">
               <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
-              <p className="mt-2 text-3xl font-bold text-slate-950 dark:text-white">{value}</p>
+              <p className="mt-2 break-words text-2xl font-bold text-slate-950 sm:text-3xl dark:text-white">{value}</p>
             </Card>
           ))}
         </div>
 
         <BehavioralInsights insights={data?.insights} />
 
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6">
           <h2 className="text-lg font-bold text-slate-950 dark:text-white">
             Challenges you named in onboarding
           </h2>
@@ -64,7 +64,7 @@ export default function InsightsPage() {
               challenges.map((challenge) => (
                 <span
                   key={challenge}
-                  className="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300"
+                  className="max-w-full break-words rounded-full bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300"
                 >
                   {titleCase(challenge)}
                 </span>

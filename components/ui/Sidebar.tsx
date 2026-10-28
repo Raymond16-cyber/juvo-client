@@ -93,7 +93,7 @@ const Sidebar = ({
     <motion.aside
       layout
       transition={panelTransition}
-      className={`fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 transform flex-col border-r border-slate-200/90 bg-white/95 px-3 py-5 text-slate-700 backdrop-blur-xl transition-[transform,width] duration-300 dark:border-white/10 dark:bg-[#070b14]/95 dark:text-slate-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+      className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,calc(100vw-2.5rem))] max-w-full shrink-0 transform flex-col border-r border-slate-200/90 bg-white/95 px-3 py-4 text-slate-700 backdrop-blur-xl transition-[transform,width] duration-300 juvo-safe-pt juvo-safe-pb dark:border-white/10 dark:bg-[#070b14]/95 dark:text-slate-200 sm:w-72 sm:py-5 lg:sticky lg:top-0 lg:h-screen lg:max-w-none lg:translate-x-0 ${
         isCollapsed ? "lg:w-20 lg:px-2.5" : "lg:w-72"
       } ${
         isOpen ? "translate-x-0 shadow-2xl shadow-slate-300/40 dark:shadow-black/50" : "-translate-x-full"
@@ -166,7 +166,7 @@ const Sidebar = ({
                     href={item.href}
                     onClick={onClose}
                     title={isCollapsed ? item.name : undefined}
-                    className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                    className={`group relative flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
                       isCollapsed ? "lg:h-11 lg:justify-center lg:px-0 lg:py-0" : ""
                     } ${
                       isActive

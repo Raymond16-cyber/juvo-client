@@ -330,14 +330,31 @@ export default function SettingsPage() {
 
         <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="space-y-4 xl:sticky xl:top-6 xl:self-start">
+            <div className="juvo-scroll-x -mx-1 flex gap-2 px-1 pb-1 xl:hidden">
+              {SECTIONS.map((section) => (
+                <button
+                  key={section.id}
+                  type="button"
+                  onClick={() => scrollToSection(section.id)}
+                  className={cn(
+                    "shrink-0 rounded-full border px-3.5 py-2 text-sm font-semibold transition",
+                    activeSection === section.id
+                      ? "border-slate-950 bg-slate-950 text-white dark:border-primary dark:bg-primary/15 dark:text-primary"
+                      : "border-slate-200 bg-white text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300",
+                  )}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </div>
             <Card className="overflow-hidden p-0">
-              <div className="bg-gradient-to-br from-primary/20 via-primary/5 to-transparent p-6">
-                <div className="flex items-center gap-4">
-                  <div className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-950 text-sm font-bold text-white dark:bg-white dark:text-slate-950">
+              <div className="bg-gradient-to-br from-primary/20 via-primary/5 to-transparent p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-slate-950 text-sm font-bold text-white dark:bg-white dark:text-slate-950 sm:h-14 sm:w-14">
                     {initials}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-lg font-bold text-slate-950 dark:text-white">
+                    <p className="truncate text-base font-bold text-slate-950 dark:text-white sm:text-lg">
                       {fullName || "JUVO Trader"}
                     </p>
                     <p className="truncate text-sm text-slate-500 dark:text-slate-400">
@@ -388,7 +405,7 @@ export default function SettingsPage() {
               </div>
             </Card>
 
-            <Card className="p-3">
+            <Card className="hidden p-3 xl:block">
               <nav className="space-y-1" aria-label="Settings sections">
                 {SECTIONS.map((section) => {
                   const active = activeSection === section.id;
@@ -398,7 +415,7 @@ export default function SettingsPage() {
                       type="button"
                       onClick={() => scrollToSection(section.id)}
                       className={cn(
-                        "flex w-full flex-col rounded-xl px-3 py-2.5 text-left transition",
+                        "flex min-h-11 w-full flex-col rounded-xl px-3 py-2.5 text-left transition",
                         active
                           ? "bg-primary/15 text-slate-950 dark:text-white"
                           : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-white/[0.04]",

@@ -131,7 +131,7 @@ export default function AchievementGallery({
       </Card>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-2">
+        <div className="juvo-scroll-x -mx-1 flex gap-2 px-1 pb-1">
           {PROGRESS_FILTERS.map((filter) => {
             const active = progressFilter === filter.id;
             return (
@@ -140,7 +140,7 @@ export default function AchievementGallery({
                 type="button"
                 onClick={() => setProgressFilter(filter.id)}
                 className={cn(
-                  "rounded-full border px-3.5 py-1.5 text-sm font-semibold transition",
+                  "shrink-0 rounded-full border px-3.5 py-2 text-sm font-semibold transition",
                   active
                     ? "border-slate-950 bg-slate-950 text-white dark:border-primary dark:bg-primary/15 dark:text-primary"
                     : "border-slate-200 bg-white text-slate-500 hover:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300",
@@ -152,7 +152,7 @@ export default function AchievementGallery({
           })}
         </div>
         <select
-          className="h-10 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200"
+          className="h-11 w-full rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 sm:h-10 lg:w-auto"
           value={category}
           onChange={(event) =>
             setCategory(event.target.value as AchievementCategory | "all")
@@ -174,7 +174,7 @@ export default function AchievementGallery({
           Loading achievements…
         </Card>
       ) : filtered.length ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 xl:grid-cols-3 xl:gap-4">
           {filtered.map((item) => {
             const earned = item.state === "earned";
             const percent = progressPercent(item);
@@ -289,7 +289,7 @@ function AchievementDetailModal({
   return createPortal(
     <AnimatePresence>
       {item ? (
-        <div className="fixed inset-0 z-[110] flex items-end justify-center p-4 sm:items-center">
+        <div className="fixed inset-0 z-[110] flex items-end justify-center p-2 juvo-safe-pb sm:items-center sm:p-4">
           <motion.button
             type="button"
             aria-label="Close achievement details"
@@ -303,7 +303,7 @@ function AchievementDetailModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="achievement-detail-title"
-            className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0B1220]"
+            className="relative z-10 max-h-[min(92dvh,900px)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0B1220]"
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}

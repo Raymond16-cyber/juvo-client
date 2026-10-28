@@ -197,7 +197,7 @@ export default function VoiceNoteTextarea({
             onClick={isRecording ? stopRecording : startRecording}
             disabled={busy}
             className={cn(
-              "inline-flex h-9 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition disabled:opacity-50",
+              "inline-flex h-11 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition disabled:opacity-50",
               isRecording
                 ? "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-300"
                 : "border-slate-200 text-slate-700 dark:border-white/10 dark:text-slate-200",
@@ -225,7 +225,7 @@ export default function VoiceNoteTextarea({
             onClick={isRecording ? stopRecording : startRecording}
             disabled={busy}
             className={cn(
-              "inline-flex h-9 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition disabled:opacity-50",
+              "inline-flex h-11 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition disabled:opacity-50",
               isRecording
                 ? "border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-300"
                 : "border-slate-200 text-slate-700 dark:border-white/10 dark:text-slate-200",

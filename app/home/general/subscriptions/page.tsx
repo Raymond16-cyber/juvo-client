@@ -255,12 +255,12 @@ export default function SubscriptionsPage() {
             {notice}
           </p>
         )}
-        <section className="flex flex-wrap items-center justify-between gap-3 border-y border-slate-200 py-4 dark:border-white/10">
-          <div>
+        <section className="flex flex-col gap-3 border-y border-slate-200 py-4 dark:border-white/10 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-950 dark:text-white">
               Current plan: {planDetails[currentPlan].name}
             </p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="juvo-break-words mt-1 text-sm text-slate-500 dark:text-slate-400">
               Status:{" "}
               {statusLabel(
                 overview?.current?.status || authUser?.subscription?.status,
@@ -271,6 +271,7 @@ export default function SubscriptionsPage() {
             </p>
           </div>
           <Button
+            className="w-full shrink-0 sm:w-auto"
             variant="ghost"
             disabled={!!busy}
             onClick={() => void reconcile()}
@@ -307,7 +308,7 @@ export default function SubscriptionsPage() {
                   plan price.
                 </p>
               </div>
-              <div className="flex w-full gap-2 sm:max-w-sm">
+              <div className="flex w-full min-w-0 gap-2 sm:max-w-sm">
                 <input
                   className="h-11 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm uppercase text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
                   value={invitationCode}
@@ -320,6 +321,7 @@ export default function SubscriptionsPage() {
                   aria-label="Invitation code"
                 />
                 <Button
+                  className="shrink-0"
                   variant="ghost"
                   onClick={() => void applyInvitationCode()}
                   disabled={invitationBusy || !invitationCode.trim()}
@@ -360,12 +362,12 @@ export default function SubscriptionsPage() {
             return (
               <Card
                 key={plan}
-                className={`p-6 ${current ? "ring-2 ring-primary" : ""}`}
+                className={`min-w-0 p-4 sm:p-6 ${current ? "ring-2 ring-primary" : ""}`}
               >
                 <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                   {details.name}
                 </p>
-                <p className="mt-2 text-3xl font-bold text-slate-950 dark:text-white">
+                <p className="mt-2 break-words text-2xl font-bold text-slate-950 sm:text-3xl dark:text-white">
                   {plan === "free" ? (
                     "Free"
                   ) : invitationOffer && option?.amount && option.currency ? (
@@ -393,21 +395,21 @@ export default function SubscriptionsPage() {
                 </p>
                 <ul className="mt-5 space-y-2 text-sm text-slate-600 dark:text-slate-300">
                   {details.points.map((point) => (
-                    <li key={point} className="flex items-center gap-2">
-                      <Check size={16} className="text-primary" />
-                      {point}
+                    <li key={point} className="flex items-start gap-2">
+                      <Check size={16} className="mt-0.5 shrink-0 text-primary" />
+                      <span className="min-w-0">{point}</span>
                     </li>
                   ))}
                 </ul>
                 {plan === "free" ? (
-                  <Button className="mt-6 w-full" variant="ghost" disabled>
+                  <Button className="mt-6 w-full whitespace-normal" variant="ghost" disabled>
                     {current
                       ? "Current plan"
                       : "Available after paid access expires"}
                   </Button>
                 ) : (
                   <Button
-                    className="mt-6 w-full"
+                    className="mt-6 w-full whitespace-normal"
                     disabled={current || !!busy || !option?.available}
                     onClick={() => void checkout(plan)}
                   >
