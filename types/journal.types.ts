@@ -56,13 +56,62 @@ export type CreateTradePayload = {
   direction: "long" | "short";
   entryPrice: number;
   stopLoss: number;
-  takeProfit: number;
-  lotSize: number;
+  takeProfit?: number;
+  lotSize?: number;
   riskPercentage: number;
-  plannedRR: number;
+  plannedRR?: number;
+  targetMode?: "rr" | "price";
+  sizingMode?: "auto" | "manual";
   session?: "Asian" | "Tokyo" | "London" | "New York";
   notes?: string;
   tradingAccount?: string;
+};
+
+export type TradeSetupPreview = {
+  success: boolean;
+  errors: string[];
+  warnings: string[];
+  values: {
+    symbol?: string;
+    instrument?: string;
+    direction?: string;
+    entryPrice?: number | null;
+    stopLoss?: number | null;
+    takeProfit?: number | null;
+    plannedRR?: number | null;
+    riskPercentage?: number | null;
+    lotSize?: number | null;
+    targetMode?: "rr" | "price";
+    stopDistance?: number | null;
+    riskAmount?: number | null;
+    riskBasis?: string | null;
+    riskBasisValue?: number | null;
+    estimatedReward?: number | null;
+    estimatedRiskAtStop?: number | null;
+    sizingMode?: string;
+    sizingConfidence?: string;
+    sizingNote?: string | null;
+    fx?: {
+      from?: string | null;
+      to?: string | null;
+      rate?: number;
+      rateAt?: string;
+      source?: string;
+      kind?: string;
+    } | null;
+    instrumentSpec?: {
+      known?: boolean;
+      confidence?: string;
+      note?: string | null;
+      quoteCurrency?: string | null;
+    };
+  };
+  account?: {
+    id: string;
+    currency?: string | null;
+    currentEquity?: number;
+    currentBalance?: number;
+  };
 };
 
 export interface TradeSummary extends CreateTradePayload {

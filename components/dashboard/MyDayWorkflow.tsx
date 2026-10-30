@@ -17,6 +17,7 @@ import {
 import { getApiErrorMessage } from "@/lib/axios";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
+import TradeSetupCalculator from "@/components/journal/TradeSetupCalculator";
 import { CreateTradePayload } from "@/types/journal.types";
 import { CreateTradingAccountPayload } from "@/types/trading-account.types";
 import {
@@ -67,6 +68,8 @@ const defaultTradeForm: CreateTradePayload = {
   lotSize: 0,
   riskPercentage: 1,
   plannedRR: 2,
+  targetMode: "rr",
+  sizingMode: "auto",
   session: "London",
   notes: "",
 };
@@ -792,93 +795,17 @@ export default function MyDayWorkflow({
       !journalStatus?.noTradeDay?.isActive && (
         <form className="mt-5 space-y-4" onSubmit={handleCreateTrade}>
           <div data-journal-body className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <input
-                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-                placeholder="Symbol"
-                value={tradeForm.symbol}
-                onChange={(event) =>
-                  updateTradeForm("symbol", event.target.value)
-                }
-                required
-              />
-              <select
-                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-                value={tradeForm.instrument}
-                onChange={(event) =>
-                  updateTradeForm("instrument", event.target.value)
-                }
-              >
-                {[
-                  "forex",
-                  "indices",
-                  "crypto",
-                  "stocks",
-                  "commodities",
-                  "others",
-                ].map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <select
-                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-                value={tradeForm.direction}
-                onChange={(event) =>
-                  updateTradeForm("direction", event.target.value)
-                }
-              >
-                <option value="long">Long</option>
-                <option value="short">Short</option>
-              </select>
-              <select
-                className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-                value={tradeForm.session}
-                onChange={(event) =>
-                  updateTradeForm("session", event.target.value)
-                }
-              >
-                {["Asian", "Tokyo", "London", "New York"].map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                ["entryPrice", "Entry"],
-                ["stopLoss", "Stop"],
-                ["takeProfit", "Target"],
-                ["lotSize", "Size"],
-                ["riskPercentage", "Risk %"],
-                ["plannedRR", "RR"],
-              ].map(([key, label]) => (
-                <input
-                  key={key}
-                  className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-                  type="number"
-                  min="0"
-                  step="any"
-                  placeholder={label}
-                  value={String(
-                    tradeForm[key as keyof CreateTradePayload] || "",
-                  )}
-                  onChange={(event) =>
-                    updateTradeForm(
-                      key as keyof CreateTradePayload,
-                      event.target.value,
-                    )
-                  }
-                  required
-                />
-              ))}
-            </div>
+            <TradeSetupCalculator
+              value={tradeForm}
+              onChange={setTradeForm}
+              tradingAccountId={selectedAccountId}
+              accountCurrency={
+                selectedAccount?.accountCurrency ||
+                selectedAccount?.currency ||
+                "USD"
+              }
+              disabled={isJournalLoading}
+            />
 
             <VoiceNoteTextarea
               label="Execution notes"

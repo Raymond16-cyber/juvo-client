@@ -6,6 +6,7 @@ import {
   CreateJournalPayload,
   CreateTradePayload,
   CreateTradeResponse,
+  TradeSetupPreview,
   JournalDetailResponse,
   JournalExport,
   JournalStatusResponse,
@@ -99,6 +100,16 @@ export const createJournalTradeService = async (
     { data },
   );
 
+  return response.data;
+};
+
+export const previewTradeSetupService = async (
+  data: Partial<CreateTradePayload>,
+): Promise<{ message: string; data: TradeSetupPreview }> => {
+  const response = await api.post<{ message: string; data: TradeSetupPreview }>(
+    "/journal/trade-preview",
+    { data },
+  );
   return response.data;
 };
 
