@@ -1,29 +1,10 @@
-export type BetaAccessStatus =
-  | "none"
-  | "active"
-  | "expired"
-  | "revoked"
-  | "admin";
-
-export interface BetaAccessInfo {
-  required?: boolean;
-  role?: "user" | "admin";
-  status?: BetaAccessStatus;
-  activatedAt?: string | null;
-  expiresAt?: string | null;
-  remainingMs?: number | null;
-  hasAccess?: boolean;
-}
-
 export interface User {
   id: string;
   fullName: string;
   email: string;
   avatar: string | null;
   authProvider: "local" | "google" | "apple";
-  role?: "user" | "admin";
   emailVerified?: boolean;
-  betaAccess?: BetaAccessInfo;
   profile?: {
     country?: string;
     timezone?: string;
@@ -89,18 +70,11 @@ export interface RegisterData {
   fullName: string;
   email: string;
   password: string;
-  testerCode?: string;
 }
 
 export interface LoginData {
   email: string;
   password: string;
-  testerCode?: string;
-}
-
-export interface BetaModeStatus {
-  enabled: boolean;
-  message: string;
 }
 
 export interface AuthResponse {

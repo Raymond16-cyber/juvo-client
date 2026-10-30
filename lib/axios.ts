@@ -29,38 +29,22 @@ api.interceptors.response.use(
   (response) => response,
 
   (error) => {
-    if (typeof window !== "undefined") {
-      const status = error.response?.status;
-      const code = error.response?.data?.code;
+    if (typeof window !== "undefined" && error.response?.status === 401) {
       const requestUrl = String(error.config?.url || "");
+      const isAuthProbe =
+        /\/auth\/(sign-in|sign-up|me|request-reset-password|verify-reset-password-code|reset-password)/.test(
+          requestUrl,
+        );
       const onAuthPage = window.location.pathname.startsWith("/auth");
 
-      if (status === 401) {
-        const isAuthProbe =
-          /\/auth\/(sign-in|sign-up|me|request-reset-password|verify-reset-password-code|reset-password|beta-status)/.test(
-            requestUrl,
-          );
-
-        if (!isAuthProbe && !onAuthPage) {
-          localStorage.removeItem("token");
-          const next = window.location.pathname.startsWith("/home")
-            ? `?next=${encodeURIComponent(window.location.pathname)}`
-            : "";
-          // Axios interceptors run outside React components, so use a browser redirect here.
-          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-          window.location.href = `/auth/login${next}`;
-        }
-      }
-
-      if (
-        status === 403 &&
-        (code === "BETA_ACCESS_EXPIRED" || code === "BETA_ACCESS_REVOKED") &&
-        !onAuthPage &&
-        !window.location.pathname.startsWith("/beta-ended")
-      ) {
+      if (!isAuthProbe && !onAuthPage) {
         localStorage.removeItem("token");
+        const next = window.location.pathname.startsWith("/home")
+          ? `?next=${encodeURIComponent(window.location.pathname)}`
+          : "";
+        // Axios interceptors run outside React components, so use a browser redirect here.
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-        window.location.href = `/beta-ended?code=${encodeURIComponent(code)}`;
+        window.location.href = `/auth/login${next}`;
       }
     }
 
