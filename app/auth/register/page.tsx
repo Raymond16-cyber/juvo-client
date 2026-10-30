@@ -5,9 +5,11 @@ import AuthShell from "@/components/auth/AuthShell";
 import styles from "@/components/auth/AuthShell.module.css";
 import GuestRoute from "@/components/auth/GuestRoute";
 import { AUTH_ENTER_LABEL, markEnteringApp } from "@/lib/auth-entry";
-import { getApiErrorMessage } from "@/lib/axios";
+import { getApiErrorCode, getApiErrorMessage } from "@/lib/axios";
+import { getBetaModeStatus } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
 import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
@@ -20,6 +22,8 @@ function RegisterForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [testerCode, setTesterCode] = useState("");
+  const [betaEnabled, setBetaEnabled] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [entering, setEntering] = useState(false);
@@ -27,6 +31,9 @@ function RegisterForm() {
 
   useEffect(() => {
     clearError();
+    getBetaModeStatus()
+      .then((status) => setBetaEnabled(Boolean(status.enabled)))
+      .catch(() => setBetaEnabled(false));
   }, [clearError]);
 
   const visibleError = error || storeError;
@@ -42,12 +49,17 @@ function RegisterForm() {
         fullName,
         email,
         password,
+        ...(testerCode.trim() ? { testerCode: testerCode.trim() } : {}),
       });
       markEnteringApp();
       setEntering(true);
       router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
       return;
     } catch (registerError: unknown) {
+      const code = getApiErrorCode(registerError);
+      if (code === "BETA_ACCESS_REQUIRED" || code === "BETA_CODE_INVALID") {
+        setBetaEnabled(true);
+      }
       setError(
         getApiErrorMessage(
           registerError,
@@ -65,8 +77,12 @@ function RegisterForm() {
   return (
     <AuthShell variant="register">
       <div className={styles.intro}>
-        <h1>Register for JUVO</h1>
-        <p>Start your trading journal. Build your own perspective.</p>
+        <h1>{betaEnabled ? "Private Beta Access" : "Register for JUVO"}</h1>
+        <p>
+          {betaEnabled
+            ? "JUVO is currently available to invited testers. Enter your tester access code to get started."
+            : "Start your trading journal. Build your own perspective."}
+        </p>
       </div>
 
       {visibleError ? (
@@ -141,6 +157,32 @@ function RegisterForm() {
             Use at least 8 characters.
           </p>
         </div>
+        {betaEnabled ? (
+          <div>
+            <label htmlFor="testerCode" className={styles.label}>
+              Tester access code
+            </label>
+            <input
+              id="testerCode"
+              name="testerCode"
+              type="text"
+              autoComplete="one-time-code"
+              spellCheck={false}
+              required
+              value={testerCode}
+              onChange={(event) => setTesterCode(event.target.value.toUpperCase())}
+              placeholder="JUVO-TEST-XXXX-XXXX-XXXX"
+              className={styles.input}
+            />
+            <p className="mt-2 text-xs leading-5 text-slate-400">
+              Don&apos;t have a code?{" "}
+              <Link href="/waitlist" className={styles.link}>
+                Contact the JUVO team
+              </Link>
+              .
+            </p>
+          </div>
+        ) : null}
         <button
           type="submit"
           disabled={loading}
@@ -153,9 +195,9 @@ function RegisterForm() {
 
       <p className={styles.switch}>
         Already have an account?{" "}
-        <span aria-disabled="true" className={`${styles.link} opacity-50`}>
+        <Link href="/auth/login" className={styles.link}>
           Sign in
-        </span>
+        </Link>
       </p>
     </AuthShell>
   );

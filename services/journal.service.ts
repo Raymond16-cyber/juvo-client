@@ -59,6 +59,17 @@ export const upsertNoTradeDayService = async (
   return response.data;
 };
 
+export const liftNoTradeDayService = async (payload?: {
+  liftNote?: string;
+  note?: string;
+}): Promise<NoTradeDayResponse> => {
+  const response = await api.post<NoTradeDayResponse>(
+    "/journal/no-trade-day/lift",
+    { data: payload || {} },
+  );
+  return response.data;
+};
+
 export const getUserJournalsService =
   async (): Promise<UserJournalsResponse> => {
     const response = await api.get<UserJournalsResponse>(

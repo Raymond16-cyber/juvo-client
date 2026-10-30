@@ -16,12 +16,12 @@ type DashboardHeaderProps = {
   accountSwitcher?: ReactNode;
 };
 
-export default function DashboardHeader({
-  onOpenMyDay,
-}: DashboardHeaderProps) {
+export default function DashboardHeader({ onOpenMyDay }: DashboardHeaderProps) {
   const user = useAuthStore((state) => state.user);
   const accounts = useAccountsStore((state) => state.accounts);
-  const selectedAccountId = useAccountsStore((state) => state.selectedAccountId);
+  const selectedAccountId = useAccountsStore(
+    (state) => state.selectedAccountId,
+  );
   const selectedAccount = getSelectedAccount(accounts, selectedAccountId);
   const journalStatus = useJournalStore((state) => state.journalStatus);
   const isLoadingJournalStatus = useJournalStore((state) => state.isLoading);

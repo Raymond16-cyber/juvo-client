@@ -767,7 +767,29 @@ export default function MyDayWorkflow({
         </div>
       ) : null}
 
-      {panel === "trade" && canTradeOnSelected && (
+      {panel === "trade" &&
+      canTradeOnSelected &&
+      journalStatus?.noTradeDay?.isActive ? (
+        <div className="mt-5 space-y-3 rounded-2xl border border-orange-200/80 bg-orange-50/80 p-4 text-sm text-orange-900 dark:border-orange-400/20 dark:bg-orange-400/10 dark:text-orange-100">
+          <p className="font-semibold">No-trade day is active</p>
+          <p>
+            Trade logging is locked for today. Lift the lock if market
+            conditions now align with your plan.
+          </p>
+          <Button
+            type="button"
+            className="w-full"
+            onClick={() => setIsNoTradeOpen(true)}
+          >
+            <Coffee size={16} />
+            Manage no-trade day
+          </Button>
+        </div>
+      ) : null}
+
+      {panel === "trade" &&
+      canTradeOnSelected &&
+      !journalStatus?.noTradeDay?.isActive && (
         <form className="mt-5 space-y-4" onSubmit={handleCreateTrade}>
           <div data-journal-body className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -1024,21 +1046,25 @@ export default function MyDayWorkflow({
             onClick={() => setIsNoTradeOpen(true)}
           >
             <Coffee size={16} />
-            {journalStatus?.noTradeDay && !journalStatus.noTradeDay.supersededByTrade
-              ? "View / edit no-trade day"
-              : "No Trade Today"}
+            {journalStatus?.noTradeDay?.isActive
+              ? "Manage no-trade lock"
+              : journalStatus?.noTradeDay
+                ? "View / re-lock no-trade day"
+                : "No Trade Today"}
           </Button>
         </div>
       ) : null}
 
       <div className="mt-5 border-t border-slate-200 pt-4 text-sm text-slate-500 dark:border-white/10 dark:text-slate-400">
-        {journalStatus?.journalingStatus === "no_trade_day"
-          ? "No-trade day logged ✓"
-          : hasJournalToday
-            ? `${journal?.tradesCount || 0} trade${journal?.tradesCount === 1 ? "" : "s"} logged today.`
-            : accounts.length
-              ? "Select an account and start today's journal."
-              : "Create a trading account to begin."}
+        {journalStatus?.noTradeDay?.isActive
+          ? "No-trade day active — trades locked."
+          : journalStatus?.journalingStatus === "no_trade_day"
+            ? "No-trade day logged ✓"
+            : hasJournalToday
+              ? `${journal?.tradesCount || 0} trade${journal?.tradesCount === 1 ? "" : "s"} logged today.`
+              : accounts.length
+                ? "Select an account and start today's journal."
+                : "Create a trading account to begin."}
       </div>
 
       <NoTradeDayModal

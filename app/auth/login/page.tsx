@@ -5,7 +5,8 @@ import AuthShell from "@/components/auth/AuthShell";
 import styles from "@/components/auth/AuthShell.module.css";
 import GuestRoute from "@/components/auth/GuestRoute";
 import { AUTH_ENTER_LABEL, markEnteringApp } from "@/lib/auth-entry";
-import { getApiErrorMessage } from "@/lib/axios";
+import { getApiErrorCode, getApiErrorMessage } from "@/lib/axios";
+import { getBetaModeStatus } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -20,6 +21,9 @@ function LoginForm() {
   const clearError = useAuthStore((state) => state.clearError);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [testerCode, setTesterCode] = useState("");
+  const [betaEnabled, setBetaEnabled] = useState(false);
+  const [needsCode, setNeedsCode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [entering, setEntering] = useState(false);
@@ -27,6 +31,9 @@ function LoginForm() {
 
   useEffect(() => {
     clearError();
+    getBetaModeStatus()
+      .then((status) => setBetaEnabled(Boolean(status.enabled)))
+      .catch(() => setBetaEnabled(false));
   }, [clearError]);
 
   const visibleError = error || storeError;
@@ -38,7 +45,11 @@ function LoginForm() {
     setLoading(true);
 
     try {
-      const response = await login({ email, password });
+      const response = await login({
+        email,
+        password,
+        ...(testerCode.trim() ? { testerCode: testerCode.trim() } : {}),
+      });
       const nextPath = searchParams.get("next");
       const safeNext =
         nextPath?.startsWith("/home") &&
@@ -53,6 +64,15 @@ function LoginForm() {
       );
       return;
     } catch (loginError: unknown) {
+      const code = getApiErrorCode(loginError);
+      if (code === "BETA_ACCESS_REQUIRED") {
+        setNeedsCode(true);
+        setBetaEnabled(true);
+      }
+      if (code === "BETA_ACCESS_EXPIRED" || code === "BETA_ACCESS_REVOKED") {
+        router.replace(`/beta-ended?code=${encodeURIComponent(code)}`);
+        return;
+      }
       setError(getApiErrorMessage(loginError, "Invalid email or password."));
       setLoading(false);
     }
@@ -65,8 +85,12 @@ function LoginForm() {
   return (
     <AuthShell variant="login">
       <div className={styles.intro}>
-        <h1>Welcome back</h1>
-        <p>Welcome back to your journal.</p>
+        <h1>{betaEnabled ? "Private Beta Access" : "Welcome back"}</h1>
+        <p>
+          {betaEnabled
+            ? "JUVO is currently available to invited testers. Sign in with your account — enter a tester code if you have not activated access yet."
+            : "Welcome back to your journal."}
+        </p>
       </div>
 
       {visibleError ? (
@@ -126,6 +150,35 @@ function LoginForm() {
             </button>
           </div>
         </div>
+        {betaEnabled || needsCode ? (
+          <div>
+            <label htmlFor="testerCode" className={styles.label}>
+              Tester access code {needsCode ? "(required)" : "(if needed)"}
+            </label>
+            <input
+              id="testerCode"
+              name="testerCode"
+              type="text"
+              autoComplete="one-time-code"
+              spellCheck={false}
+              required={needsCode}
+              value={testerCode}
+              onChange={(event) => {
+                setTesterCode(event.target.value.toUpperCase());
+                if (error) setError("");
+              }}
+              placeholder="JUVO-TEST-XXXX-XXXX-XXXX"
+              className={styles.input}
+            />
+            <p className="mt-2 text-xs leading-5 text-slate-400">
+              Approved testers can leave this blank. No code?{" "}
+              <Link href="/waitlist" className={styles.link}>
+                Contact the JUVO team
+              </Link>
+              .
+            </p>
+          </div>
+        ) : null}
         <Link
           href={"/auth/forgot-password"}
           className={`${styles.link} ${styles.forgot} opacity-50`}
@@ -141,7 +194,6 @@ function LoginForm() {
           {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
-
 
       <Link href={"/auth/register"} className={styles.switch}>
         Don&apos;t have an account?{" "}

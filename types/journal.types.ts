@@ -265,6 +265,9 @@ export interface NoTradeDayEntry {
   recordedAt?: string;
   supersededByTrade?: boolean;
   supersededAt?: string | null;
+  liftedAt?: string | null;
+  liftNote?: string;
+  isActive?: boolean;
   journal?: string | null;
   tradingAccount?: string | null;
   createdAt?: string;

@@ -88,10 +88,7 @@ export default function TodayJournalStatus({
   return (
     <section
       data-tour="today-journal-status"
-      className={cn(
-        "rounded-2xl border px-4 py-4 sm:px-5",
-        copy.tone,
-      )}
+      className={cn("rounded-2xl border px-4 py-4 sm:px-5", copy.tone)}
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 items-start gap-3">

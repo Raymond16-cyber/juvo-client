@@ -6,7 +6,13 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 import AuthShowcase, { type AuthVariant } from "./AuthShowcase";
 import styles from "./AuthShell.module.css";
 
-export default function AuthShell({ children, variant }: { children: ReactNode; variant: AuthVariant }) {
+export default function AuthShell({
+  children,
+  variant,
+}: {
+  children: ReactNode;
+  variant: AuthVariant;
+}) {
   return (
     <main className={styles.shell}>
       <AuthShowcase variant={variant} />
@@ -16,7 +22,9 @@ export default function AuthShell({ children, variant }: { children: ReactNode; 
             <Image src={images.appLogo} alt="" width={32} height={32} />
             <span>JUVO</span>
           </Link>
-          <div title="Appearance"><ThemeToggle compact /></div>
+          <div title="Appearance">
+            <ThemeToggle compact />
+          </div>
         </header>
         <div className={styles.formArea}>
           <section className={styles.content}>{children}</section>

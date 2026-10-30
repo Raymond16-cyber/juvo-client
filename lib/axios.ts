@@ -29,28 +29,53 @@ api.interceptors.response.use(
   (response) => response,
 
   (error) => {
-    if (typeof window !== "undefined" && error.response?.status === 401) {
+    if (typeof window !== "undefined") {
+      const status = error.response?.status;
+      const code = error.response?.data?.code;
       const requestUrl = String(error.config?.url || "");
-      const isAuthProbe =
-        /\/auth\/(sign-in|sign-up|me|request-reset-password|verify-reset-password-code|reset-password)/.test(
-          requestUrl,
-        );
       const onAuthPage = window.location.pathname.startsWith("/auth");
 
-      if (!isAuthProbe && !onAuthPage) {
+      if (status === 401) {
+        const isAuthProbe =
+          /\/auth\/(sign-in|sign-up|me|request-reset-password|verify-reset-password-code|reset-password|beta-status)/.test(
+            requestUrl,
+          );
+
+        if (!isAuthProbe && !onAuthPage) {
+          localStorage.removeItem("token");
+          const next = window.location.pathname.startsWith("/home")
+            ? `?next=${encodeURIComponent(window.location.pathname)}`
+            : "";
+          // Axios interceptors run outside React components, so use a browser redirect here.
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+          window.location.href = `/auth/login${next}`;
+        }
+      }
+
+      if (
+        status === 403 &&
+        (code === "BETA_ACCESS_EXPIRED" || code === "BETA_ACCESS_REVOKED") &&
+        !onAuthPage &&
+        !window.location.pathname.startsWith("/beta-ended")
+      ) {
         localStorage.removeItem("token");
-        const next = window.location.pathname.startsWith("/home")
-          ? `?next=${encodeURIComponent(window.location.pathname)}`
-          : "";
-        // Axios interceptors run outside React components, so use a browser redirect here.
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-        window.location.href = `/auth/login${next}`;
+        window.location.href = `/beta-ended?code=${encodeURIComponent(code)}`;
       }
     }
 
     return Promise.reject(error);
   },
 );
+
+export function getApiErrorCode(error: unknown): string | null {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const data = (error as { response?: { data?: { code?: unknown } } })
+      .response?.data;
+    if (data && typeof data.code === "string") return data.code;
+  }
+  return null;
+}
 
 export function getApiErrorMessage(error: unknown, fallback: string) {
   if (typeof error === "object" && error !== null && "response" in error) {

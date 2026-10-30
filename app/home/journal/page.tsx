@@ -23,8 +23,10 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock3,
+  Database,
   LayoutGrid,
   List,
+  Logs,
   NotebookPen,
   Plus,
   Search,
@@ -234,7 +236,7 @@ export default function JournalPage() {
             value={stats.journals}
           />
           <StatCard
-            icon={Activity}
+            icon={Database}
             label="Trades logged"
             value={stats.trades}
           />
@@ -539,8 +541,14 @@ function JournalRow({
               <h3 className="truncate text-base font-bold text-slate-950 dark:text-white">
                 {formatDate(journal.journalDate)}
               </h3>
-              <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">
-                {journal.status}
+              <span
+                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  journal.status === "Completed"
+                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                    : "bg-sky-500/10 text-sky-700 dark:text-sky-300"
+                }`}
+              >
+                {journal.status === "Completed" ? "Closed" : "Open"}
               </span>
             </div>
             <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">

@@ -7,12 +7,11 @@ import { getApiErrorMessage } from "@/lib/axios";
 import { controlClassName, textareaClassName } from "@/lib/ui";
 import {
   getTodayNoTradeDayService,
+  liftNoTradeDayService,
   upsertNoTradeDayService,
 } from "@/services/journal.service";
-import {
-  NoTradeDayEntry,
-  NoTradeDayReason,
-} from "@/types/journal.types";
+import { useJournalStore } from "@/stores/journal.store";
+import { NoTradeDayEntry, NoTradeDayReason } from "@/types/journal.types";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Coffee, X } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
@@ -61,8 +60,12 @@ export default function NoTradeDayModal({
   const [existing, setExisting] = useState<NoTradeDayEntry | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [lifting, setLifting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const getTodayJournalStatus = useJournalStore(
+    (state) => state.getTodayJournalStatus,
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -84,7 +87,10 @@ export default function NoTradeDayModal({
       .catch((loadError) => {
         if (cancelled) return;
         setError(
-          getApiErrorMessage(loadError, "Unable to load today's no-trade status."),
+          getApiErrorMessage(
+            loadError,
+            "Unable to load today's no-trade status.",
+          ),
         );
       })
       .finally(() => {
@@ -164,7 +170,7 @@ export default function NoTradeDayModal({
           >
             <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-white/10">
               <div className="flex items-start gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-orange-500/15 text-orange-600 dark:text-orange-300">
+                <span className="flex justify-center rounded-full items-center h-10 w-14 bg-orange-500/15 text-orange-600 dark:text-orange-300">
                   <Coffee size={18} />
                 </span>
                 <div>
@@ -183,7 +189,7 @@ export default function NoTradeDayModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 text-slate-500 dark:border-white/10 dark:text-slate-300"
+                className="grid h-9 w-12 place-items-center rounded-full border border-slate-200 text-slate-500 dark:border-white/10 dark:text-slate-300"
                 aria-label="Close"
               >
                 <X size={16} />
@@ -198,13 +204,22 @@ export default function NoTradeDayModal({
               ) : (
                 <>
                   {existing ? (
-                    <div className="flex items-start gap-2 rounded-2xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300">
+                    <div
+                      className={`flex items-start gap-2 rounded-2xl px-3 py-2 text-sm ${
+                        existing.isActive
+                          ? "bg-orange-500/10 text-orange-800 dark:text-orange-200"
+                          : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                      }`}
+                    >
                       <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
                       <span>
-                        No-trade day logged ✓
-                        {existing.supersededByTrade
-                          ? " A trade was later recorded for this day, so this declaration is marked superseded."
-                          : " You can update the reason or reflection below."}
+                        {existing.isActive
+                          ? "No-trade day is active. Trade logging is locked for today until you lift it."
+                          : existing.liftedAt
+                            ? "No-trade lock lifted. You can log trades again. Reflection stays on record."
+                            : existing.supersededByTrade
+                              ? "A trade was logged after this declaration, so the lock is inactive."
+                              : "No-trade day logged. You can update the reason or reflection below."}
                       </span>
                     </div>
                   ) : (
@@ -253,7 +268,10 @@ export default function NoTradeDayModal({
               )}
 
               {error ? (
-                <p className="text-sm text-rose-600 dark:text-rose-300" role="alert">
+                <p
+                  className="text-sm text-rose-600 dark:text-rose-300"
+                  role="alert"
+                >
                   {error}
                 </p>
               ) : null}
@@ -272,15 +290,53 @@ export default function NoTradeDayModal({
                   type="button"
                   variant="ghost"
                   onClick={onClose}
-                  disabled={saving}
+                  disabled={saving || lifting}
                 >
                   Close
                 </Button>
-                <Button type="submit" disabled={loading || saving}>
+                {existing?.isActive ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={loading || saving || lifting}
+                    onClick={async () => {
+                      setLifting(true);
+                      setError(null);
+                      setSuccess(null);
+                      try {
+                        const response = await liftNoTradeDayService({
+                          liftNote:
+                            "Market conditions or plan alignment changed.",
+                        });
+                        setExisting(response.data.entry);
+                        setSuccess(
+                          response.data.message ||
+                            "No-trade lock lifted. You can log trades now.",
+                        );
+                        await getTodayJournalStatus().catch(() => undefined);
+                        onSaved?.(response.data.entry);
+                      } catch (liftError) {
+                        setError(
+                          getApiErrorMessage(
+                            liftError,
+                            "Unable to lift the no-trade lock.",
+                          ),
+                        );
+                      } finally {
+                        setLifting(false);
+                      }
+                    }}
+                  >
+                    {lifting ? "Lifting…" : "Lift lock & allow trades"}
+                  </Button>
+                ) : null}
+                <Button type="submit" disabled={loading || saving || lifting}>
                   {saving
                     ? "Saving…"
                     : existing
-                      ? "Update no-trade day"
+                      ? existing.isActive
+                        ? "Update no-trade day"
+                        : "Re-lock as no-trade day"
                       : "Save no-trade day"}
                 </Button>
               </div>

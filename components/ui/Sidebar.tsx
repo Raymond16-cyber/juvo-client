@@ -102,7 +102,7 @@ const Sidebar = ({
       <div className={`flex items-center justify-between ${isCollapsed ? "mb-10 lg:flex-col lg:gap-4" : "mb-8"}`}>
         <Link
           href="/home/dashboard"
-          className={`flex min-w-0 items-center gap-3 ${isCollapsed ? "lg:justify-center" : ""}`}
+          className={`flex min-w-0 items-center gap-3 mt-3 ${isCollapsed ? "lg:justify-center" : ""}`}
           onClick={onClose}
           title="JUVO"
         >

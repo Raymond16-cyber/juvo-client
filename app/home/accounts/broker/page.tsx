@@ -295,7 +295,7 @@ export default function BrokerConnectionsPage() {
                     <div
                       id="ctrader-help-tooltip"
                       role="tooltip"
-                      className={`absolute left-0 top-full z-20 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-3 text-sm font-medium shadow-lg transition dark:border-white/10 dark:bg-card ${
+                      className={`absolute left-0 top-full z-20 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-3 text-sm font-medium shadow-lg transition dark:border-white/10 dark:bg-card ${
                         helpVisible
                           ? "pointer-events-auto opacity-100"
                           : "pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
@@ -629,7 +629,7 @@ function DestinationCard({
   action: string;
 }) {
   return (
-    <Card className="p-6">
+    <Card className="min-w-0 p-4 sm:p-6">
       <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/15 text-primary">
         <Icon size={20} />
       </div>

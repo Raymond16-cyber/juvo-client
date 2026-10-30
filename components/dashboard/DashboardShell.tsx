@@ -132,7 +132,7 @@ export default function DashboardShell({
             fillViewport ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
           }`}
         >
-          <div className="juvo-safe-pt sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/90 bg-white/90 px-3 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-background/85 sm:px-4 lg:hidden">
+          <div className="juvo-safe-pt sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/90 bg-white/90 px-3 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-background/85 sm:px-4 lg:hidden mt-3">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                 JUVO

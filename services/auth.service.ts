@@ -8,7 +8,13 @@ import {
   ResetPasswordData,
   LoginResponse,
   UpdatePreferencesPayload,
+  BetaModeStatus,
 } from "@/types/auth.types";
+
+export const getBetaModeStatus = async (): Promise<BetaModeStatus> => {
+  const response = await api.get<{ data: BetaModeStatus }>("/auth/beta-status");
+  return response.data.data;
+};
 
 export const registerUser = async (
   data: RegisterData,
