@@ -1,4 +1,5 @@
 import { showAchievementUnlocks } from "@/lib/achievements";
+import { getApiErrorMessage } from "@/lib/axios";
 import {
   closeJournalTradeService,
   completeJournalService,
@@ -111,8 +112,8 @@ export const useJournalStore = create<JournalStore>((set) => ({
       }));
       return response.data;
     } catch (error) {
-      void error;
-      set({ error: "Failed to create trade" });
+      const message = getApiErrorMessage(error, "Failed to create trade");
+      set({ error: message });
       throw error;
     } finally {
       set({ isLoading: false });

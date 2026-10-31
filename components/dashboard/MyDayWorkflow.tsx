@@ -417,10 +417,21 @@ export default function MyDayWorkflow({
     }
 
     try {
-      await createTrade(journal._id, {
+      const payload = {
         ...tradeForm,
         tradingAccount: selectedAccountId,
-      });
+        sizingMode:
+          tradeForm.sizingMode === "manual" || Number(tradeForm.lotSize) > 0
+            ? tradeForm.sizingMode || "auto"
+            : "auto",
+      };
+
+      if (!(Number(payload.lotSize) > 0) && payload.sizingMode === "manual") {
+        setAccountError("Enter a position size before saving the trade.");
+        return;
+      }
+
+      await createTrade(journal._id, payload);
       setTradeForm(defaultTradeForm);
       setSuccessMessage("Trade added to today's journal.");
       onJournalUpdated?.();
@@ -428,7 +439,7 @@ export default function MyDayWorkflow({
       setAccountError(
         getApiErrorMessage(
           error,
-          "Unable to create this trade. Create a new account if the current one has passed or been breached.",
+          "Unable to create this trade. Check entry, stop, risk, and size, then try again.",
         ),
       );
     }
