@@ -15,9 +15,15 @@ export default function GuestRoute({
   const hasCheckedAuth = useAuthStore((state) => state.hasCheckedAuth);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
-  const destination = user?.onboarding?.completed
-    ? "/home/dashboard"
-    : "/home/onboarding";
+  const verificationSent = useAuthStore((state) => state.verificationSent);
+
+  const destination = !user?.emailVerified && user?.email
+    ? `/auth/verify-email?email=${encodeURIComponent(user.email)}${
+        verificationSent === false ? "&sent=0" : "&sent=1"
+      }`
+    : user?.onboarding?.completed
+      ? "/home/dashboard"
+      : "/home/onboarding";
 
   useEffect(() => {
     if (!hasCheckedAuth) return;

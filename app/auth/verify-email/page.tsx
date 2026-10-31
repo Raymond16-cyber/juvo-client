@@ -1,19 +1,43 @@
 "use client";
 
 import AuthShell from "@/components/auth/AuthShell";
+import styles from "@/components/auth/AuthShell.module.css";
 import { getApiErrorMessage } from "@/lib/axios";
 import { resendEmailVerification } from "@/services/auth.service";
-import { FormEvent, useState } from "react";
+import { useAuthStore } from "@/stores/auth.store";
+import Link from "next/link";
+import { FormEvent, Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
-export default function VerifyEmailPendingPage() {
-  const [email, setEmail] = useState(() =>
-    typeof window === "undefined"
-      ? ""
-      : new URLSearchParams(window.location.search).get("email") || "",
-  );
+function VerifyEmailPendingForm() {
+  const searchParams = useSearchParams();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const userEmail = useAuthStore((state) => state.user?.email || "");
+  const queryEmail = searchParams.get("email") || "";
+  const sentParam = searchParams.get("sent");
+  const initiallyFailed = sentParam === "0";
+
+  const [email, setEmail] = useState(queryEmail || userEmail);
+
+  useEffect(() => {
+    if (!email && (queryEmail || userEmail)) {
+      setEmail(queryEmail || userEmail);
+    }
+  }, [email, queryEmail, userEmail]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(
+    initiallyFailed
+      ? "We created your account, but could not send the verification email yet. Use resend below."
+      : "",
+  );
+
+  const helperCopy = useMemo(() => {
+    if (initiallyFailed && !message) {
+      return "Request a fresh verification link below, then open it from your inbox.";
+    }
+    return "We sent a verification link to your email. Open the link to confirm your account before continuing.";
+  }, [initiallyFailed, message]);
 
   async function resend(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -35,62 +59,67 @@ export default function VerifyEmailPendingPage() {
   }
 
   return (
-    <AuthShell variant="register">
-      <div className="space-y-5">
-        <div>
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-            One last step
-          </p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-950 dark:text-white">
-            Verify your email
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
-            We sent a verification link to your email. Verify it before using an
-            invitation code or starting a discounted checkout.
-          </p>
-        </div>
-        {message ? (
-          <p
-            role="status"
-            className="rounded-xl bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300"
-          >
-            {message}
-          </p>
-        ) : null}
-        {error ? (
-          <p
-            role="alert"
-            className="rounded-xl bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-300"
-          >
-            {error}
-          </p>
-        ) : null}
-        <form className="space-y-4" onSubmit={resend}>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-            Email address
-            <input
-              className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-              type="email"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={busy}
-            className="inline-flex h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 transition hover:bg-slate-100 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
-          >
-            {busy ? "Sending..." : "Resend verification email"}
-          </button>
-        </form>
-        <span
-          aria-disabled="true"
-          className="block text-sm font-bold text-primary opacity-50"
-        >
-          Continue to sign in
-        </span>
+    <AuthShell variant="verify">
+      <div className={styles.intro}>
+        <p className={styles.kicker}>One last step</p>
+        <h1>Verify your email</h1>
+        <p>{helperCopy}</p>
       </div>
+
+      {message ? (
+        <div role="status" className={styles.success}>
+          {message}
+        </div>
+      ) : null}
+      {error ? (
+        <div role="alert" className={styles.error}>
+          {error}
+        </div>
+      ) : null}
+
+      <form className="space-y-4" onSubmit={resend}>
+        <div>
+          <label htmlFor="verifyEmail" className={styles.label}>
+            Email address
+          </label>
+          <input
+            id="verifyEmail"
+            className={styles.input}
+            type="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={busy}
+          aria-busy={busy}
+          className={styles.secondary}
+        >
+          {busy ? "Sending..." : "Resend verification link"}
+        </button>
+      </form>
+
+      <p className={styles.switch}>
+        {isAuthenticated ? (
+          <Link href="/home/general/settings" className={styles.link}>
+            Back to settings
+          </Link>
+        ) : (
+          <Link href="/auth/login" className={styles.link}>
+            Continue to sign in
+          </Link>
+        )}
+      </p>
     </AuthShell>
+  );
+}
+
+export default function VerifyEmailPendingPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyEmailPendingForm />
+    </Suspense>
   );
 }

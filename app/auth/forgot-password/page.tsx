@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useEffect } from "react";
-import Header from "@/components/Header";
-import Button from "@/components/ui/Button";
-import { useAuthStore } from "@/stores/auth.store";
+import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import AuthShell from "@/components/auth/AuthShell";
+import styles from "@/components/auth/AuthShell.module.css";
+import { useAuthStore } from "@/stores/auth.store";
 
 export default function ForgotPassword() {
   const router = useRouter();
-  const [email, setEmail] = React.useState("");
+  const [email, setEmail] = useState("");
   const requestResetPassword = useAuthStore(
     (state) => state.requestResetPassword,
   );
@@ -17,8 +18,9 @@ export default function ForgotPassword() {
   const error = useAuthStore((state) => state.error);
   const isLoading = useAuthStore((state) => state.isLoading);
   const message = useAuthStore((state) => state.message);
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     clearError();
     try {
       await requestResetPassword({ email });
@@ -36,68 +38,58 @@ export default function ForgotPassword() {
   }, [email, message, resetPasswordToken, router]);
 
   return (
-    <div className="dark-page-shell min-h-screen overflow-x-hidden">
-      <Header />
+    <AuthShell variant="forgot">
+      <div className={styles.intro}>
+        <p className={styles.kicker}>Password recovery</p>
+        <h1>Forgot your password?</h1>
+        <p>
+          Enter your email address and we&apos;ll send you a 6-digit verification
+          code to reset your password.
+        </p>
+      </div>
 
-      <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4">
-        <section className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <h1 className="mb-3 text-3xl font-semibold text-white">
-              Forgot your password?
-            </h1>
+      {error ? (
+        <div role="alert" className={styles.error}>
+          {error}
+        </div>
+      ) : null}
+      {message ? (
+        <div role="status" className={styles.success}>
+          {message}
+        </div>
+      ) : null}
 
-            <p className="text-sm leading-6 text-slate-400">
-              Enter your email address and we&apos;ll send you a link to reset
-              your password.
-            </p>
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="email" className={styles.label}>
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="Enter your email"
+            className={styles.input}
+          />
+        </div>
 
-          {error && (
-            <div className="mb-4 rounded-md bg-red-500/20 p-3 text-sm text-red-500">
-              {error}
-            </div>
-          )}
-          {message && (
-            <div className="mb-4 rounded-md bg-green-500/20 p-3 text-sm text-green-500">
-              {message}
-            </div>
-          )}
+        <button
+          type="submit"
+          className={styles.submit}
+          disabled={isLoading}
+          aria-busy={isLoading}
+        >
+          {isLoading ? "Sending..." : "Send reset code"}
+        </button>
+      </form>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label
-                htmlFor="email"
-                className="mb-2 block text-sm text-slate-300"
-              >
-                Email
-              </label>
-
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
-              />
-            </div>
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Sending..." : "Send Reset Link"}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <span
-              aria-disabled="true"
-              className="text-sm text-slate-400 opacity-50"
-            >
-              ← Back to sign in
-            </span>
-          </div>
-        </section>
-      </main>
-    </div>
+      <p className={styles.switch}>
+        <Link href="/auth/login" className={styles.link}>
+          ← Back to sign in
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

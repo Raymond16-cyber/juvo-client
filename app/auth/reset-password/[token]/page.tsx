@@ -1,31 +1,27 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
 import { AxiosError } from "axios";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LockKeyhole, ArrowLeft, Eye, EyeOff } from "lucide-react";
-
-import AuthVisual from "@/components/auth/AuthVisual";
-import Button from "@/components/ui/Button";
-import Header from "@/components/Header";
+import { Eye, EyeOff } from "lucide-react";
+import AuthShell from "@/components/auth/AuthShell";
+import styles from "@/components/auth/AuthShell.module.css";
 import { useAuthStore } from "@/stores/auth.store";
 
-export default function ResetPasswordPage({
+function ResetPasswordForm({
   params,
 }: {
   params: Promise<{ token: string }>;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const email = searchParams.get("email");
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -33,29 +29,34 @@ export default function ResetPasswordPage({
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    params.then(({ token }) => {
-      setToken(token);
+    params.then(({ token: nextToken }) => {
+      setToken(nextToken);
     });
   }, [params]);
 
   const resetPassword = useAuthStore((state) => state.resetPassword);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
 
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
     setMessage("");
 
     if (!email) {
       setError(
-        "Your password reset session is invalid. Please request a new reset link.",
+        "Your password reset session is invalid. Please request a new code.",
       );
       return;
     }
 
     if (!token) {
       setError(
-        "Your password reset session is invalid. Please request a new reset link.",
+        "Your password reset session is invalid. Please request a new code.",
       );
       return;
     }
@@ -90,11 +91,11 @@ export default function ResetPasswordPage({
       redirectTimerRef.current = setTimeout(() => {
         router.push("/auth/login");
       }, 1500);
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-
+    } catch (cause) {
+      const axiosError = cause as AxiosError<{ message?: string; error?: string }>;
       setError(
         axiosError.response?.data?.message ||
+          axiosError.response?.data?.error ||
           "Unable to reset your password. Please try again.",
       );
     } finally {
@@ -102,178 +103,142 @@ export default function ResetPasswordPage({
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
-    };
-  }, []);
-
   return (
-    <div className="dark-page-shell min-h-screen overflow-x-hidden">
-      <Header />
+    <AuthShell variant="reset">
+      <div className={styles.intro}>
+        <p className={styles.kicker}>Password recovery</p>
+        <h1>Reset your password</h1>
+        <p>
+          Create a new password for your JUVO account. Use at least 6
+          characters.
+        </p>
+        {email ? (
+          <p className={`${styles.hint} mt-3`}>
+            Resetting password for <span className="font-medium">{email}</span>
+          </p>
+        ) : null}
+      </div>
 
-      <main className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-10 lg:px-16">
-        <div className="grid w-full max-w-6xl grid-cols-1 items-center gap-12 lg:grid-cols-2">
-          <section className="mx-auto w-full max-w-md">
-            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-              <LockKeyhole className="h-7 w-7 text-primary" />
-            </div>
-
-            <div className="mb-8">
-              <h1 className="mb-3 text-3xl font-semibold text-white">
-                Reset your password
-              </h1>
-
-              <p className="text-sm leading-6 text-slate-400">
-                Create a new password for your JUVO account. Make sure your
-                password is at least 6 characters long.
-              </p>
-
-              {email && (
-                <p className="mt-3 text-xs text-slate-500">
-                  Resetting password for{" "}
-                  <span className="text-slate-300">{email}</span>
-                </p>
-              )}
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-2 block text-sm text-slate-300"
-                >
-                  New password
-                </label>
-
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your new password"
-                    value={password}
-                    onChange={(event) => {
-                      setPassword(event.target.value);
-                      setError("");
-                    }}
-                    className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-white"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="mb-2 block text-sm text-slate-300"
-                >
-                  Confirm password
-                </label>
-
-                <div className="relative">
-                  <input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your new password"
-                    value={confirmPassword}
-                    onChange={(event) => {
-                      setConfirmPassword(event.target.value);
-                      setError("");
-                    }}
-                    className="w-full rounded-md border border-slate-700 bg-transparent px-4 py-3 pr-12 text-sm text-white outline-none placeholder:text-slate-500 focus:border-white"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-white"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="rounded-md border border-white/5 bg-white/[0.02] px-4 py-3">
-                <p className="mb-2 text-xs font-medium text-slate-300">
-                  Password requirements
-                </p>
-
-                <ul className="space-y-1 text-xs text-slate-500">
-                  <li
-                    className={password.length >= 6 ? "text-emerald-400" : ""}
-                  >
-                    • At least 6 characters
-                  </li>
-
-                  <li
-                    className={
-                      password &&
-                      confirmPassword &&
-                      password === confirmPassword
-                        ? "text-emerald-400"
-                        : ""
-                    }
-                  >
-                    • Passwords must match
-                  </li>
-                </ul>
-              </div>
-
-              {error && (
-                <div className="rounded-md border border-red-500/20 bg-red-500/5 px-4 py-3">
-                  <p className="text-sm text-red-400">{error}</p>
-                </div>
-              )}
-
-              {message && (
-                <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
-                  <p className="text-sm text-emerald-400">{message}</p>
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                disabled={
-                  isLoading ||
-                  !password ||
-                  !confirmPassword ||
-                  password !== confirmPassword
-                }
-                className="w-full"
-              >
-                {isLoading ? "Resetting password..." : "Reset password"}
-              </Button>
-            </form>
-
-            <div className="mt-8 border-t border-white/5 pt-6">
-              <span
-                aria-disabled="true"
-                className="mx-auto flex w-fit items-center gap-2 text-sm text-slate-400 opacity-50"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to login
-              </span>
-            </div>
-          </section>
-
-          <AuthVisual />
+      {error ? (
+        <div role="alert" className={styles.error}>
+          {error}
         </div>
-      </main>
-    </div>
+      ) : null}
+      {message ? (
+        <div role="status" className={styles.success}>
+          {message}
+        </div>
+      ) : null}
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="password" className={styles.label}>
+            New password
+          </label>
+          <div className={styles.password}>
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your new password"
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setError("");
+              }}
+              className={styles.input}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className={styles.passwordToggle}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="confirmPassword" className={styles.label}>
+            Confirm password
+          </label>
+          <div className={styles.password}>
+            <input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm your new password"
+              value={confirmPassword}
+              onChange={(event) => {
+                setConfirmPassword(event.target.value);
+                setError("");
+              }}
+              className={styles.input}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+              className={styles.passwordToggle}
+              aria-label={
+                showConfirmPassword ? "Hide password" : "Show password"
+              }
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-400">
+          <p className="mb-2 font-medium text-slate-700 dark:text-slate-300">
+            Password requirements
+          </p>
+          <ul className="space-y-1">
+            <li className={password.length >= 6 ? "text-emerald-600 dark:text-emerald-400" : ""}>
+              • At least 6 characters
+            </li>
+            <li
+              className={
+                password && confirmPassword && password === confirmPassword
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : ""
+              }
+            >
+              • Passwords must match
+            </li>
+          </ul>
+        </div>
+
+        <button
+          type="submit"
+          disabled={
+            isLoading ||
+            !password ||
+            !confirmPassword ||
+            password !== confirmPassword
+          }
+          aria-busy={isLoading}
+          className={styles.submit}
+        >
+          {isLoading ? "Resetting password..." : "Reset password"}
+        </button>
+      </form>
+
+      <p className={styles.switch}>
+        <Link href="/auth/login" className={styles.link}>
+          ← Back to sign in
+        </Link>
+      </p>
+    </AuthShell>
+  );
+}
+
+export default function ResetPasswordPage({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm params={params} />
+    </Suspense>
   );
 }

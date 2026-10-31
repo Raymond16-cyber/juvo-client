@@ -39,14 +39,18 @@ function RegisterForm() {
     setLoading(true);
 
     try {
-      await register({
+      const response = await register({
         fullName,
         email,
         password,
       });
       markEnteringApp();
       setEntering(true);
-      router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+      const params = new URLSearchParams({
+        email,
+        sent: response.verificationSent === false ? "0" : "1",
+      });
+      router.push(`/auth/verify-email?${params.toString()}`);
       return;
     } catch (registerError: unknown) {
       setError(
@@ -66,8 +70,9 @@ function RegisterForm() {
   return (
     <AuthShell variant="register">
       <div className={styles.intro}>
+        <p className={styles.kicker}>Create account</p>
         <h1>Register for JUVO</h1>
-        <p>Start your trading journal. Build your own perspective.</p>
+        <p>Start your trading journal. Build clearer decisions over time.</p>
       </div>
 
       {visibleError ? (

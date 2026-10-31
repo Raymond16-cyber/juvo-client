@@ -24,6 +24,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [entering, setEntering] = useState(false);
   const [error, setError] = useState("");
+  const verified = searchParams.get("verified") === "1";
 
   useEffect(() => {
     clearError();
@@ -65,9 +66,16 @@ function LoginForm() {
   return (
     <AuthShell variant="login">
       <div className={styles.intro}>
-        <h1>Welcome back</h1>
-        <p>Welcome back to your journal.</p>
+        <p className={styles.kicker}>Welcome back</p>
+        <h1>Sign in to JUVO</h1>
+        <p>Pick up your journal, reviews, and trading discipline where you left off.</p>
       </div>
+
+      {verified ? (
+        <div role="status" className={styles.success}>
+          Email verified. You can sign in now.
+        </div>
+      ) : null}
 
       {visibleError ? (
         <div role="alert" className={styles.error}>
@@ -126,10 +134,7 @@ function LoginForm() {
             </button>
           </div>
         </div>
-        <Link
-          href={"/auth/forgot-password"}
-          className={`${styles.link} ${styles.forgot} opacity-50`}
-        >
+        <Link href="/auth/forgot-password" className={`${styles.link} ${styles.forgot}`}>
           Forgot password?
         </Link>
         <button
@@ -142,12 +147,12 @@ function LoginForm() {
         </button>
       </form>
 
-      <Link href={"/auth/register"} className={styles.switch}>
+      <p className={styles.switch}>
         Don&apos;t have an account?{" "}
-        <span aria-disabled="false" className={`${styles.link} opacity-50`}>
+        <Link href="/auth/register" className={styles.link}>
           Register
-        </span>
-      </Link>
+        </Link>
+      </p>
     </AuthShell>
   );
 }

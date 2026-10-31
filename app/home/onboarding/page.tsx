@@ -65,11 +65,11 @@ export default function OnboardingPage() {
     switch (currentStep) {
       case 0:
         if (!country.trim()) {
-          return "Please enter your country.";
+          return "Please select your country.";
         }
 
         if (!timezone.trim()) {
-          return "Please enter your timezone.";
+          return "Please select your timezone.";
         }
 
         break;

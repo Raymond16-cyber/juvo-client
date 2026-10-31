@@ -81,6 +81,7 @@ export interface AuthResponse {
   message: string;
   user: User;
   token: string;
+  verificationSent?: boolean;
 }
 
 export interface LoginResponse {

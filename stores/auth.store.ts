@@ -22,6 +22,7 @@ import type {
   verifyEmailResponse,
   ResetPasswordData,
   LoginResponse,
+  AuthResponse,
   UpdatePreferencesPayload,
 } from "@/types/auth.types";
 
@@ -34,8 +35,9 @@ interface AuthState {
   message: string | null;
   token: string | null;
   resetPasswordToken: string | null;
+  verificationSent: boolean | null;
 
-  register: (data: RegisterData) => Promise<void>;
+  register: (data: RegisterData) => Promise<AuthResponse>;
   login: (data: LoginData) => Promise<LoginResponse>;
   requestResetPassword: (data: { email: string }) => Promise<void>;
   verifyOtpCode: (data: VerifyOtpData) => Promise<VerifyOtpResponse>;
@@ -56,12 +58,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   message: null,
   token: null,
   resetPasswordToken: null,
+  verificationSent: null,
 
   register: async (data) => {
     set({
       isLoading: true,
       error: null,
       message: null,
+      verificationSent: null,
     });
 
     try {
@@ -75,9 +79,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         token: response.token,
         message: response.message,
         error: null,
+        verificationSent:
+          typeof response.verificationSent === "boolean"
+            ? response.verificationSent
+            : true,
       });
 
       localStorage.setItem("token", response.token);
+      return response;
     } catch (error) {
       const errorMessage = getApiErrorMessage(error, "Registration failed.");
       set({
@@ -132,7 +141,9 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       set({
         isLoading: false,
-        message: "Password reset link sent. Please check your email.",
+        message:
+          result.message ||
+          "If an account exists for that email, a verification code has been sent.",
         resetPasswordToken: result.passwordToken,
       });
     } catch (error) {

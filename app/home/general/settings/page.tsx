@@ -35,6 +35,7 @@ import {
   KeyRound,
   Link2,
   LocateFixed,
+  Mail,
   NotebookPen,
   ShieldCheck,
   SlidersHorizontal,
@@ -724,13 +725,29 @@ export default function SettingsPage() {
                     label="Signed in with"
                     value={labelize(user?.authProvider || "local")}
                   />
-                  <InfoTile
-                    label="Email status"
-                    value={
-                      user?.emailVerified ? "Verified" : "Verification pending"
-                    }
-                    tone={user?.emailVerified ? "good" : "warn"}
-                  />
+                  {user?.emailVerified ? (
+                    <InfoTile
+                      label="Email status"
+                      value="Verified"
+                      tone="good"
+                    />
+                  ) : (
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.04]">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                        Email status
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-amber-700 dark:text-amber-300">
+                        Verification pending
+                      </p>
+                      <Link
+                        href={`/auth/verify-email?email=${encodeURIComponent(user?.email || "")}`}
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+                      >
+                        Verify email
+                        <ArrowUpRight size={12} />
+                      </Link>
+                    </div>
+                  )}
                   <InfoTile label="Current plan" value={planLabel(plan)} />
                   <InfoTile
                     label="Plan status"
@@ -739,6 +756,14 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="mt-5 grid gap-3">
+                  {!user?.emailVerified ? (
+                    <LinkCard
+                      href={`/auth/verify-email?email=${encodeURIComponent(user?.email || "")}`}
+                      icon={Mail}
+                      title="Verify email"
+                      body="Resend the verification link and confirm your email address."
+                    />
+                  ) : null}
                   <LinkCard
                     href="/home/general/subscriptions"
                     icon={CreditCard}

@@ -417,16 +417,37 @@ export default function MyDayWorkflow({
     }
 
     try {
-      const payload = {
-        ...tradeForm,
+      const targetMode = tradeForm.targetMode || "rr";
+      const sizingMode = tradeForm.sizingMode || "auto";
+      const payload: CreateTradePayload = {
+        symbol: tradeForm.symbol,
+        instrument: tradeForm.instrument,
+        direction: tradeForm.direction,
+        entryPrice: Number(tradeForm.entryPrice),
+        stopLoss: Number(tradeForm.stopLoss),
+        riskPercentage: Number(tradeForm.riskPercentage),
+        targetMode,
+        sizingMode,
+        session: tradeForm.session,
+        notes: tradeForm.notes,
         tradingAccount: selectedAccountId,
-        sizingMode:
-          tradeForm.sizingMode === "manual" || Number(tradeForm.lotSize) > 0
-            ? tradeForm.sizingMode || "auto"
-            : "auto",
       };
 
-      if (!(Number(payload.lotSize) > 0) && payload.sizingMode === "manual") {
+      if (targetMode === "rr") {
+        payload.plannedRR = Number(tradeForm.plannedRR);
+        if (Number(tradeForm.takeProfit) > 0) {
+          payload.takeProfit = Number(tradeForm.takeProfit);
+        }
+      } else {
+        payload.takeProfit = Number(tradeForm.takeProfit);
+        if (Number(tradeForm.plannedRR) > 0) {
+          payload.plannedRR = Number(tradeForm.plannedRR);
+        }
+      }
+
+      if (Number(tradeForm.lotSize) > 0) {
+        payload.lotSize = Number(tradeForm.lotSize);
+      } else if (sizingMode === "manual") {
         setAccountError("Enter a position size before saving the trade.");
         return;
       }
