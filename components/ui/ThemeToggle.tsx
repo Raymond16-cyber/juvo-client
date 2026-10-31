@@ -23,7 +23,7 @@ export default function ThemeToggle({ compact = false }: ThemeToggleProps) {
   const apply = (next: ThemePreference) => {
     setPreference(next);
     if (isAuthenticated) {
-      updatePreferences({ theme: next }).catch(() => undefined);
+      updatePreferences({ theme: next }, { silent: true }).catch(() => undefined);
     }
   };
 

@@ -8,6 +8,9 @@ import {
   pageShellClassName,
   pageShellFillClassName,
 } from "@/lib/responsive";
+import { useAuthStore } from "@/stores/auth.store";
+import { useBrokerStore } from "@/stores/broker.store";
+import { useJournalStore } from "@/stores/journal.store";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -53,6 +56,12 @@ export default function DashboardShell({
 
   useEffect(() => {
     queueMicrotask(() => setSidebarOpen(false));
+  }, [pathname]);
+
+  useEffect(() => {
+    useAuthStore.getState().clearFeedback();
+    useJournalStore.getState().clearFeedback();
+    useBrokerStore.getState().clearFeedback();
   }, [pathname]);
 
   useEffect(() => {

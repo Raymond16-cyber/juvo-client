@@ -33,6 +33,7 @@ interface BrokerState {
   disconnectCTrader: (connectionId: string) => Promise<void>;
   applyPositionLiveUpdate: (update: BrokerPositionLiveUpdate) => void;
   clearBrokerNotice: () => void;
+  clearFeedback: () => void;
 }
 
 function hasConnectedBroker(connections: BrokerConnection[]) {
@@ -240,6 +241,9 @@ export const useBrokerStore = create<BrokerState>((set, get) => ({
     }));
   },
   clearBrokerNotice: () => {
+    set({ error: null, message: null });
+  },
+  clearFeedback: () => {
     set({ error: null, message: null });
   },
 }));

@@ -129,6 +129,7 @@ export default function SettingsPage() {
   const isLoading = useAuthStore((state) => state.isLoading);
   const message = useAuthStore((state) => state.message);
   const error = useAuthStore((state) => state.error);
+  const clearFeedback = useAuthStore((state) => state.clearFeedback);
   const preference = useThemeStore((state) => state.preference);
   const setPreference = useThemeStore((state) => state.setPreference);
 
@@ -173,6 +174,12 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchCurrentUser().catch(() => undefined);
   }, [fetchCurrentUser]);
+
+  useEffect(() => {
+    return () => {
+      clearFeedback();
+    };
+  }, [clearFeedback]);
 
   useEffect(() => {
     getAiAccessService()

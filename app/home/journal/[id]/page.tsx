@@ -100,6 +100,21 @@ export default function JournalDetailPage() {
     "Closed" | "Breakeven" | "Cancelled"
   >("Closed");
   const [message, setMessage] = useState<string | null>(null);
+  const messageTimerRef = useRef<number | null>(null);
+
+  const showPageMessage = (next: string | null) => {
+    if (messageTimerRef.current !== null) {
+      window.clearTimeout(messageTimerRef.current);
+      messageTimerRef.current = null;
+    }
+    setMessage(next);
+    if (next) {
+      messageTimerRef.current = window.setTimeout(() => {
+        setMessage(null);
+        messageTimerRef.current = null;
+      }, 4000);
+    }
+  };
   const [aiAccess, setAiAccess] = useState<AiAccess | null>(null);
   const [aiAccessLoading, setAiAccessLoading] = useState(true);
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
@@ -243,7 +258,7 @@ export default function JournalDetailPage() {
         }
       }
 
-      setMessage(closeMessage);
+      showPageMessage(closeMessage);
       resetCloseForm();
       await getJournalById(journal._id);
     } catch {
@@ -262,7 +277,7 @@ export default function JournalDetailPage() {
       setFollowUpTradeId(null);
       setFollowUpFile(null);
       setExpandedReviewTradeId(tradeId);
-      setMessage("Screenshot review saved.");
+      showPageMessage("Screenshot review saved.");
       await getJournalById(journal._id);
     } catch (error) {
       setFollowUpError(
@@ -277,8 +292,16 @@ export default function JournalDetailPage() {
     event.preventDefault();
     if (!journal) return;
     await completeJournal(journal._id, review);
-    setMessage("Day reviewed. Juvo saved the process notes.");
+    showPageMessage("Day reviewed. Juvo saved the process notes.");
   };
+
+  useEffect(() => {
+    return () => {
+      if (messageTimerRef.current !== null) {
+        window.clearTimeout(messageTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <DashboardShell>
