@@ -16,11 +16,11 @@ import {
   Library,
   MessageSquareQuote,
   NotebookPen,
-  Shield,
   ShieldCheck,
   ShieldOff,
   Target,
   Trophy,
+  LockKeyhole,
   type LucideIcon,
 } from "lucide-react";
 
@@ -48,7 +48,7 @@ const TIER_STYLES: Record<
   {
     ring: string;
     face: string;
-    inset: string;
+    shine: string;
     icon: string;
     label: string;
   }
@@ -56,28 +56,28 @@ const TIER_STYLES: Record<
   bronze: {
     ring: "from-[#8a5a2b] via-[#d4a574] to-[#6b4226]",
     face: "from-[#c4844a] via-[#e8b888] to-[#9a6238]",
-    inset: "from-[#f0d0a8]/35 to-transparent",
+    shine: "from-[#f0d0a8]/45 to-transparent",
     icon: "text-[#4a2c14] dark:text-[#f6e2c8]",
     label: "Bronze",
   },
   silver: {
     ring: "from-[#6b7280] via-[#e5e7eb] to-[#4b5563]",
     face: "from-[#c0c7d1] via-[#f3f4f6] to-[#8b93a1]",
-    inset: "from-white/50 to-transparent",
+    shine: "from-white/60 to-transparent",
     icon: "text-slate-700 dark:text-slate-100",
     label: "Silver",
   },
   gold: {
     ring: "from-[#a16207] via-[#fbbf24] to-[#854d0e]",
     face: "from-[#eab308] via-[#fde68a] to-[#ca8a04]",
-    inset: "from-[#fff7d6]/55 to-transparent",
+    shine: "from-[#fff7d6]/65 to-transparent",
     icon: "text-[#5b3a05] dark:text-[#fff3c4]",
     label: "Gold",
   },
   platinum: {
     ring: "from-[#64748b] via-[#e2e8f0] to-[#0ea5e9]",
     face: "from-[#cbd5e1] via-[#f8fafc] to-[#7dd3fc]",
-    inset: "from-white/60 to-transparent",
+    shine: "from-white/70 to-transparent",
     icon: "text-slate-800 dark:text-sky-50",
     label: "Platinum",
   },
@@ -87,11 +87,11 @@ type BadgeSize = "sm" | "md" | "lg";
 
 const SIZE_MAP: Record<
   BadgeSize,
-  { outer: string; icon: number; shield: string }
+  { outer: string; icon: number }
 > = {
-  sm: { outer: "h-14 w-14", icon: 18, shield: "h-11 w-11" },
-  md: { outer: "h-20 w-20", icon: 26, shield: "h-16 w-16" },
-  lg: { outer: "h-28 w-28", icon: 36, shield: "h-24 w-24" },
+  sm: { outer: "h-14 w-14", icon: 18 },
+  md: { outer: "h-20 w-20", icon: 26 },
+  lg: { outer: "h-28 w-28", icon: 36 },
 };
 
 type AchievementBadgeProps = {
@@ -102,6 +102,8 @@ type AchievementBadgeProps = {
   size?: BadgeSize;
   className?: string;
   featured?: boolean;
+  progress?: number;
+  locked?: boolean;
 };
 
 export default function AchievementBadge({
@@ -112,10 +114,16 @@ export default function AchievementBadge({
   size = "md",
   className,
   featured = false,
+  progress = earned ? 100 : 0,
+  locked = false,
 }: AchievementBadgeProps) {
   const styles = TIER_STYLES[tier] || TIER_STYLES.bronze;
   const dims = SIZE_MAP[size];
   const Icon = ICON_MAP[icon] || Award;
+
+  const progressValue = Math.max(0, Math.min(100, progress));
+  const radius = 43;
+  const circumference = 2 * Math.PI * radius;
 
   return (
     <motion.div
@@ -133,34 +141,71 @@ export default function AchievementBadge({
       }
       aria-hidden
     >
+      <div className="absolute -bottom-[14%] left-[22%] z-0 flex w-[56%] justify-center gap-1">
+        <span className={cn("h-[42%] w-[38%] -skew-y-12 rounded-b-md bg-gradient-to-b", styles.ring)} />
+        <span className={cn("h-[42%] w-[38%] skew-y-12 rounded-b-md bg-gradient-to-b", styles.ring)} />
+      </div>
       <div
         className={cn(
-          "absolute inset-0 rounded-[28%] bg-gradient-to-br p-[2px] shadow-md",
+          "absolute inset-0 z-10 rounded-full bg-gradient-to-br p-[2px] shadow-lg",
           styles.ring,
           earned
-            ? "shadow-slate-300/50 dark:shadow-black/40"
-            : "grayscale-[0.35] opacity-80",
+            ? "shadow-slate-300/60 dark:shadow-black/50"
+            : "grayscale-[0.45] opacity-75",
           featured && earned && "ring-2 ring-primary/50 ring-offset-2 ring-offset-white dark:ring-offset-[#070b14]",
         )}
       >
         <div
           className={cn(
-            "relative grid h-full w-full place-items-center overflow-hidden rounded-[26%] bg-gradient-to-br",
+            "relative grid h-full w-full place-items-center overflow-hidden rounded-full bg-gradient-to-br",
             styles.face,
           )}
         >
           <div
             className={cn(
-              "pointer-events-none absolute inset-0 bg-gradient-to-tr",
-              styles.inset,
+              "pointer-events-none absolute inset-[9%] rounded-full border border-white/40 bg-gradient-to-tr",
+              styles.shine,
             )}
           />
-          <div className="pointer-events-none absolute -left-1/4 -top-1/3 h-[66%] w-[66%] rounded-full bg-white/25 blur-md" />
-          <Shield
-            className={cn("absolute opacity-[0.12]", styles.icon, dims.shield)}
-            strokeWidth={1.25}
-          />
-          <Icon size={dims.icon} className={cn("relative z-10", styles.icon)} strokeWidth={2.1} />
+          <div className="pointer-events-none absolute -left-1/4 -top-1/3 h-[66%] w-[66%] rounded-full bg-white/30 blur-md" />
+          <svg
+            viewBox="0 0 100 100"
+            className="absolute inset-0 h-full w-full -rotate-90"
+            aria-hidden
+          >
+            <circle
+              cx="50"
+              cy="50"
+              r={radius}
+              fill="none"
+              stroke="rgba(255,255,255,0.2)"
+              strokeWidth="3"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r={radius}
+              fill="none"
+              stroke="rgba(255,255,255,0.9)"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={circumference * (1 - progressValue / 100)}
+            />
+          </svg>
+          {locked ? (
+            <LockKeyhole
+              size={dims.icon - 2}
+              className={cn("relative z-10", styles.icon)}
+              strokeWidth={2}
+            />
+          ) : (
+            <Icon
+              size={dims.icon}
+              className={cn("relative z-10", styles.icon)}
+              strokeWidth={2.1}
+            />
+          )}
         </div>
       </div>
     </motion.div>

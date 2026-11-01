@@ -191,6 +191,8 @@ export default function AchievementGallery({
                       tier={item.tier}
                       icon={item.icon}
                       earned={earned}
+                      progress={percent}
+                      locked={item.state === "locked"}
                       featured={item.featured}
                       animateUnlock={earned && !item.celebratedAt}
                       size="md"
@@ -337,6 +339,8 @@ function AchievementDetailModal({
                   tier={item.tier}
                   icon={item.icon}
                   earned={earned}
+                  progress={progressPercent(item)}
+                  locked={item.state === "locked"}
                   featured={item.featured}
                   animateUnlock={earned && !item.celebratedAt}
                   size="lg"
