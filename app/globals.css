@@ -43,7 +43,7 @@ html {
 
 html {
   scroll-behavior: smooth;
-  font-size: 100%;
+  font-size: 87.5%;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -60,7 +60,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-saira), sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
