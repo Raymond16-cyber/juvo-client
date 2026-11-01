@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import images from "@/constants/images.service";
 import Button from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
 
 function scrollToTarget(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -20,6 +21,7 @@ function scrollToTarget(id: string) {
 
 export default function Hero() {
   const heroRef = useRef<HTMLElement | null>(null);
+  const router = useRouter();
 
   useLayoutEffect(() => {
     if (!heroRef.current) return;
@@ -88,10 +90,10 @@ export default function Hero() {
           <div className="juvo-hero-buttons mt-8 flex flex-col justify-center gap-4 sm:flex-row lg:justify-start">
             <Button
               variant="primary"
-              onClick={() => scrollToTarget("pricing")}
+              onClick={() => router.push("/auth/register")}
               className="min-w-[200px]"
             >
-              Start Your Journey
+              Create Your Account
               <ArrowRight className="h-4 w-4" />
             </Button>
 

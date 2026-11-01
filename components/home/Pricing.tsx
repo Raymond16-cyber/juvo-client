@@ -132,7 +132,7 @@ export default function Pricing() {
               onClick={() =>
                 router.push(
                   plan.id === "free"
-                    ? "/waitlist"
+                    ? "/auth/register"
                     : "/home/general/subscriptions",
                 )
               }

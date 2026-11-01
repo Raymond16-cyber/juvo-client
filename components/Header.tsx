@@ -105,18 +105,17 @@ export default function Header() {
             <>
               <Button
                 variant="onDark"
-                disabled
                 className="min-w-[110px]"
-                title="Sign in is temporarily unavailable"
+                onClick={() => router.push("/auth/login")}
               >
                 Sign In
               </Button>
               <Button
                 variant="primary"
-                onClick={() => router.push("/waitlist")}
+                onClick={() => router.push("/auth/register")}
                 className="min-w-[138px]"
               >
-                Join Waitlist
+                Register
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </>
@@ -178,9 +177,11 @@ export default function Header() {
                 <>
                   <Button
                     variant="onDark"
-                    disabled
+                    onClick={() => {
+                      setMobileOpen(false);
+                      router.push("/auth/login");
+                    }}
                     className="mt-4 w-full"
-                    title="Sign in is temporarily unavailable"
                   >
                     Sign In
                   </Button>
@@ -188,11 +189,11 @@ export default function Header() {
                     variant="primary"
                     onClick={() => {
                       setMobileOpen(false);
-                      router.push("/waitlist");
+                      router.push("/auth/register");
                     }}
                     className="mt-3 w-full"
                   >
-                    Join Waitlist
+                    Register
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </>
