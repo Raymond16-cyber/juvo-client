@@ -35,8 +35,10 @@ import React from "react";
 type SidebarProps = {
   isOpen?: boolean;
   isCollapsed?: boolean;
+  width?: number;
   onClose?: () => void;
   onToggleCollapse?: () => void;
+  onResize?: (width: number) => void;
 };
 
 const navigationGroups = [
@@ -76,8 +78,10 @@ const navigationGroups = [
 const Sidebar = ({
   isOpen = false,
   isCollapsed = false,
+  width = 288,
   onClose,
   onToggleCollapse,
+  onResize,
 }: SidebarProps) => {
   const pathname = usePathname();
   const router = useRouter();
@@ -93,8 +97,11 @@ const Sidebar = ({
     <motion.aside
       layout
       transition={panelTransition}
+      style={{ "--sidebar-width": `${width}px` } as React.CSSProperties}
       className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,calc(100vw-2.5rem))] max-w-full shrink-0 transform flex-col border-r border-slate-200/90 bg-white/95 px-3 py-4 text-slate-700 backdrop-blur-xl transition-[transform,width] duration-300 juvo-safe-pt juvo-safe-pb dark:border-white/10 dark:bg-[#070b14]/95 dark:text-slate-200 sm:w-72 sm:py-5 lg:sticky lg:top-0 lg:h-screen lg:max-w-none lg:translate-x-0 ${
-        isCollapsed ? "lg:w-20 lg:px-2.5" : "lg:w-72"
+        isCollapsed
+          ? "lg:w-20 lg:px-2.5"
+          : "lg:w-[var(--sidebar-width)]"
       } ${
         isOpen ? "translate-x-0 shadow-2xl shadow-slate-300/40 dark:shadow-black/50" : "-translate-x-full"
       }`}
@@ -233,6 +240,40 @@ const Sidebar = ({
           </div>
         </div>
       </div>
+      {!isCollapsed ? (
+        <div
+          role="separator"
+          aria-label="Resize sidebar"
+          aria-orientation="vertical"
+          tabIndex={0}
+          onPointerDown={(event) => {
+            if (event.pointerType === "mouse" && event.button !== 0) return;
+            event.currentTarget.setPointerCapture(event.pointerId);
+            const startX = event.clientX;
+            const startWidth = width;
+            const handlePointerMove = (moveEvent: PointerEvent) => {
+              onResize?.(startWidth + moveEvent.clientX - startX);
+            };
+            const handlePointerUp = () => {
+              window.removeEventListener("pointermove", handlePointerMove);
+              window.removeEventListener("pointerup", handlePointerUp);
+            };
+            window.addEventListener("pointermove", handlePointerMove);
+            window.addEventListener("pointerup", handlePointerUp, { once: true });
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "ArrowLeft") {
+              event.preventDefault();
+              onResize?.(width - 16);
+            }
+            if (event.key === "ArrowRight") {
+              event.preventDefault();
+              onResize?.(width + 16);
+            }
+          }}
+          className="absolute inset-y-0 right-0 hidden w-1 cursor-col-resize touch-none bg-transparent transition-colors hover:bg-primary/60 focus:bg-primary/60 focus:outline-none lg:block"
+        />
+      ) : null}
     </motion.aside>
   );
 };

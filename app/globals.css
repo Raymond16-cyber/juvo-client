@@ -43,6 +43,9 @@ html {
 
 html {
   scroll-behavior: smooth;
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html,
@@ -57,6 +60,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-saira), sans-serif;
+  font-size: 16px;
+  text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   /* Avoid blanket overflow-x:hidden — fix overflow at the source. */

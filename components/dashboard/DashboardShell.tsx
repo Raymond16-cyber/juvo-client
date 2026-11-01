@@ -42,6 +42,9 @@ const titles: Record<string, string> = {
 };
 
 const SIDEBAR_COLLAPSED_KEY = "juvo.sidebarCollapsed";
+const SIDEBAR_WIDTH_KEY = "juvo.sidebarWidth";
+const SIDEBAR_MIN_WIDTH = 240;
+const SIDEBAR_MAX_WIDTH = 400;
 
 export default function DashboardShell({
   children,
@@ -51,6 +54,13 @@ export default function DashboardShell({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+  });
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    if (typeof window === "undefined") return 288;
+    const stored = Number(window.localStorage.getItem(SIDEBAR_WIDTH_KEY));
+    return Number.isFinite(stored)
+      ? Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, stored))
+      : 288;
   });
   const pathname = usePathname();
 
@@ -87,6 +97,15 @@ export default function DashboardShell({
       }
       return next;
     });
+  };
+
+  const resizeSidebar = (nextWidth: number) => {
+    const width = Math.min(
+      SIDEBAR_MAX_WIDTH,
+      Math.max(SIDEBAR_MIN_WIDTH, nextWidth),
+    );
+    setSidebarWidth(width);
+    window.localStorage.setItem(SIDEBAR_WIDTH_KEY, String(width));
   };
 
   const title = useMemo(() => {
@@ -132,8 +151,10 @@ export default function DashboardShell({
         <Sidebar
           isOpen={sidebarOpen}
           isCollapsed={sidebarCollapsed}
+          width={sidebarWidth}
           onClose={() => setSidebarOpen(false)}
           onToggleCollapse={toggleSidebarCollapsed}
+          onResize={resizeSidebar}
         />
 
         <main
