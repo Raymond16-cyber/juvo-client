@@ -1,6 +1,7 @@
 "use client";
 
 import AnalyticsSection from "@/components/home/AnalyticsSection";
+import AboutAuthor from "@/components/home/AboutAuthor";
 import HowItWorks from "@/components/home/HowItWorks";
 import LongTermProgress from "@/components/home/LongTermProgress";
 import Pricing from "@/components/home/Pricing";
@@ -57,7 +58,7 @@ function SectionShell({
 }) {
   return (
     <section id={id} className="relative">
-      <div className="mx-auto max-w-7xl px-4 py-20 lg:py-28">
+      <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div className={`max-w-3xl ${centered ? "mx-auto text-center" : ""}`}>
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/8 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-cyan-100/80">
             <Sparkles className="h-3.5 w-3.5" />
@@ -676,6 +677,8 @@ export default function HomepageSections() {
       <Testimonials />
 
       <Pricing />
+
+      <AboutAuthor />
 
       <SectionShell
         id="faq"

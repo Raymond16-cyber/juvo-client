@@ -7,7 +7,7 @@ import images from "@/constants/images.service";
 export default function Footer() {
   return (
     <footer className="border-t border-white/8 bg-[#040812]">
-      <div className="mx-auto max-w-7xl px-4 py-16 lg:py-20">
+      <div className="mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:px-8 lg:py-20">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="max-w-xl">
             <a href="#top" className="inline-flex items-center gap-3">
@@ -45,6 +45,12 @@ export default function Footer() {
                 className="rounded-full border border-white/10 px-4 py-2 transition hover:bg-white/6"
               >
                 Pricing
+              </a>
+              <a
+                href="#about-author"
+                className="rounded-full border border-white/10 px-4 py-2 transition hover:bg-white/6"
+              >
+                About the author
               </a>
               <a
                 href="#faq"

@@ -67,7 +67,7 @@ export default function Hero() {
         <div className="absolute right-[-10%] top-24 h-80 w-80 rounded-full bg-blue-500/14 blur-3xl" />
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-12 px-4 pb-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:pb-20">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 pb-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:pb-20">
         <div className="juvo-hero-copy max-w-3xl text-center lg:text-left">
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/8 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-cyan-100/80">
             <Sparkles className="h-3.5 w-3.5" />

@@ -14,6 +14,7 @@ const navLinks = [
   { label: "How It Works", href: "#how-it-works" },
   { label: "Why JUVO", href: "#why-juvo" },
   { label: "Insights", href: "#insights" },
+  { label: "About", href: "#about-author" },
   { label: "Pricing", href: "#pricing" },
 ];
 
