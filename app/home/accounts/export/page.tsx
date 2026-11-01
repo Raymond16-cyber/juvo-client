@@ -3,13 +3,23 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
-import { getApiErrorMessage } from "@/lib/axios";
+import { getApiErrorCode, getApiErrorMessage } from "@/lib/axios";
 import { formatMoney } from "@/lib/format";
-import { accountId, buildJournalCsv, filterExportJournals, journalDateKey } from "@/lib/journal-export";
+import {
+  accountId,
+  buildJournalCsv,
+  filterExportJournals,
+  journalDateKey,
+} from "@/lib/journal-export";
 import { controlClassName } from "@/lib/ui";
 import { getJournalExportService } from "@/services/journal.service";
+import {
+  downloadExcelExport,
+  downloadPdfExport,
+} from "@/services/export.service";
+import { useNoticeStore } from "@/stores/notice.store";
 import type { JournalExport } from "@/types/journal.types";
-import { AlertCircle, Download, FileJson, LoaderCircle, RotateCcw, Table2 } from "lucide-react";
+import { AlertCircle, Download, FileJson, FileSpreadsheet, FileText, LoaderCircle, RotateCcw, Table2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 function download(filename: string, content: string, type: string) {
@@ -27,6 +37,8 @@ export default function ExportPage() {
   const [snapshot, setSnapshot] = useState<JournalExport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [entitled, setEntitled] = useState(true);
+  const [exporting, setExporting] = useState<"pdf" | "excel" | null>(null);
   const [filters, setFilters] = useState({ accountId: "", from: "", to: "" });
   const requestId = useRef(0);
 
@@ -34,8 +46,15 @@ export default function ExportPage() {
     const request = ++requestId.current;
     try {
       const data = await getJournalExportService();
-      if (request === requestId.current) setSnapshot(data);
+      if (request === requestId.current) {
+        setEntitled(true);
+        setError(null);
+        setSnapshot(data);
+      }
     } catch (loadError) {
+      if (getApiErrorCode(loadError) === "ENTITLEMENT_REQUIRED") {
+        setEntitled(false);
+      }
       if (request === requestId.current) setError(getApiErrorMessage(loadError, "Unable to load export data."));
     } finally {
       if (request === requestId.current) setLoading(false);
@@ -82,6 +101,35 @@ export default function ExportPage() {
     }
   };
 
+  const exportPaidReport = async (format: "pdf" | "excel") => {
+    if (!entitled || exporting) return;
+    setExporting(format);
+    try {
+      const filtersToSend = {
+        accountId: filters.accountId,
+        from: filters.from,
+        to: filters.to,
+      };
+      if (format === "pdf") await downloadPdfExport(filtersToSend);
+      else await downloadExcelExport(filtersToSend);
+      useNoticeStore.getState().showNotice({
+        title: "Export ready",
+        body: `${format === "pdf" ? "PDF" : "Excel"} report downloaded successfully.`,
+        tone: "success",
+        duration: 5000,
+      });
+    } catch (exportError) {
+      useNoticeStore.getState().showNotice({
+        title: "Export failed",
+        body: getApiErrorMessage(exportError, "Unable to generate this export."),
+        tone: "warning",
+        duration: 7000,
+      });
+    } finally {
+      setExporting(null);
+    }
+  };
+
   return (
     <DashboardShell>
       <div className="space-y-6">
@@ -115,6 +163,28 @@ export default function ExportPage() {
         </div>
 
         {error || invalidRange ? <p role="alert" className="text-sm text-rose-600 dark:text-rose-300">{invalidRange ? "From date must be on or before the to date." : error}</p> : null}
+        {!entitled ? (
+          <section className="rounded-2xl border border-primary/25 bg-primary/10 p-5 dark:bg-primary/10">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+              Paid feature
+            </p>
+            <h2 className="mt-2 text-xl font-bold text-slate-950 dark:text-white">
+              Unlock your trading data exports
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Export your trading history, journal entries, and performance
+              reports in PDF and Excel formats with an active Pro or Super
+              subscription.
+            </p>
+            <Button
+              className="mt-4"
+              onClick={() => window.location.assign("/home/general/subscriptions")}
+            >
+              View upgrade options
+              <Download size={16} />
+            </Button>
+          </section>
+        ) : null}
         {missingRates > 0 ? <p role="status" className="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-300">
           <AlertCircle size={18} className="shrink-0" /> {missingRates} trade{missingRates === 1 ? " is" : "s are"} missing FX rates. Reporting totals are incomplete; native P/L is included in the trade report.
         </p> : null}
@@ -128,7 +198,25 @@ export default function ExportPage() {
           ))}
         </dl>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {entitled ? (
+            <>
+              {([
+                { format: "pdf", title: "PDF Report", description: "A polished performance report with trades, journals, accounts, and analytics.", icon: FileText },
+                { format: "excel", title: "Excel Workbook", description: "Structured worksheets for trade history, journals, accounts, and analytics.", icon: FileSpreadsheet },
+              ] as const).map((item) => (
+                <section key={item.format} className="flex min-w-0 flex-col items-start rounded-lg border border-primary/20 bg-primary/[0.04] p-4 dark:bg-primary/[0.06] sm:p-5">
+                  <item.icon size={22} className="text-primary" />
+                  <h2 className="mt-3 text-lg font-semibold">{item.title}</h2>
+                  <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.description}</p>
+                  <Button className="mt-5 w-full sm:w-auto" onClick={() => void exportPaidReport(item.format)} disabled={Boolean(exporting) || loading || Boolean(error) || invalidRange} aria-label={`Export ${item.title}`}>
+                    {exporting === item.format ? <LoaderCircle size={16} className="animate-spin" /> : <Download size={16} />}
+                    {exporting === item.format ? "Preparing..." : `Export ${item.format === "pdf" ? "PDF" : "Excel"}`}
+                  </Button>
+                </section>
+              ))}
+            </>
+          ) : null}
           {([
             { key: "json", title: "Journal JSON", count: `${journals.length} sessions`, icon: FileJson },
             { key: "journals", title: "Session CSV", count: `${journals.length} rows`, icon: Table2 },
