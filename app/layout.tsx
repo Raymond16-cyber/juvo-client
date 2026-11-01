@@ -3,6 +3,8 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import localFont from "next/font/local";
 import AuthProvider from "@/Providers/auth.provider";
+import appLogo from "@/assets/logos/applogo.png";
+
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -40,6 +42,11 @@ export const metadata: Metadata = {
   },
   description:
     "JUVO is a premium trading journal and trader-development platform built to help traders build discipline, understand behavior, and improve over time.",
+  icons: {
+    icon: appLogo.src,
+    shortcut: appLogo.src,
+    apple: appLogo.src,
+  },
   keywords: [
     "trading journal",
     "trader psychology",
@@ -47,6 +54,12 @@ export const metadata: Metadata = {
     "trading performance",
     "forex journal",
     "trader development",
+    "bespoke trading journal",
+    "trading journal app",
+    "best trading journal",
+    "juvo trading journal",
+    "juvo",
+    "AI in trading",
   ],
   alternates: {
     canonical: "/",
@@ -60,7 +73,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/favicon.ico",
+        url: appLogo.src,
         width: 64,
         height: 64,
         alt: "JUVO logo",
@@ -93,8 +106,14 @@ const themeScript = `
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${saira.variable} h-full antialiased`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${saira.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <head>
+        <link rel="icon" href={appLogo.src} />
+        <link rel="apple-touch-icon" href={appLogo.src} />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="flex min-h-full flex-col">
