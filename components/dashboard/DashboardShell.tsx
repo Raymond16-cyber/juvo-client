@@ -126,7 +126,7 @@ export default function DashboardShell({
 
   return (
     <div
-      className={`bg-slate-50 text-slate-950 dark:bg-background dark:text-white ${
+      className={`dashboard-shell bg-slate-50 text-slate-950 dark:bg-background dark:text-white ${
         fillViewport ? "h-dvh overflow-hidden" : "min-h-screen"
       }`}
     >
@@ -158,11 +158,11 @@ export default function DashboardShell({
         />
 
         <main
-          className={`min-w-0 flex-1 ${
+          className={`min-w-0 flex-1 bg-[radial-gradient(circle_at_100%_0%,rgba(139,92,246,0.08),transparent_30rem)] dark:bg-[radial-gradient(circle_at_100%_0%,rgba(0,212,255,0.07),transparent_30rem)] ${
             fillViewport ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
           }`}
         >
-          <div className="juvo-safe-pt sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/90 bg-white/90 px-3 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-background/85 sm:px-4 lg:hidden mt-3">
+          <div           className="juvo-safe-pt sticky top-0 z-30 mt-3 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/90 bg-white/85 px-3 py-3 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-background/85 sm:px-4 lg:hidden">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                 JUVO

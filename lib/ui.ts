@@ -1,5 +1,5 @@
 export const cardClassName =
-  "rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-card";
+  "rounded-3xl border border-slate-200/80 bg-white/95 shadow-[0_12px_35px_rgba(15,23,42,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-card/95 dark:shadow-black/20";
 
 export const controlClassName =
   "h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white";

@@ -45,32 +45,32 @@ const navigationGroups = [
   {
     label: "Workspace",
     items: [
-      { name: "Dashboard", href: "/home/dashboard", icon: Gauge },
-      { name: "Journal", href: "/home/journal", icon: LineChart },
-      { name: "Charts", href: "/home/charts", icon: CandlestickChart },
-      { name: "Juvo Calendar", href: "/home/calendar", icon: CalendarDays },
-      { name: "Analytics", href: "/home/analytics", icon: BarChart3 },
-      { name: "Behavioural Insights", href: "/home/insights", icon: Sparkles },
-      { name: "Juvo AI", href: "/home/ai/chat", icon: Bot },
-      { name: "Growth", href: "/home/growth", icon: Target },
+      { name: "Dashboard", href: "/home/dashboard", icon: Gauge, color: "text-cyan-500" },
+      { name: "Journal", href: "/home/journal", icon: LineChart, color: "text-violet-500" },
+      { name: "Charts", href: "/home/charts", icon: CandlestickChart, color: "text-amber-500" },
+      { name: "Juvo Calendar", href: "/home/calendar", icon: CalendarDays, color: "text-rose-500" },
+      { name: "Analytics", href: "/home/analytics", icon: BarChart3, color: "text-emerald-500" },
+      { name: "Behavioural Insights", href: "/home/insights", icon: Sparkles, color: "text-fuchsia-500" },
+      { name: "Juvo AI", href: "/home/ai/chat", icon: Bot, color: "text-sky-500" },
+      { name: "Growth", href: "/home/growth", icon: Target, color: "text-orange-500" },
     ],
   },
   {
     label: "Accounts",
     items: [
-      { name: "Trading Accounts", href: "/home/accounts/trading", icon: BadgeDollarSign },
-      { name: "Broker Connections", href: "/home/accounts/broker", icon: Link2 },
-      { name: "Export Data", href: "/home/accounts/export", icon: FileDown },
+      { name: "Trading Accounts", href: "/home/accounts/trading", icon: BadgeDollarSign, color: "text-emerald-500" },
+      { name: "Broker Connections", href: "/home/accounts/broker", icon: Link2, color: "text-blue-500" },
+      { name: "Export Data", href: "/home/accounts/export", icon: FileDown, color: "text-indigo-500" },
     ],
   },
   {
     label: "General",
     items: [
-      { name: "Referrals", href: "/home/general/referrals", icon: Gift },
-      { name: "Subscriptions", href: "/home/general/subscriptions", icon: CreditCard },
-      { name: "Achievements", href: "/home/general/achievements", icon: Trophy },
-      { name: "Settings", href: "/home/general/settings", icon: Settings },
-      { name: "Help Center", href: "/home/general/help", icon: CircleHelp },
+      { name: "Referrals", href: "/home/general/referrals", icon: Gift, color: "text-pink-500" },
+      { name: "Subscriptions", href: "/home/general/subscriptions", icon: CreditCard, color: "text-yellow-500" },
+      { name: "Achievements", href: "/home/general/achievements", icon: Trophy, color: "text-amber-500" },
+      { name: "Settings", href: "/home/general/settings", icon: Settings, color: "text-slate-500" },
+      { name: "Help Center", href: "/home/general/help", icon: CircleHelp, color: "text-teal-500" },
     ],
   },
 ];
@@ -191,7 +191,7 @@ const Sidebar = ({
                     <Icon
                       size={18}
                       className={`relative z-10 shrink-0 ${
-                        isActive ? "text-primary dark:text-primary" : ""
+                        isActive ? "text-primary dark:text-primary" : item.color
                       }`}
                     />
                     <span className={`relative z-10 truncate ${isCollapsed ? "lg:hidden" : ""}`}>

@@ -24,7 +24,7 @@ export const BREAKPOINTS = {
 
 /** Shared layout class strings — reuse instead of inventing new paddings. */
 export const pageShellClassName =
-  "mx-auto w-full max-w-[1500px] px-3 py-4 sm:px-4 sm:py-5 lg:px-8 lg:py-8";
+  "mx-auto w-full max-w-[1500px] px-3 py-5 sm:px-5 sm:py-6 lg:px-8 lg:py-9";
 
 export const pageShellFillClassName =
   "mx-auto flex min-h-0 w-full max-w-[1500px] flex-1 flex-col overflow-hidden px-2.5 py-2.5 sm:px-4 sm:py-3 lg:px-6 lg:py-4";

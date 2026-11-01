@@ -139,6 +139,49 @@ section {
   background: rgba(255, 255, 255, 0.05);
 }
 
+/*
+ * Some older screens use light-only utility classes. Keep those surfaces,
+ * borders, and text aligned with the active theme when no dark variant exists.
+ */
+.dark [class~="bg-white"],
+.dark [class*="bg-white/"] {
+  background-color: var(--surface) !important;
+}
+
+.dark [class~="bg-slate-50"] {
+  background-color: #0f172a !important;
+}
+
+.dark [class~="bg-slate-100"] {
+  background-color: #172033 !important;
+}
+
+.dark [class~="border-slate-200"],
+.dark [class~="border-slate-200/80"],
+.dark [class~="border-slate-200/90"] {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark [class~="text-slate-950"] {
+  color: #ffffff !important;
+}
+
+.dark [class~="text-slate-900"] {
+  color: #f8fafc !important;
+}
+
+.dark [class~="text-slate-700"] {
+  color: #e2e8f0 !important;
+}
+
+.dark [class~="text-slate-600"] {
+  color: #cbd5e1 !important;
+}
+
+.dark [class~="hover:bg-slate-100"]:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
 input[type="range"] {
   accent-color: #00d4ff;
 }

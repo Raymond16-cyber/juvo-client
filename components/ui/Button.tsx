@@ -19,9 +19,9 @@ export default function Button({
 
   const variants: Record<string, string> = {
     primary:
-      "bg-primary text-slate-950 shadow-[0_12px_30px_rgba(0,212,255,0.22)] hover:-translate-y-0.5 hover:bg-secondary",
+      "bg-gradient-to-r from-cyan-400 via-sky-400 to-violet-500 text-slate-950 shadow-[0_12px_30px_rgba(56,189,248,0.25)] hover:-translate-y-0.5 hover:from-cyan-300 hover:to-violet-400",
     ghost:
-      "border border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-white/10",
+      "border border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-violet-500/10",
     onDark:
       "border border-white/10 bg-white/5 text-white hover:-translate-y-0.5 hover:bg-white/10",
   };
