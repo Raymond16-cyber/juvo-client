@@ -1,5 +1,6 @@
 "use client";
 
+import VerifyEmailGate from "@/components/auth/VerifyEmailGate";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import MetaTraderConnections from "@/components/brokers/MetaTraderConnections";
 import {
@@ -250,13 +251,18 @@ export default function BrokerConnectionsPage() {
 
   return (
     <DashboardShell>
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <PageHeader
           eyebrow="Accounts"
           title="Broker Connections"
           description="Manage read-only broker access, sync health, and where broker data flows inside JUVO."
         />
 
+        <VerifyEmailGate
+          featureLabel="broker connections"
+          description="Connect cTrader or MetaTrader only after your email is verified. Journaling stays available in the meantime."
+        >
+          <div className="space-y-5 sm:space-y-6">
         {error ? (
           <Card className="border-rose-200 p-4 dark:border-rose-500/30">
             <p className="text-sm font-medium text-rose-700 dark:text-rose-300">
@@ -410,9 +416,11 @@ export default function BrokerConnectionsPage() {
           </Card>
         </section>
 
-        <MetaTraderConnections />
+        <div className="min-w-0">
+          <MetaTraderConnections />
+        </div>
 
-        <section className="grid gap-4 lg:grid-cols-3">
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           <DestinationCard
             icon={Activity}
             title="Live positions"
@@ -546,6 +554,8 @@ export default function BrokerConnectionsPage() {
             </Link>
           </div>
         </Card>
+          </div>
+        </VerifyEmailGate>
       </div>
     </DashboardShell>
   );
@@ -658,14 +668,21 @@ function ConnectionRow({
   const canDisconnect =
     connection.provider === "ctrader" && connection.status === "connected";
 
+  const providerLabel =
+    connection.provider === "ctrader"
+      ? "cTrader"
+      : connection.platform === "mt4"
+        ? "MetaTrader 4"
+        : "MetaTrader 5";
+
   return (
     <div className="rounded-xl border border-slate-200 p-4 dark:border-white/10">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-sm font-bold text-slate-950 dark:text-white">
-            {connection.provider === "ctrader" ? "cTrader" : "MetaTrader"}
+            {providerLabel}
           </p>
-          <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 break-words text-sm text-slate-500 dark:text-slate-400">
             {connection.brokerName ||
               connection.accountNumber ||
               connection.externalAccountId ||
@@ -673,13 +690,13 @@ function ConnectionRow({
           </p>
         </div>
         <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${brokerStatusStyle(connection.status)}`}
+          className={`w-fit shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${brokerStatusStyle(connection.status)}`}
         >
           {statusCopy[connection.status]}
         </span>
       </div>
 
-      <div className="mt-4 grid gap-2 text-xs sm:grid-cols-2">
+      <div className="mt-4 grid grid-cols-1 gap-2 text-xs min-[380px]:grid-cols-2">
         <ConnectionMini
           label="Type"
           value={connection.accountType ? connection.accountType : "Unknown"}
@@ -700,7 +717,7 @@ function ConnectionRow({
       {canDisconnect ? (
         <Button
           variant="ghost"
-          className="mt-4 h-9 w-full justify-center text-white hover:text-rose-700 dark:text-rose-300 bg-red-500 "
+          className="mt-4 h-9 w-full justify-center bg-red-500 text-white hover:text-rose-700 dark:text-rose-300"
           disabled={disabled}
           onClick={() => onDisconnect(connection.id)}
         >

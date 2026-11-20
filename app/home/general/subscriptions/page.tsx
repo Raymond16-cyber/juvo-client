@@ -10,9 +10,12 @@ import {
   RefreshCw,
   ShieldCheck,
 } from "lucide-react";
+import VerifyEmailGate from "@/components/auth/VerifyEmailGate";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import HistoryModal from "@/components/ui/HistoryModal";
+import HistoryPreview from "@/components/ui/HistoryPreview";
 import PageHeader from "@/components/ui/PageHeader";
 import { getApiErrorMessage } from "@/lib/axios";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -75,6 +78,8 @@ export default function SubscriptionsPage() {
   } | null>(null);
   const [invitationBusy, setInvitationBusy] = useState(false);
   const [invitationError, setInvitationError] = useState("");
+  const [billingHistoryOpen, setBillingHistoryOpen] = useState(false);
+  const [billingHistoryVisible, setBillingHistoryVisible] = useState(10);
   const load = useCallback(async () => {
     const current = await getBillingOverviewService();
     setOverview(current);
@@ -255,6 +260,11 @@ export default function SubscriptionsPage() {
             {notice}
           </p>
         )}
+        <VerifyEmailGate
+          featureLabel="billing and subscriptions"
+          description="Start checkout, apply invitations, and manage paid plans after your email is verified."
+        >
+          <div className="space-y-6">
         <section className="flex flex-col gap-3 border-y border-slate-200 py-4 dark:border-white/10 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-950 dark:text-white">
@@ -480,33 +490,43 @@ export default function SubscriptionsPage() {
               Billing history
             </h2>
             {overview?.payments.length ? (
-              <div className="mt-3 divide-y divide-slate-200 border-y border-slate-200 dark:divide-white/10 dark:border-white/10">
-                {overview.payments.map((payment) => (
-                  <div
-                    key={payment.id}
-                    className="flex items-center justify-between gap-3 py-3 text-sm"
-                  >
-                    <div>
-                      <p className="font-medium text-slate-950 dark:text-white">
-                        {planDetails[payment.plan].name} ·{" "}
-                        {money(payment.expectedAmount, payment.currency)}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {payment.createdAt
-                          ? formatDate(payment.createdAt, {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
-                          : ""}
-                      </p>
+              <HistoryPreview
+                hasMore={overview.payments.length > 10}
+                countLabel={`${overview.payments.length} payments`}
+                onSeeAll={() => {
+                  setBillingHistoryVisible(10);
+                  setBillingHistoryOpen(true);
+                }}
+                seeAllLabel="See full billing history"
+              >
+                <div className="mt-3 divide-y divide-slate-200 border-y border-slate-200 dark:divide-white/10 dark:border-white/10">
+                  {overview.payments.slice(0, 10).map((payment) => (
+                    <div
+                      key={payment.id}
+                      className="flex min-w-0 items-center justify-between gap-3 py-3 text-sm"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-slate-950 dark:text-white">
+                          {planDetails[payment.plan].name} ·{" "}
+                          {money(payment.expectedAmount, payment.currency)}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {payment.createdAt
+                            ? formatDate(payment.createdAt, {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            : ""}
+                        </p>
+                      </div>
+                      <span className="shrink-0 capitalize text-slate-600 dark:text-slate-300">
+                        {payment.status}
+                      </span>
                     </div>
-                    <span className="capitalize text-slate-600 dark:text-slate-300">
-                      {payment.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </HistoryPreview>
             ) : (
               <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
                 No Paystack payments yet.
@@ -518,7 +538,55 @@ export default function SubscriptionsPage() {
           <ShieldCheck size={15} />
           Payment card details are handled by Paystack, never JUVO.
         </p>
+          </div>
+        </VerifyEmailGate>
       </div>
+
+      <HistoryModal
+        open={billingHistoryOpen}
+        title="Full billing history"
+        eyebrow="Billing"
+        onClose={() => setBillingHistoryOpen(false)}
+        hasMore={
+          Boolean(overview?.payments?.length) &&
+          billingHistoryVisible < (overview?.payments.length || 0)
+        }
+        onLoadMore={() =>
+          setBillingHistoryVisible((current) =>
+            Math.min(current + 10, overview?.payments.length || current),
+          )
+        }
+      >
+        <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 dark:divide-white/10 dark:border-white/10">
+          {(overview?.payments || [])
+            .slice(0, billingHistoryVisible)
+            .map((payment) => (
+              <div
+                key={payment.id}
+                className="flex min-w-0 items-center justify-between gap-3 px-3 py-3 text-sm"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-slate-950 dark:text-white">
+                    {planDetails[payment.plan].name} ·{" "}
+                    {money(payment.expectedAmount, payment.currency)}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {payment.createdAt
+                      ? formatDate(payment.createdAt, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : ""}
+                  </p>
+                </div>
+                <span className="shrink-0 capitalize text-slate-600 dark:text-slate-300">
+                  {payment.status}
+                </span>
+              </div>
+            ))}
+        </div>
+      </HistoryModal>
     </DashboardShell>
   );
 }

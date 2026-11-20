@@ -191,13 +191,12 @@ function LivePositionCard({
 
   return (
     <motion.div
-      layout
       variants={subtleListItem}
       initial="hidden"
       animate="shown"
       exit={{ opacity: 0, y: -6, scale: 0.98 }}
       transition={panelTransition}
-      className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-2xl border border-cyan-200 bg-cyan-50/70 p-4 dark:border-cyan-400/20 dark:bg-cyan-400/10"
+      className="grid min-h-[5.5rem] grid-cols-[minmax(0,1fr)_auto] gap-4 rounded-2xl border border-cyan-200 bg-cyan-50/70 p-4 dark:border-cyan-400/20 dark:bg-cyan-400/10"
     >
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">

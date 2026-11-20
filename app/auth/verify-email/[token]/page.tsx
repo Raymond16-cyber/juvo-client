@@ -3,6 +3,7 @@
 import AuthShell from "@/components/auth/AuthShell";
 import styles from "@/components/auth/AuthShell.module.css";
 import { getApiErrorMessage } from "@/lib/axios";
+import { clearEmailVerificationReminderDismiss } from "@/lib/email-verification";
 import { verifyEmail } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/auth.store";
 import Link from "next/link";
@@ -37,6 +38,7 @@ export default function VerifyEmailPage() {
         const response = await verifyEmail(token);
         setMessage(response.message);
         setStatus("success");
+        clearEmailVerificationReminderDismiss();
         if (isAuthenticated) {
           try {
             await fetchCurrentUser();

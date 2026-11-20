@@ -71,13 +71,25 @@ export const liftNoTradeDayService = async (payload?: {
   return response.data;
 };
 
-export const getUserJournalsService =
-  async (): Promise<UserJournalsResponse> => {
-    const response = await api.get<UserJournalsResponse>(
-      "/journal/get-user-journals",
-    );
+export const getUserJournalsService = async (params?: {
+  page?: number;
+  limit?: number | "all";
+  q?: string;
+  includeSummary?: boolean;
+}): Promise<UserJournalsResponse> => {
+  const response = await api.get<UserJournalsResponse>(
+    "/journal/get-user-journals",
+    {
+      params: {
+        ...(params?.page ? { page: params.page } : {}),
+        ...(params?.limit !== undefined ? { limit: params.limit } : {}),
+        ...(params?.q ? { q: params.q } : {}),
+        ...(params?.includeSummary ? { includeSummary: true } : {}),
+      },
+    },
+  );
 
-    return response.data;
+  return response.data;
   };
 
 export const createJournalService = async (

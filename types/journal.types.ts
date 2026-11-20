@@ -134,6 +134,16 @@ export interface TradeSummary extends CreateTradePayload {
   updatedAt: string;
 }
 
+export interface TradeBehaviourFlag {
+  _id?: string;
+  challenge: string;
+  source?: "auto" | "manual";
+  confidence?: number;
+  confirmed?: boolean | null;
+  dismissedAt?: string | null;
+  createdAt?: string;
+}
+
 export interface JournalListTradeSummary {
   _id: string;
   symbol: string;
@@ -159,6 +169,7 @@ export interface JournalListTradeSummary {
   openedAt?: string;
   closedAt?: string;
   createdAt?: string;
+  behaviourFlags?: TradeBehaviourFlag[];
   tradingAccount?:
     | string
     | Pick<
@@ -198,6 +209,7 @@ export interface JournalHistoryItem extends JournalSummary {
     respectedStopLoss?: boolean;
     score?: number;
   };
+  behaviourFlags?: TradeBehaviourFlag[];
   ai?: {
     feedback?: string;
     summary?: string;
@@ -379,9 +391,39 @@ export interface CloseTradeResponse {
   tradingAccount?: TradingAccountOutcome | null;
 }
 
+export interface JournalListPagination {
+  page: number;
+  limit: number;
+  total: number;
+  hasMore: boolean;
+  nextPage: number | null;
+}
+
+export interface JournalListSummary {
+  journals: number;
+  trades: number;
+  openTrades: number;
+  closedTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  totalProfitLoss: number;
+  totalProfitLossReporting: number;
+  conversionUnavailableCount: number;
+  reportingCurrency: string;
+}
+
+export type GetUserJournalsParams = {
+  page?: number;
+  limit?: number | "all";
+  q?: string;
+  includeSummary?: boolean;
+};
+
 export interface UserJournalsResponse {
   data: JournalHistoryItem[];
   message: string;
+  pagination?: JournalListPagination;
+  summary?: JournalListSummary;
 }
 
 export interface JournalDetailResponse {

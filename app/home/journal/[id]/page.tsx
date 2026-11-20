@@ -1,6 +1,7 @@
 "use client";
 
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import PendingBehaviourFlags from "@/components/journal/PendingBehaviourFlags";
 import PlanComplianceCard from "@/components/journal/PlanComplianceCard";
 import SmartJournalInterviewer from "@/components/journal/SmartJournalInterviewer";
 import TradeScreenshotReview, {
@@ -11,21 +12,27 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
+import {
+  CHALLENGE_TIPS,
+  CHALLENGE_TO_DISCIPLINE,
+} from "@/constants/onboarding";
 import { getJournalDisplayPnl, getRecordCurrency } from "@/lib/account";
 import { getApiErrorMessage } from "@/lib/axios";
-import { formatDate, formatMoney, pnlClass } from "@/lib/format";
+import { formatDate, formatMoney, pnlClass, titleCase } from "@/lib/format";
 import { controlClassName, textareaClassName } from "@/lib/ui";
 import {
   analyzeTradeScreenshotService,
 } from "@/services/journal.service";
 import { getAiAccessService } from "@/services/ai.service";
+import { useAuthStore } from "@/stores/auth.store";
 import { useJournalStore } from "@/stores/journal.store";
 import { AiAccess } from "@/types/ai.types";
+import { BehaviourFlag } from "@/types/behaviour.types";
 import { CompleteJournalPayload } from "@/types/journal.types";
 import { ArrowLeft, Bot, CheckCircle2, NotebookPen } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 const defaultReview: CompleteJournalPayload = {
   afterTrading: "",
@@ -92,6 +99,8 @@ export default function JournalDetailPage() {
   const getJournalById = useJournalStore((state) => state.getJournalById);
   const closeTrade = useJournalStore((state) => state.closeTrade);
   const completeJournal = useJournalStore((state) => state.completeJournal);
+  const biggestChallenges =
+    useAuthStore((state) => state.user?.profile?.biggestChallenges) || [];
 
   const [review, setReview] = useState(defaultReview);
   const [closingTradeId, setClosingTradeId] = useState<string | null>(null);
@@ -205,6 +214,54 @@ export default function JournalDetailPage() {
         stopLoss: closingTrade.stopLoss,
       })
     : null;
+
+  const pendingBehaviourFlags = useMemo<BehaviourFlag[]>(() => {
+    if (!journal) return [];
+    const flags: BehaviourFlag[] = [];
+
+    for (const flag of journal.behaviourFlags || []) {
+      if (flag.confirmed != null || flag.dismissedAt || !flag._id) continue;
+      flags.push({
+        id: flag._id,
+        challenge: flag.challenge,
+        source: flag.source || "auto",
+        confidence: flag.confidence ?? 0.5,
+        confirmed: flag.confirmed ?? null,
+        tip: CHALLENGE_TIPS[flag.challenge] || null,
+        journalId: journal._id,
+        scope: "journal",
+      });
+    }
+
+    for (const trade of journal.trades || []) {
+      for (const flag of trade.behaviourFlags || []) {
+        if (flag.confirmed != null || flag.dismissedAt || !flag._id) continue;
+        flags.push({
+          id: flag._id,
+          challenge: flag.challenge,
+          source: flag.source || "auto",
+          confidence: flag.confidence ?? 0.5,
+          confirmed: flag.confirmed ?? null,
+          tip: CHALLENGE_TIPS[flag.challenge] || null,
+          tradeId: trade._id,
+          journalId: journal._id,
+          symbol: trade.symbol,
+          direction: trade.direction,
+          scope: "trade",
+        });
+      }
+    }
+
+    return flags;
+  }, [journal]);
+
+  const challengeChecklist = useMemo(() => {
+    const keys = new Set<string>([
+      ...biggestChallenges,
+      ...pendingBehaviourFlags.map((flag) => flag.challenge),
+    ]);
+    return Array.from(keys);
+  }, [biggestChallenges, pendingBehaviourFlags]);
 
   const resetCloseForm = () => {
     setClosingTradeId(null);
@@ -608,6 +665,13 @@ export default function JournalDetailPage() {
             </div>
 
             <aside className="min-w-0 space-y-6">
+              {pendingBehaviourFlags.length ? (
+                <PendingBehaviourFlags
+                  flags={pendingBehaviourFlags}
+                  onResolved={() => getJournalById(journal._id)}
+                />
+              ) : null}
+
               <SmartJournalInterviewer journalId={journal._id} />
               <PlanComplianceCard journalId={journal._id} />
 
@@ -719,6 +783,76 @@ export default function JournalDetailPage() {
                       </label>
                     ))}
                   </div>
+
+                  {challengeChecklist.length ? (
+                    <div className="space-y-2 rounded-2xl border border-slate-200/80 p-3 dark:border-white/10">
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        Your challenge checklist
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Mark if this pattern showed up today. Mapped items update
+                        the discipline fields above.
+                      </p>
+                      {challengeChecklist.map((challenge) => {
+                        const mapped = CHALLENGE_TO_DISCIPLINE[challenge];
+                        const suggested = pendingBehaviourFlags.some(
+                          (flag) => flag.challenge === challenge,
+                        );
+                        const negativeMapped =
+                          mapped === "revengeTraded" || mapped === "overTraded";
+                        const checked = mapped
+                          ? negativeMapped
+                            ? Boolean(
+                                review[mapped as keyof CompleteJournalPayload],
+                              )
+                            : review[mapped as keyof CompleteJournalPayload] ===
+                              false
+                          : false;
+
+                        return (
+                          <label
+                            key={challenge}
+                            className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/[0.04]"
+                          >
+                            <span className="min-w-0">
+                              <span className="block text-slate-700 dark:text-slate-200">
+                                {titleCase(challenge)}
+                                {suggested ? (
+                                  <span className="ml-2 text-[11px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-300">
+                                    suggested
+                                  </span>
+                                ) : null}
+                              </span>
+                              <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+                                {CHALLENGE_TIPS[challenge] ||
+                                  "Stay aware of this pattern today."}
+                              </span>
+                            </span>
+                            {mapped ? (
+                              <input
+                                type="checkbox"
+                                className="h-5 w-5 shrink-0 accent-cyan-400"
+                                checked={Boolean(checked)}
+                                onChange={(event) => {
+                                  const nextChecked = event.target.checked;
+                                  setReview((current) => ({
+                                    ...current,
+                                    [mapped]: negativeMapped
+                                      ? nextChecked
+                                      : !nextChecked,
+                                  }));
+                                }}
+                              />
+                            ) : (
+                              <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                Reflect
+                              </span>
+                            )}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : null}
                   <Button className="w-full" type="submit" disabled={isLoading}>
                     {isLoading ? "Saving..." : "Complete journal"}
                   </Button>

@@ -12,6 +12,29 @@ export type BrokerConnectionStatus =
 
 export type BrokerAccountType = "demo" | "live";
 
+export type MetaTraderPlatformSupport = "live" | "coming_soon";
+
+export type MetaTraderStatusReason =
+  | "heartbeat_timeout"
+  | "terminal_disconnected"
+  | "synchronizing"
+  | "catching_up";
+
+export interface MetaTraderStatusGuidance {
+  desktopOnline: string;
+  offlineCatchUp: string;
+  reasons: Record<MetaTraderStatusReason, string>;
+}
+
+export interface MetaTraderStatus {
+  enabled: boolean;
+  url: string;
+  platformSupport: { mt5: MetaTraderPlatformSupport; mt4: MetaTraderPlatformSupport };
+  needsDesktopOnline: boolean;
+  guidance: MetaTraderStatusGuidance;
+  connections: BrokerConnection[];
+}
+
 export interface BrokerConnection {
   id: string;
   userId?: string;
@@ -30,6 +53,7 @@ export interface BrokerConnection {
   tradingAccount?: string;
   lastError?: { code: string; message: string } | null;
   status: BrokerConnectionStatus;
+  statusReason?: MetaTraderStatusReason | null;
   lastSyncedAt?: string | null;
   connectedAt?: string | null;
   createdAt?: string;

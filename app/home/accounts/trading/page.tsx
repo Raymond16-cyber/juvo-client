@@ -1,12 +1,14 @@
 "use client";
 
+import AccountTradesHistory from "@/components/accounts/AccountTradesHistory";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
-import { formatMoney, formatNumber, pnlClass } from "@/lib/format";
+import { formatMoney, formatNumber } from "@/lib/format";
 import { controlClassName } from "@/lib/ui";
+import { sectionStackClassName } from "@/lib/responsive";
 import { useAccountsStore } from "@/stores/accounts.store";
 import {
   CreateTradingAccountPayload,
@@ -116,7 +118,7 @@ export default function TradingAccountsPage() {
 
   return (
     <DashboardShell>
-      <div className="space-y-6">
+      <div className={sectionStackClassName}>
         <PageHeader
           eyebrow="Accounts"
           title="Trading Accounts"
@@ -274,44 +276,12 @@ export default function TradingAccountsPage() {
                         tone="drawdown"
                       />
                     </div>
-                    {account.trades?.length ? (
-                      <div className="mt-5 border-t border-slate-200 pt-4 dark:border-white/10">
-                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                          Account trades
-                        </p>
-                        <div className="mt-3 space-y-2">
-                          {account.trades.slice(0, 6).map((trade) => (
-                            <div
-                              key={trade._id}
-                              className="flex min-w-0 items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm dark:bg-white/[0.04]"
-                            >
-                              <div className="min-w-0">
-                                <p className="truncate font-semibold text-slate-950 dark:text-white">
-                                  {trade.symbol} · {trade.direction}
-                                </p>
-                                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                                  {trade.status}
-                                  {trade.session ? ` · ${trade.session}` : ""}
-                                </p>
-                              </div>
-                              <p
-                                className={`shrink-0 break-words font-bold ${pnlClass(trade.profitLoss || 0)}`}
-                              >
-                                {formatMoney(
-                                  trade.profitLoss || 0,
-                                  account.accountCurrency || account.currency,
-                                )}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-                        Trades logged while this account is active will appear
-                        here.
-                      </p>
-                    )}
+                    <AccountTradesHistory
+                      trades={account.trades || []}
+                      currency={
+                        account.accountCurrency || account.currency || "USD"
+                      }
+                    />
                   </Card>
                 );
               })
@@ -527,37 +497,11 @@ function ArchivedAccountCard({
         ))}
       </div>
 
-      {account.trades?.length ? (
-        <div className="mt-5 border-t border-slate-200 pt-4 dark:border-white/10">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-            Archived account trades
-          </p>
-          <div className="mt-3 space-y-2">
-            {account.trades.slice(0, 6).map((trade) => (
-              <div
-                key={trade._id}
-                className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm dark:bg-white/[0.04]"
-              >
-                <div>
-                  <p className="font-semibold text-slate-950 dark:text-white">
-                    {trade.symbol} · {trade.direction}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {trade.status}
-                    {trade.session ? ` · ${trade.session}` : ""}
-                  </p>
-                </div>
-                <p className={`font-bold ${pnlClass(trade.profitLoss || 0)}`}>
-                  {formatMoney(
-                    trade.profitLoss || 0,
-                    trade.profitLossCurrency || account.accountCurrency || account.currency,
-                  )}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      <AccountTradesHistory
+        trades={account.trades || []}
+        currency={account.accountCurrency || account.currency || "USD"}
+        title="Archived account trades"
+      />
     </Card>
   );
 }

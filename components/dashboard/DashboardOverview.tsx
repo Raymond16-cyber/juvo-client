@@ -2,6 +2,7 @@
 
 
 import { animateDashboardEntrance } from "@/animations/dashboard";
+import EmailVerificationBanner from "@/components/auth/EmailVerificationBanner";
 import AccountSummary from "@/components/dashboard/AccountSummary";
 import BehavioralInsights from "@/components/dashboard/BehavioralInsights";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -831,6 +832,8 @@ useEffect(() => {
   return (
     <div ref={dashboardRef} data-dashboard-main className="space-y-5 lg:space-y-6">
       <DashboardHeader onOpenMyDay={openMyDayWorkflow} />
+
+      <EmailVerificationBanner />
 
       {/* Mobile dashboard heading + primary actions */}
       <div className="space-y-3 lg:hidden">

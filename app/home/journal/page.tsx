@@ -4,6 +4,8 @@ import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import VoiceNoteTextarea from "@/components/journal/VoiceNoteTextarea";
 import Button from "@/components/ui/Button";
+import HistoryModal from "@/components/ui/HistoryModal";
+import HistoryPreview from "@/components/ui/HistoryPreview";
 import {
   getJournalDisplayPnl,
   getSelectedAccount,
@@ -12,21 +14,19 @@ import {
   needsNewAccount,
 } from "@/lib/account";
 import { formatMoney as formatAccountMoney } from "@/lib/format";
-import { metricGridClassName } from "@/lib/responsive";
+import { metricGridClassName, sectionStackClassName } from "@/lib/responsive";
+import { getUserJournalsService } from "@/services/journal.service";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
 import type { JournalHistoryItem } from "@/types/journal.types";
 import {
-  Activity,
   ArrowUpRight,
   BookOpenText,
-  CalendarDays,
   CheckCircle2,
   Clock3,
   Database,
   LayoutGrid,
   List,
-  Logs,
   NotebookPen,
   Plus,
   Search,
@@ -36,7 +36,9 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+
+const PREVIEW_LIMIT = 10;
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat("en", {
@@ -55,6 +57,8 @@ const getAccountName = (journal: JournalHistoryItem) => {
 
 export default function JournalPage() {
   const journals = useJournalStore((state) => state.journals);
+  const journalPagination = useJournalStore((state) => state.journalPagination);
+  const journalSummary = useJournalStore((state) => state.journalSummary);
   const isLoading = useJournalStore((state) => state.isLoading);
   const error = useJournalStore((state) => state.error);
   const createJournal = useJournalStore((state) => state.createJournal);
@@ -70,9 +74,13 @@ export default function JournalPage() {
   const tradableAccounts = getTradableAccounts(accounts);
   const currency =
     selectedAccount?.accountCurrency || selectedAccount?.currency || "USD";
-  const reportingCurrency = journals[0]?.reportingCurrency || currency;
-  const reportingConversionUnavailable = journals.some(
-    (journal) => (journal.conversionUnavailableCount || 0) > 0,
+  const reportingCurrency =
+    journalSummary?.reportingCurrency ||
+    journals[0]?.reportingCurrency ||
+    currency;
+  const reportingConversionUnavailable = Boolean(
+    journalSummary?.conversionUnavailableCount ||
+      journals.some((journal) => (journal.conversionUnavailableCount || 0) > 0),
   );
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [beforeTrading, setBeforeTrading] = useState("");
@@ -81,21 +89,40 @@ export default function JournalPage() {
     if (typeof window === "undefined") return "";
     return new URLSearchParams(window.location.search).get("q") || "";
   });
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [journalView, setJournalView] = useState<"list" | "grid">("list");
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyItems, setHistoryItems] = useState<JournalHistoryItem[]>([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyHasMore, setHistoryHasMore] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadJournalPage = async () => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [searchTerm]);
+
+  const loadPreview = useCallback(async () => {
+    await getUserJournals({
+      page: 1,
+      limit: PREVIEW_LIMIT,
+      q: debouncedSearch || undefined,
+      includeSummary: true,
+    });
+  }, [debouncedSearch, getUserJournals]);
+
+  useEffect(() => {
+    const loadAccounts = async () => {
       setIsLoadingAccounts(true);
       setAccountError(null);
-
       try {
-        const [, loadedAccounts] = await Promise.all([
-          getUserJournals(),
-          fetchAccounts(),
-        ]);
+        const loadedAccounts = await fetchAccounts();
         const preferred = getSelectedAccount(
           loadedAccounts,
           storeSelectedAccountId,
@@ -114,57 +141,99 @@ export default function JournalPage() {
       }
     };
 
-    loadJournalPage();
-  }, [fetchAccounts, getUserJournals, storeSelectedAccountId]);
+    void loadAccounts();
+  }, [fetchAccounts, storeSelectedAccountId]);
 
-  const filteredJournals = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
+  useEffect(() => {
+    void loadPreview().catch(() => undefined);
+  }, [loadPreview]);
 
-    if (!query) return journals;
-
-    return journals.filter((journal) => {
-      const accountName = getAccountName(journal).toLowerCase();
-      const symbols =
-        journal.trades
-          ?.map((trade) => trade.symbol)
-          .join(" ")
-          .toLowerCase() || "";
-      const note = journal.psychology?.beforeTrading?.toLowerCase() || "";
-
-      return (
-        accountName.includes(query) ||
-        symbols.includes(query) ||
-        note.includes(query)
-      );
-    });
-  }, [journals, searchTerm]);
-
-  const stats = useMemo(
-    () =>
-      journals.reduce(
-        (summary, journal) => ({
-          journals: summary.journals + 1,
-          trades: summary.trades + (journal.tradesCount || 0),
-          openTrades: summary.openTrades + journal.openTrades,
-          closedTrades: summary.closedTrades + journal.closedTrades,
-          totalProfitLoss:
-            summary.totalProfitLoss +
-            (journal.totalProfitLossReporting ?? journal.totalProfitLoss),
-          winningTrades: summary.winningTrades + journal.winningTrades,
-          losingTrades: summary.losingTrades + journal.losingTrades,
-        }),
-        {
-          journals: 0,
-          trades: 0,
-          openTrades: 0,
-          closedTrades: 0,
-          totalProfitLoss: 0,
-          winningTrades: 0,
-          losingTrades: 0,
-        },
-      ),
-    [journals],
+  const loadHistoryPage = useCallback(
+    async (page: number, { reset = false } = {}) => {
+      setHistoryLoading(true);
+      setHistoryError(null);
+      try {
+        const response = await getUserJournalsService({
+          page,
+          limit: PREVIEW_LIMIT,
+          q: debouncedSearch || undefined,
+        });
+        setHistoryItems((current) => {
+          const incoming = response.data || [];
+          if (reset) return incoming;
+          const seen = new Set(current.map((item) => item._id));
+          return [
+            ...current,
+            ...incoming.filter((item) => !seen.has(item._id)),
+          ];
+        });
+        setHistoryPage(page);
+        setHistoryHasMore(Boolean(response.pagination?.hasMore));
+      } catch (loadError) {
+        void loadError;
+        setHistoryError("Unable to load more journal history.");
+      } finally {
+        setHistoryLoading(false);
+      }
+    },
+    [debouncedSearch],
   );
+  useEffect(() => {
+    if (!historyOpen) return;
+    void loadHistoryPage(1, { reset: true });
+  }, [debouncedSearch, historyOpen, loadHistoryPage]);
+
+  const stats = useMemo(() => {
+    if (journalSummary) {
+      return {
+        journals: journalSummary.journals,
+        trades: journalSummary.trades,
+        openTrades: journalSummary.openTrades,
+        closedTrades: journalSummary.closedTrades,
+        totalProfitLoss:
+          journalSummary.totalProfitLossReporting ??
+          journalSummary.totalProfitLoss,
+        winningTrades: journalSummary.winningTrades,
+        losingTrades: journalSummary.losingTrades,
+      };
+    }
+
+    return journals.reduce(
+      (summary, journal) => ({
+        journals: summary.journals + 1,
+        trades: summary.trades + (journal.tradesCount || 0),
+        openTrades: summary.openTrades + journal.openTrades,
+        closedTrades: summary.closedTrades + journal.closedTrades,
+        totalProfitLoss:
+          summary.totalProfitLoss +
+          (journal.totalProfitLossReporting ?? journal.totalProfitLoss),
+        winningTrades: summary.winningTrades + journal.winningTrades,
+        losingTrades: summary.losingTrades + journal.losingTrades,
+      }),
+      {
+        journals: 0,
+        trades: 0,
+        openTrades: 0,
+        closedTrades: 0,
+        totalProfitLoss: 0,
+        winningTrades: 0,
+        losingTrades: 0,
+      },
+    );
+  }, [journalSummary, journals]);
+
+  const previewHasMore = Boolean(
+    journalPagination?.hasMore ||
+      (journalPagination?.total || 0) > journals.length,
+  );
+
+
+  const openHistory = async () => {
+    setHistoryOpen(true);
+    setHistoryItems([]);
+    setHistoryHasMore(false);
+    await loadHistoryPage(1, { reset: true });
+  };
 
   const handleCreateJournal = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -188,7 +257,7 @@ export default function JournalPage() {
         beforeTrading,
         confidenceBefore,
       });
-      await getUserJournals();
+      await loadPreview();
       setBeforeTrading("");
       setConfidenceBefore(7);
       setSuccessMessage("Journal created.");
@@ -200,7 +269,7 @@ export default function JournalPage() {
 
   return (
     <DashboardShell>
-      <div className="space-y-6">
+      <div className={sectionStackClassName}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -210,8 +279,8 @@ export default function JournalPage() {
               Trading Journals
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-              Review every journal you have created, how many trades each one
-              contains, and the performance tied to those sessions.
+              Review recent sessions first, then open full history when you need
+              the complete archive.
             </p>
           </div>
 
@@ -274,14 +343,14 @@ export default function JournalPage() {
                   <AccountSwitcher compact />
                 </div>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  {filteredJournals.length} shown from {journals.length} total
+                  Showing {journals.length}
+                  {journalPagination?.total
+                    ? ` of ${journalPagination.total}`
+                    : ""}{" "}
+                  · newest first
                 </p>
               </div>
-              <div className="flex items-center justify-between gap-3 text-sm text-slate-500 dark:text-slate-400 sm:justify-end">
-                <div className="flex items-center gap-2">
-                  <CalendarDays size={17} />
-                  Newest first
-                </div>
+              <div className="flex items-center justify-end gap-3 text-sm text-slate-500 dark:text-slate-400">
                 <div
                   className="flex items-center gap-1 rounded-full bg-slate-100 p-1 dark:bg-white/10"
                   role="group"
@@ -319,37 +388,48 @@ export default function JournalPage() {
               </div>
             </div>
 
-            <div
-              className={
-                journalView === "list"
-                  ? "divide-y divide-slate-200 dark:divide-white/10"
-                  : "grid gap-4 p-4 sm:grid-cols-2"
+            <HistoryPreview
+              hasMore={previewHasMore}
+              onSeeAll={() => void openHistory()}
+              seeAllLabel="See full journal history"
+              countLabel={
+                journalPagination?.total
+                  ? `${journalPagination.total} total sessions`
+                  : undefined
               }
             >
-              {isLoading && !journals.length ? (
-                <EmptyState
-                  title="Loading journals"
-                  body="Your journal history is coming in."
-                />
-              ) : filteredJournals.length ? (
-                filteredJournals.map((journal) => (
-                  <JournalRow
-                    key={journal._id}
-                    journal={journal}
-                    view={journalView}
+              <div
+                className={
+                  journalView === "list"
+                    ? "divide-y divide-slate-200 dark:divide-white/10"
+                    : "grid gap-4 p-4 sm:grid-cols-2"
+                }
+              >
+                {isLoading && !journals.length ? (
+                  <EmptyState
+                    title="Loading journals"
+                    body="Your journal history is coming in."
                   />
-                ))
-              ) : (
-                <EmptyState
-                  title="No journals found"
-                  body={
-                    searchTerm
-                      ? "Try a different symbol, account, or note."
-                      : "Create your first journal from the panel on this page."
-                  }
-                />
-              )}
-            </div>
+                ) : journals.length ? (
+                  journals.map((journal) => (
+                    <JournalRow
+                      key={journal._id}
+                      journal={journal}
+                      view={journalView}
+                    />
+                  ))
+                ) : (
+                  <EmptyState
+                    title="No journals found"
+                    body={
+                      searchTerm
+                        ? "Try a different symbol, account, or note."
+                        : "Create your first journal from the panel on this page."
+                    }
+                  />
+                )}
+              </div>
+            </HistoryPreview>
           </div>
 
           <aside className="min-w-0 space-y-4 xl:sticky xl:top-8">
@@ -465,6 +545,46 @@ export default function JournalPage() {
           </aside>
         </section>
       </div>
+
+      <HistoryModal
+        open={historyOpen}
+        title="Full journal history"
+        eyebrow="Journals"
+        onClose={() => setHistoryOpen(false)}
+        hasMore={historyHasMore}
+        loadingMore={historyLoading}
+        onLoadMore={() => {
+          if (historyLoading || !historyHasMore) return;
+          void loadHistoryPage(historyPage + 1);
+        }}
+      >
+        {historyError ? (
+          <p className="mb-4 text-sm text-rose-700 dark:text-rose-300">
+            {historyError}
+          </p>
+        ) : null}
+        {historyLoading && !historyItems.length ? (
+          <EmptyState
+            title="Loading history"
+            body="Pulling your full journal archive."
+          />
+        ) : historyItems.length ? (
+          <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 dark:divide-white/10 dark:border-white/10">
+            {historyItems.map((journal) => (
+              <JournalRow key={journal._id} journal={journal} view="list" />
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="No journals found"
+            body={
+              searchTerm
+                ? "Try a different search term."
+                : "Create your first journal to build history."
+            }
+          />
+        )}
+      </HistoryModal>
     </DashboardShell>
   );
 }

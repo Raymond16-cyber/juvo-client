@@ -1,5 +1,6 @@
 "use client";
 
+import VerifyEmailGate from "@/components/auth/VerifyEmailGate";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -38,25 +39,30 @@ export default function ReferralsPage() {
           title="Referrals"
           description="Invite traders who actually want a journal, not a signal group."
         />
-        <Card className="p-4 sm:p-6">
-          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
-            <Gift size={22} />
-          </div>
-          <h2 className="mt-4 text-xl font-bold text-slate-950 sm:text-2xl dark:text-white">
-            Your invite code
-          </h2>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Share this with a trader who needs process more than predictions.
-          </p>
-          <div className="mt-5 flex min-w-0 flex-wrap items-center gap-3">
-            <code className="max-w-full break-all rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-950 dark:bg-white/10 dark:text-white">
-              {code}
-            </code>
-            <Button className="min-h-11" onClick={copy}>
-              {copied ? "Copied" : "Copy code"}
-            </Button>
-          </div>
-        </Card>
+        <VerifyEmailGate
+          featureLabel="referrals"
+          description="Share invite codes after your email is verified so invitations stay tied to a real account."
+        >
+          <Card className="p-4 sm:p-6">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
+              <Gift size={22} />
+            </div>
+            <h2 className="mt-4 text-xl font-bold text-slate-950 sm:text-2xl dark:text-white">
+              Your invite code
+            </h2>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              Share this with a trader who needs process more than predictions.
+            </p>
+            <div className="mt-5 flex min-w-0 flex-wrap items-center gap-3">
+              <code className="max-w-full break-all rounded-full bg-slate-100 px-4 py-2 text-sm font-bold text-slate-950 dark:bg-white/10 dark:text-white">
+                {code}
+              </code>
+              <Button className="min-h-11" onClick={copy}>
+                {copied ? "Copied" : "Copy code"}
+              </Button>
+            </div>
+          </Card>
+        </VerifyEmailGate>
       </div>
     </DashboardShell>
   );

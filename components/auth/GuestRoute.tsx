@@ -3,7 +3,7 @@
 import AuthLoadingScreen from "@/components/auth/AuthLoadingScreen";
 import { AUTH_ENTER_LABEL } from "@/lib/auth-entry";
 import { useAuthStore } from "@/stores/auth.store";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function GuestRoute({
@@ -12,31 +12,36 @@ export default function GuestRoute({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const hasCheckedAuth = useAuthStore((state) => state.hasCheckedAuth);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
-  const verificationSent = useAuthStore((state) => state.verificationSent);
 
-  const destination = !user?.emailVerified && user?.email
-    ? `/auth/verify-email?email=${encodeURIComponent(user.email)}${
-        verificationSent === false ? "&sent=0" : "&sent=1"
-      }`
-    : user?.onboarding?.completed
-      ? "/home/dashboard"
-      : "/home/onboarding";
+  const isVerifyEmailPath = pathname.startsWith("/auth/verify-email");
+  const destination = user?.onboarding?.completed
+    ? "/home/dashboard"
+    : "/home/onboarding";
 
   useEffect(() => {
     if (!hasCheckedAuth) return;
-    if (isAuthenticated) {
+    // Allow signed-in users to stay on the verify-email page so they can
+    // resend the link or skip into the app intentionally.
+    if (isAuthenticated && !isVerifyEmailPath) {
       router.replace(destination);
     }
-  }, [destination, hasCheckedAuth, isAuthenticated, router]);
+  }, [
+    destination,
+    hasCheckedAuth,
+    isAuthenticated,
+    isVerifyEmailPath,
+    router,
+  ]);
 
   if (!hasCheckedAuth) {
     return <AuthLoadingScreen label="Just a moment" />;
   }
 
-  if (isAuthenticated) {
+  if (isAuthenticated && !isVerifyEmailPath) {
     return <AuthLoadingScreen label={AUTH_ENTER_LABEL} />;
   }
 

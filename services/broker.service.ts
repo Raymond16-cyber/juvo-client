@@ -7,6 +7,7 @@ import {
   CTraderDisconnectResponse,
   CTraderSyncResponse,
   CTraderConnectResponse,
+  MetaTraderStatus,
 } from "@/types/broker.types";
 
 export const getCTraderConnectUrlService = async () => {
@@ -60,7 +61,7 @@ export const disconnectCTraderService = async (connectionId: string) => {
 };
 
 export async function getMetaTraderStatus() {
-  return (await api.get<{ data: { enabled: boolean; url: string; connections: BrokerConnection[] } }>("/broker/metatrader/status")).data.data;
+  return (await api.get<{ data: MetaTraderStatus }>("/broker/metatrader/status")).data.data;
 }
 
 export async function createMetaTraderPairingCode() {

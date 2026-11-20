@@ -61,7 +61,7 @@ export default function MetricCard({
   return (
     <section
       data-dashboard-card
-      className="dashboard-card min-w-0 rounded-2xl border border-slate-200/90 bg-white p-3.5 dark:border-white/10 dark:bg-card sm:p-5"
+      className="dashboard-card min-h-[7.25rem] min-w-0 rounded-2xl border border-slate-200/90 bg-white p-3.5 dark:border-white/10 dark:bg-card sm:min-h-[7.75rem] sm:p-5"
     >
       <div className="flex items-start justify-between gap-2 sm:gap-3">
         <div className="min-w-0">

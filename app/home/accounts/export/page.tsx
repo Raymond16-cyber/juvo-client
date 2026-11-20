@@ -1,7 +1,10 @@
 "use client";
 
+import VerifyEmailGate from "@/components/auth/VerifyEmailGate";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
+import HistoryModal from "@/components/ui/HistoryModal";
+import HistoryPreview from "@/components/ui/HistoryPreview";
 import PageHeader from "@/components/ui/PageHeader";
 import { getApiErrorCode, getApiErrorMessage } from "@/lib/axios";
 import { formatMoney } from "@/lib/format";
@@ -18,9 +21,12 @@ import {
   downloadPdfExport,
 } from "@/services/export.service";
 import { useNoticeStore } from "@/stores/notice.store";
-import type { JournalExport } from "@/types/journal.types";
+import type { JournalExport, JournalHistoryItem } from "@/types/journal.types";
 import { AlertCircle, Download, FileJson, FileSpreadsheet, FileText, LoaderCircle, RotateCcw, Table2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+const PREVIEW_LIMIT = 10;
+const PAGE_SIZE = 10;
 
 function download(filename: string, content: string, type: string) {
   const url = URL.createObjectURL(new Blob([content], { type }));
@@ -40,6 +46,8 @@ export default function ExportPage() {
   const [entitled, setEntitled] = useState(true);
   const [exporting, setExporting] = useState<"pdf" | "excel" | null>(null);
   const [filters, setFilters] = useState({ accountId: "", from: "", to: "" });
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyVisible, setHistoryVisible] = useState(PAGE_SIZE);
   const requestId = useRef(0);
 
   const load = useCallback(async () => {
@@ -132,13 +140,18 @@ export default function ExportPage() {
 
   return (
     <DashboardShell>
-      <div className="space-y-6">
+      <div className="space-y-5 sm:space-y-6">
         <PageHeader eyebrow="Accounts" title="Export Data" actions={
           <Button variant="ghost" onClick={() => { setLoading(true); setError(null); void load(); }} disabled={loading} aria-label="Refresh export data" title="Refresh export data">
             {loading ? <LoaderCircle size={18} className="animate-spin" /> : <RotateCcw size={18} />}
           </Button>
         } />
 
+        <VerifyEmailGate
+          featureLabel="data export"
+          description="Export CSV, PDF, and Excel reports after your email is verified."
+        >
+          <div className="space-y-5 sm:space-y-6">
         <div className="grid gap-4 border-y border-slate-200 py-5 dark:border-white/10 sm:grid-cols-2 lg:grid-cols-4">
           <label className="min-w-0 space-y-2 text-sm font-medium">
             <span>Account</span>
@@ -236,24 +249,118 @@ export default function ExportPage() {
         <section>
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-lg font-semibold">Session preview</h2>
-            <span className="text-xs text-slate-500 dark:text-slate-400">{timeZone} | {Math.min(8, journals.length)} of {journals.length} sessions</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {timeZone} | {Math.min(PREVIEW_LIMIT, journals.length)} of{" "}
+              {journals.length} sessions
+            </span>
           </div>
-          {!journals.length ? <p className="border-t border-slate-200 py-8 text-sm text-slate-500 dark:border-white/10 dark:text-slate-400" role="status">{loading ? "Loading journals..." : error ? "Export data is unavailable." : "No journals match these filters."}</p> : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-y border-slate-200 text-slate-500 dark:border-white/10 dark:text-slate-400"><tr>
-                  <th scope="col" className="px-2 py-3">Date</th><th scope="col" className="px-2 py-3">Status</th><th scope="col" className="px-2 py-3 text-right">Trades</th><th scope="col" className="px-2 py-3 text-right">P/L ({currency})</th>
-                </tr></thead>
-                <tbody>{journals.slice(0, 8).map((journal) => <tr key={journal._id} className="border-b border-slate-200 dark:border-white/10">
-                  <td className="whitespace-nowrap px-2 py-3">{journalDateKey(journal.journalDate, timeZone)}</td>
-                  <td className="px-2 py-3">{journal.status}</td><td className="px-2 py-3 text-right">{journal.trades?.length || 0}</td>
-                  <td className="whitespace-nowrap px-2 py-3 text-right">{journal.conversionUnavailableCount ? "Unavailable" : formatMoney(journal.totalProfitLossReporting ?? 0, currency)}</td>
-                </tr>)}</tbody>
-              </table>
-            </div>
+          {!journals.length ? (
+            <p
+              className="border-t border-slate-200 py-8 text-sm text-slate-500 dark:border-white/10 dark:text-slate-400"
+              role="status"
+            >
+              {loading
+                ? "Loading journals..."
+                : error
+                  ? "Export data is unavailable."
+                  : "No journals match these filters."}
+            </p>
+          ) : (
+            <HistoryPreview
+              hasMore={journals.length > PREVIEW_LIMIT}
+              onSeeAll={() => {
+                setHistoryVisible(PAGE_SIZE);
+                setHistoryOpen(true);
+              }}
+              seeAllLabel="See full journal history"
+            >
+              <ExportSessionTable
+                journals={journals.slice(0, PREVIEW_LIMIT)}
+                timeZone={timeZone}
+                currency={currency}
+              />
+            </HistoryPreview>
           )}
         </section>
+          </div>
+        </VerifyEmailGate>
       </div>
+
+      <HistoryModal
+        open={historyOpen}
+        title="Full export session history"
+        eyebrow="Export"
+        onClose={() => setHistoryOpen(false)}
+        hasMore={historyVisible < journals.length}
+        onLoadMore={() =>
+          setHistoryVisible((current) =>
+            Math.min(current + PAGE_SIZE, journals.length),
+          )
+        }
+      >
+        <ExportSessionTable
+          journals={journals.slice(0, historyVisible)}
+          timeZone={timeZone}
+          currency={currency}
+        />
+      </HistoryModal>
     </DashboardShell>
+  );
+}
+
+function ExportSessionTable({
+  journals,
+  timeZone,
+  currency,
+}: {
+  journals: JournalHistoryItem[];
+  timeZone: string;
+  currency: string;
+}) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[28rem] text-left text-sm">
+        <thead className="border-y border-slate-200 text-slate-500 dark:border-white/10 dark:text-slate-400">
+          <tr>
+            <th scope="col" className="px-2 py-3">
+              Date
+            </th>
+            <th scope="col" className="px-2 py-3">
+              Status
+            </th>
+            <th scope="col" className="px-2 py-3 text-right">
+              Trades
+            </th>
+            <th scope="col" className="px-2 py-3 text-right">
+              P/L ({currency})
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {journals.map((journal) => (
+            <tr
+              key={journal._id}
+              className="border-b border-slate-200 dark:border-white/10"
+            >
+              <td className="whitespace-nowrap px-2 py-3">
+                {journalDateKey(journal.journalDate, timeZone)}
+              </td>
+              <td className="px-2 py-3">{journal.status}</td>
+              <td className="px-2 py-3 text-right">
+                {journal.trades?.length || 0}
+              </td>
+              <td className="whitespace-nowrap px-2 py-3 text-right">
+                {journal.conversionUnavailableCount
+                  ? "Unavailable"
+                  : formatMoney(
+                      journal.totalProfitLossReporting ?? 0,
+                      currency,
+                    )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

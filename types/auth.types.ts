@@ -16,6 +16,14 @@ export interface User {
       | "position_trading";
     instruments?: string[];
     biggestChallenges?: string[];
+    challengeProgress?: Array<{
+      challenge: string;
+      status: "active" | "improving" | "overcome" | "paused";
+      flagCount?: number;
+      confirmedCount?: number;
+      lastFlaggedAt?: string | null;
+      streakWithoutFlag?: number;
+    }>;
   };
   preferences?: {
     theme?: "light" | "dark" | "system";

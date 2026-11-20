@@ -9,9 +9,9 @@ export const motionDuration = {
 };
 
 export const pageTransition: Variants = {
-  initial: { opacity: 0, y: 6 },
+  initial: { opacity: 0, y: 2 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 4 },
+  exit: { opacity: 0 },
 };
 
 export const panelTransition = {

@@ -18,8 +18,11 @@ import {
   CompleteJournalPayload,
   CreateJournalPayload,
   CreateTradePayload,
+  GetUserJournalsParams,
   JournalDetail,
   JournalHistoryItem,
+  JournalListPagination,
+  JournalListSummary,
   JournalStatusData,
   JournalStatusResponse,
   TradeSummary,
@@ -31,6 +34,8 @@ interface JournalStore {
   isLoading: boolean;
   error: string | null;
   journals: JournalHistoryItem[];
+  journalPagination: JournalListPagination | null;
+  journalSummary: JournalListSummary | null;
   currentJournal: JournalDetail | null;
   journalStatus: JournalStatusData | null;
   message: string | null;
@@ -48,7 +53,7 @@ interface JournalStore {
   ) => Promise<JournalDetail>;
   getJournalById: (journalId: string) => Promise<JournalDetail>;
   getTodayJournalStatus: () => Promise<JournalStatusResponse>;
-  getUserJournals: () => Promise<UserJournalsResponse>;
+  getUserJournals: (params?: GetUserJournalsParams) => Promise<UserJournalsResponse>;
   clearError: () => void;
   clearFeedback: () => void;
 }
@@ -69,6 +74,8 @@ export const useJournalStore = create<JournalStore>((set) => {
     isLoading: false,
     error: null,
     journals: [],
+    journalPagination: null,
+    journalSummary: null,
     currentJournal: null,
     journalStatus: null,
     message: null,
@@ -212,11 +219,15 @@ export const useJournalStore = create<JournalStore>((set) => {
         set({ isLoading: false });
       }
     },
-    getUserJournals: async () => {
+    getUserJournals: async (params) => {
       set({ isLoading: true, error: null });
       try {
-        const response = await getUserJournalsService();
-        set({ journals: response.data });
+        const response = await getUserJournalsService(params);
+        set({
+          journals: response.data || [],
+          journalPagination: response.pagination || null,
+          journalSummary: response.summary || null,
+        });
         return response;
       } catch (error) {
         void error;

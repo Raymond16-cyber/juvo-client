@@ -25,7 +25,7 @@ const iconMap = {
 };
 
 type BehavioralInsightsProps = {
-  insights?: AnalyticsInsight[];
+  insights?: Array<Pick<AnalyticsInsight, "title" | "body" | "score" | "category"> & Partial<AnalyticsInsight>>;
 };
 
 export default function BehavioralInsights({ insights = [] }: BehavioralInsightsProps) {

@@ -1,6 +1,7 @@
 "use client";
 
 import JournalAttachPicker from "@/components/ai/JournalAttachPicker";
+import MarkdownMessage from "@/components/ai/MarkdownMessage";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import { getApiErrorMessage } from "@/lib/axios";
@@ -654,13 +655,17 @@ export default function JuvoAIChatPage() {
                               ) : null}
                             </div>
                             <div
-                              className={`group relative min-w-0 max-w-full whitespace-pre-wrap juvo-break-words rounded-xl border px-3 py-2.5 text-sm leading-6 shadow-sm sm:px-4 sm:py-3 ${
+                              className={`group relative min-w-0 max-w-full juvo-break-words rounded-xl border px-3 py-2.5 text-sm leading-6 shadow-sm sm:px-4 sm:py-3 ${
                                 fromUser
-                                  ? "border-slate-950 bg-slate-950 text-white dark:border-primary dark:bg-primary dark:text-slate-950"
+                                  ? "whitespace-pre-wrap border-slate-950 bg-slate-950 text-white dark:border-primary dark:bg-primary dark:text-slate-950"
                                   : "border-slate-200 bg-slate-50 pr-10 text-slate-700 dark:border-white/10 dark:bg-white/[0.035] dark:text-slate-200"
                               }`}
                             >
-                              {message.content}
+                              {fromUser ? (
+                                message.content
+                              ) : (
+                                <MarkdownMessage content={message.content} />
+                              )}
                               {!fromUser ? (
                                 <button
                                   type="button"
