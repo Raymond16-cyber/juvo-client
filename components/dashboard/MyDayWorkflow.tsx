@@ -18,6 +18,7 @@ import { getApiErrorMessage } from "@/lib/axios";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
 import TradeSetupCalculator from "@/components/journal/TradeSetupCalculator";
+import { getCurrentTradingSession } from "@/lib/trading-session";
 import { CreateTradePayload } from "@/types/journal.types";
 import { CreateTradingAccountPayload } from "@/types/trading-account.types";
 import {
@@ -58,7 +59,7 @@ const defaultAccountForm: CreateTradingAccountPayload = {
   profitTarget: 10,
 };
 
-const defaultTradeForm: CreateTradePayload = {
+const createDefaultTradeForm = (): CreateTradePayload => ({
   symbol: "",
   instrument: "forex",
   direction: "long",
@@ -70,9 +71,9 @@ const defaultTradeForm: CreateTradePayload = {
   plannedRR: 2,
   targetMode: "rr",
   sizingMode: "auto",
-  session: "London",
+  session: getCurrentTradingSession(),
   notes: "",
-};
+});
 
 export default function MyDayWorkflow({
   initialPanel = "start",
@@ -100,7 +101,7 @@ export default function MyDayWorkflow({
   const [beforeTrading, setBeforeTrading] = useState("");
   const [confidenceBefore, setConfidenceBefore] = useState(7);
   const [accountForm, setAccountForm] = useState(defaultAccountForm);
-  const [tradeForm, setTradeForm] = useState(defaultTradeForm);
+  const [tradeForm, setTradeForm] = useState(createDefaultTradeForm);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
@@ -453,7 +454,7 @@ export default function MyDayWorkflow({
       }
 
       await createTrade(journal._id, payload);
-      setTradeForm(defaultTradeForm);
+      setTradeForm(createDefaultTradeForm());
       setSuccessMessage("Trade added to today's journal.");
       onJournalUpdated?.();
     } catch (error) {

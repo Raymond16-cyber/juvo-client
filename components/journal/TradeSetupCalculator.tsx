@@ -3,6 +3,10 @@
 import Button from "@/components/ui/Button";
 import { getApiErrorMessage } from "@/lib/axios";
 import { formatMoney } from "@/lib/format";
+import {
+  getCurrentTradingSession,
+  TRADING_SESSIONS,
+} from "@/lib/trading-session";
 import { controlClassName } from "@/lib/ui";
 import { previewTradeSetupService } from "@/services/journal.service";
 import { CreateTradePayload, TradeSetupPreview } from "@/types/journal.types";
@@ -192,23 +196,33 @@ export default function TradeSetupCalculator({
           <option value="long">Buy / Long</option>
           <option value="short">Sell / Short</option>
         </select>
-        <select
-          className={controlClassName}
-          value={value.session || "London"}
-          disabled={disabled}
-          onChange={(event) =>
-            patch({
-              session: event.target
-                .value as CreateTradePayload["session"],
-            })
-          }
-        >
-          {["Asian", "Tokyo", "London", "New York"].map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
+        <div className="min-w-0">
+          <button
+            type="button"
+            className="mb-1 block text-left text-xs font-semibold text-primary disabled:opacity-50"
+            disabled={disabled}
+            onClick={() => patch({ session: getCurrentTradingSession() })}
+          >
+            Get current session
+          </button>
+          <select
+            className={controlClassName}
+            value={value.session || getCurrentTradingSession()}
+            disabled={disabled}
+            onChange={(event) =>
+              patch({
+                session: event.target
+                  .value as CreateTradePayload["session"],
+              })
+            }
+          >
+            {TRADING_SESSIONS.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
