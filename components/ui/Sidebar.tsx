@@ -217,6 +217,18 @@ const Sidebar = ({
             isCollapsed ? "p-2" : "p-3"
           }`}
         >
+          <p
+            className={`mb-3 text-[11px] text-slate-400 ${isCollapsed ? "lg:hidden" : ""}`}
+          >
+            Press{" "}
+            <kbd className="rounded border border-border px-1.5 py-0.5 font-semibold text-slate-500 dark:text-slate-300">
+              Ctrl
+            </kbd>{" "}
+            <kbd className="rounded border border-border px-1.5 py-0.5 font-semibold text-slate-500 dark:text-slate-300">
+              K
+            </kbd>{" "}
+            for quick actions
+          </p>
           <div className={`flex items-center gap-3 ${isCollapsed ? "lg:justify-center" : ""}`}>
             <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/20 text-primary dark:bg-primary/15">
               <UserRound size={20} />

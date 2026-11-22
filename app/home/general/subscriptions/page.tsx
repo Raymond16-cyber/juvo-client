@@ -17,6 +17,7 @@ import Card from "@/components/ui/Card";
 import HistoryModal from "@/components/ui/HistoryModal";
 import PageHeader from "@/components/ui/PageHeader";
 import PaginatedCollection from "@/components/ui/PaginatedCollection";
+import SlideToConfirm from "@/components/ui/SlideToConfirm";
 import { getApiErrorMessage } from "@/lib/axios";
 import { formatDate, formatMoney } from "@/lib/format";
 import { useAuthStore } from "@/stores/auth.store";
@@ -197,12 +198,6 @@ export default function SubscriptionsPage() {
   }
 
   async function cancel(subscription: BillingSubscription) {
-    if (
-      !window.confirm(
-        "Cancel future renewal? Your current paid access remains until the listed expiry.",
-      )
-    )
-      return;
     setBusy(subscription.id);
     setError("");
     try {
@@ -455,7 +450,7 @@ export default function SubscriptionsPage() {
                     ? `Next renewal or expiry: ${formatDate(activeSubscription.currentPeriodEnd, { month: "short", day: "numeric", year: "numeric" })}`
                     : "Paystack will provide the next renewal date shortly."}
                 </p>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                   <Button
                     variant="ghost"
                     disabled={!!busy}
@@ -469,13 +464,18 @@ export default function SubscriptionsPage() {
                     Manage payment method
                   </Button>
                   {activeSubscription.status === "active" && (
-                    <Button
-                      variant="ghost"
-                      disabled={!!busy}
-                      onClick={() => void cancel(activeSubscription)}
-                    >
-                      Cancel renewal
-                    </Button>
+                    <div className="w-full max-w-sm">
+                      <SlideToConfirm
+                        tone="danger"
+                        label="Slide to cancel renewal"
+                        confirmLabel="Release to cancel renewal"
+                        disabled={!!busy}
+                        onConfirm={() => cancel(activeSubscription)}
+                      />
+                      <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        Paid access stays until the listed expiry; only future renewal stops.
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>

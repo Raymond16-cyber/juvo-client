@@ -3,8 +3,10 @@
 import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import VoiceNoteTextarea from "@/components/journal/VoiceNoteTextarea";
+import ActionMenu from "@/components/ui/ActionMenu";
 import Button from "@/components/ui/Button";
 import HistoryModal from "@/components/ui/HistoryModal";
+import HoverPreview from "@/components/ui/HoverPreview";
 import PaginatedCollection from "@/components/ui/PaginatedCollection";
 import SegmentedControl from "@/components/ui/SegmentedControl";
 import {
@@ -19,6 +21,7 @@ import { metricGridClassName, sectionStackClassName } from "@/lib/responsive";
 import { getUserJournalsService } from "@/services/journal.service";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useJournalStore } from "@/stores/journal.store";
+import { useNoticeStore } from "@/stores/notice.store";
 import type { JournalHistoryItem } from "@/types/journal.types";
 import {
   ArrowUpRight,
@@ -26,6 +29,8 @@ import {
   CheckCircle2,
   Clock3,
   Database,
+  ExternalLink,
+  Link2,
   NotebookPen,
   Plus,
   Search,
@@ -35,6 +40,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 /** Fetch a working set; UI shows 5 per page via PaginatedCollection. */
@@ -94,6 +100,9 @@ export default function JournalPage() {
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [createStatus, setCreateStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [journalView, setJournalView] = useState<"list" | "grid">("list");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyItems, setHistoryItems] = useState<JournalHistoryItem[]>([]);
@@ -108,6 +117,12 @@ export default function JournalPage() {
     }, 250);
     return () => window.clearTimeout(timer);
   }, [searchTerm]);
+
+  useEffect(() => {
+    if (createStatus !== "success" && createStatus !== "error") return;
+    const timer = window.setTimeout(() => setCreateStatus("idle"), 1600);
+    return () => window.clearTimeout(timer);
+  }, [createStatus]);
 
   const loadPreview = useCallback(async () => {
     await getUserJournals({
@@ -251,6 +266,7 @@ export default function JournalPage() {
       return;
     }
 
+    setCreateStatus("loading");
     try {
       await selectAccount(selectedAccountId);
       await createJournal({
@@ -262,9 +278,11 @@ export default function JournalPage() {
       setBeforeTrading("");
       setConfidenceBefore(7);
       setSuccessMessage("Journal created.");
+      setCreateStatus("success");
     } catch (createError) {
       void createError;
       setAccountError("Unable to create a journal right now.");
+      setCreateStatus("error");
     }
   };
 
@@ -493,9 +511,14 @@ export default function JournalPage() {
                 <Button
                   className="h-9 w-full whitespace-nowrap"
                   type="submit"
-                  loading={isLoading}
+                  status={createStatus}
                   successLabel="Created"
-                  disabled={isLoadingAccounts || !tradableAccounts.length}
+                  errorLabel="Failed"
+                  disabled={
+                    isLoadingAccounts ||
+                    !tradableAccounts.length ||
+                    createStatus === "loading"
+                  }
                 >
                   <Plus size={15} />
                   Create Journal
@@ -608,103 +631,203 @@ function JournalRow({
   journal: JournalHistoryItem;
   view: "list" | "grid";
 }) {
+  const router = useRouter();
+  const showNotice = useNoticeStore((state) => state.showNotice);
   const display = getJournalDisplayPnl(journal);
-  const displayPnl = display.value
+  const displayPnl = display.value;
   const hasProfit = displayPnl >= 0;
   const currency = display.currency;
+  const href = `/home/journal/${journal._id}`;
+  const statusLabel = journal.status === "Completed" ? "Closed" : "Open";
+  const dateLabel = formatDate(journal.journalDate);
+
+  const copyLink = async () => {
+    const url =
+      typeof window !== "undefined"
+        ? `${window.location.origin}${href}`
+        : href;
+    try {
+      await navigator.clipboard.writeText(url);
+      showNotice({
+        title: "Link copied",
+        body: `Session link for ${dateLabel} is on your clipboard.`,
+        tone: "success",
+        duration: 4000,
+      });
+    } catch {
+      showNotice({
+        title: "Could not copy link",
+        body: "Clipboard access was blocked.",
+        tone: "warning",
+      });
+    }
+  };
 
   return (
-    <Link
-      href={`/home/journal/${journal._id}`}
-      className={`block p-4 transition hover:bg-slate-50 dark:hover:bg-white/[0.03] sm:p-5 ${
-        view === "grid"
-          ? "rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.025]"
-          : ""
-      }`}
-    >
-      <article className="min-w-0">
-        <div
-          className={`flex flex-col gap-4 ${
-            view === "list"
-              ? "xl:flex-row xl:items-start xl:justify-between"
-              : ""
-          }`}
-        >
-          <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <h3 className="truncate text-base font-bold text-slate-950 dark:text-white">
-                {formatDate(journal.journalDate)}
-              </h3>
-              <span
-                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                  journal.status === "Completed"
-                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                    : "bg-sky-500/10 text-sky-700 dark:text-sky-300"
-                }`}
-              >
-                {journal.status === "Completed" ? "Closed" : "Open"}
-              </span>
-            </div>
-            <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
-              {getAccountName(journal)}
+    <HoverPreview
+      className={view === "grid" ? "min-w-0" : undefined}
+      preview={
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-semibold text-slate-950 dark:text-white">
+              {dateLabel}
             </p>
-            {view === "list" && journal.psychology?.beforeTrading ? (
-              <p className="juvo-break-words mt-3 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
-                {journal.psychology.beforeTrading}
-              </p>
-            ) : null}
+            <span
+              className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                journal.status === "Completed"
+                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                  : "bg-sky-500/10 text-sky-700 dark:text-sky-300"
+              }`}
+            >
+              {statusLabel}
+            </span>
           </div>
-
-          <div
-            className={`grid w-full gap-2 ${
-              view === "list"
-                ? "grid-cols-2 sm:grid-cols-4 xl:w-[280px] xl:shrink-0"
-                : "grid-cols-2"
-            }`}
-          >
-            <MiniMetric label="Trades" value={journal.tradesCount || 0} />
-            {view === "list" ? (
-              <>
-                <MiniMetric label="Open" value={journal.openTrades} />
-                <MiniMetric label="Closed" value={journal.closedTrades} />
-              </>
-            ) : null}
-            <MiniMetric
-              label="P/L"
-              value={formatAccountMoney(displayPnl, currency)}
+          <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+            {getAccountName(journal)}
+          </p>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-300">
+            <span>{journal.tradesCount || 0} trades</span>
+            <span>
+              {journal.openTrades} open · {journal.closedTrades} closed
+            </span>
+            <span
               className={
                 hasProfit
-                  ? "text-emerald-600 dark:text-emerald-300"
-                  : "text-rose-600 dark:text-rose-300"
+                  ? "font-semibold text-emerald-600 dark:text-emerald-300"
+                  : "font-semibold text-rose-600 dark:text-rose-300"
               }
-            />
+            >
+              {formatAccountMoney(displayPnl, currency)}
+            </span>
           </div>
+          {journal.psychology?.beforeTrading ? (
+            <p className="line-clamp-2 text-xs text-slate-500 dark:text-slate-400">
+              {journal.psychology.beforeTrading}
+            </p>
+          ) : null}
         </div>
+      }
+    >
+      <div
+        className={`relative ${
+          view === "grid"
+            ? "rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/[0.025]"
+            : ""
+        }`}
+      >
+        <Link
+          href={href}
+          className="block p-4 pr-14 transition hover:bg-slate-50 dark:hover:bg-white/[0.03] sm:p-5 sm:pr-14"
+        >
+          <article className="min-w-0">
+            <div
+              className={`flex flex-col gap-4 ${
+                view === "list"
+                  ? "xl:flex-row xl:items-start xl:justify-between"
+                  : ""
+              }`}
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <h3 className="truncate text-base font-bold text-slate-950 dark:text-white">
+                    {dateLabel}
+                  </h3>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      journal.status === "Completed"
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        : "bg-sky-500/10 text-sky-700 dark:text-sky-300"
+                    }`}
+                  >
+                    {statusLabel}
+                  </span>
+                </div>
+                <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
+                  {getAccountName(journal)}
+                </p>
+                {view === "list" && journal.psychology?.beforeTrading ? (
+                  <p className="juvo-break-words mt-3 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
+                    {journal.psychology.beforeTrading}
+                  </p>
+                ) : null}
+              </div>
 
-        {view === "list" && journal.trades?.length ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {journal.trades.slice(0, 5).map((trade) => (
-              <span
-                key={trade._id}
-                className="inline-flex max-w-full items-center gap-1 truncate rounded-full border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-white/10 dark:text-slate-300"
+              <div
+                className={`grid w-full gap-2 ${
+                  view === "list"
+                    ? "grid-cols-2 sm:grid-cols-4 xl:w-[280px] xl:shrink-0"
+                    : "grid-cols-2"
+                }`}
               >
-                {trade.direction === "long" ? (
-                  <ArrowUpRight size={13} />
-                ) : (
-                  <TrendingDown size={13} />
-                )}
-                {trade.symbol}
-              </span>
-            ))}
-            {journal.trades.length > 5 ? (
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-white/10 dark:text-slate-400">
-                +{journal.trades.length - 5} more
-              </span>
+                <MiniMetric label="Trades" value={journal.tradesCount || 0} />
+                {view === "list" ? (
+                  <>
+                    <MiniMetric label="Open" value={journal.openTrades} />
+                    <MiniMetric label="Closed" value={journal.closedTrades} />
+                  </>
+                ) : null}
+                <MiniMetric
+                  label="P/L"
+                  value={formatAccountMoney(displayPnl, currency)}
+                  className={
+                    hasProfit
+                      ? "text-emerald-600 dark:text-emerald-300"
+                      : "text-rose-600 dark:text-rose-300"
+                  }
+                />
+              </div>
+            </div>
+
+            {view === "list" && journal.trades?.length ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {journal.trades.slice(0, 5).map((trade) => (
+                  <span
+                    key={trade._id}
+                    className="inline-flex max-w-full items-center gap-1 truncate rounded-full border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-white/10 dark:text-slate-300"
+                  >
+                    {trade.direction === "long" ? (
+                      <ArrowUpRight size={13} />
+                    ) : (
+                      <TrendingDown size={13} />
+                    )}
+                    {trade.symbol}
+                  </span>
+                ))}
+                {journal.trades.length > 5 ? (
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-white/10 dark:text-slate-400">
+                    +{journal.trades.length - 5} more
+                  </span>
+                ) : null}
+              </div>
             ) : null}
-          </div>
-        ) : null}
-      </article>
-    </Link>
+          </article>
+        </Link>
+
+        <div
+          className="absolute right-2 top-2 z-10 sm:right-3 sm:top-3"
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          <ActionMenu
+            label={`Actions for ${dateLabel}`}
+            items={[
+              {
+                id: "open",
+                label: "Open",
+                icon: <ExternalLink size={14} />,
+                onSelect: () => router.push(href),
+              },
+              {
+                id: "copy-link",
+                label: "Copy link",
+                icon: <Link2 size={14} />,
+                onSelect: () => void copyLink(),
+              },
+            ]}
+          />
+        </div>
+      </div>
+    </HoverPreview>
   );
 }
 

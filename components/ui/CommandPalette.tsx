@@ -7,8 +7,13 @@ import {
   BarChart3,
   Bot,
   CalendarDays,
+  Coffee,
+  Download,
+  FilePlus2,
   Gauge,
+  HelpCircle,
   LineChart,
+  Link2,
   Search,
   Settings,
   Target,
@@ -28,15 +33,115 @@ type CommandItem = {
 };
 
 const COMMANDS: CommandItem[] = [
-  { id: "dashboard", label: "Dashboard", href: "/home/dashboard", icon: Gauge, group: "Workspace", keywords: "home overview" },
-  { id: "journal", label: "Journal", href: "/home/journal", icon: LineChart, group: "Workspace", keywords: "trades diary" },
-  { id: "calendar", label: "Calendar", href: "/home/calendar", icon: CalendarDays, group: "Workspace" },
-  { id: "analytics", label: "Analytics", href: "/home/analytics", icon: BarChart3, group: "Workspace", keywords: "performance pnl" },
-  { id: "ai", label: "Juvo AI", href: "/home/ai/chat", icon: Bot, group: "Workspace", keywords: "chat coach" },
-  { id: "growth", label: "Growth", href: "/home/growth", icon: Target, group: "Workspace", keywords: "goals" },
-  { id: "accounts", label: "Trading Accounts", href: "/home/accounts/trading", icon: WalletCards, group: "Accounts" },
-  { id: "achievements", label: "Achievements", href: "/home/general/achievements", icon: Trophy, group: "General" },
-  { id: "settings", label: "Settings", href: "/home/general/settings", icon: Settings, group: "General", keywords: "profile preferences" },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    href: "/home/dashboard",
+    icon: Gauge,
+    group: "Workspace",
+    keywords: "home overview",
+  },
+  {
+    id: "journal",
+    label: "Journal",
+    href: "/home/journal",
+    icon: LineChart,
+    group: "Workspace",
+    keywords: "trades diary log",
+  },
+  {
+    id: "log-trade",
+    label: "Log trade / Start my day",
+    href: "/home/dashboard?action=myday",
+    icon: FilePlus2,
+    group: "Actions",
+    keywords: "open day journal trade",
+  },
+  {
+    id: "no-trade",
+    label: "Record no-trade day",
+    href: "/home/dashboard?action=no-trade",
+    icon: Coffee,
+    group: "Actions",
+    keywords: "discipline skip",
+  },
+  {
+    id: "calendar",
+    label: "Calendar",
+    href: "/home/calendar",
+    icon: CalendarDays,
+    group: "Workspace",
+  },
+  {
+    id: "analytics",
+    label: "Analytics",
+    href: "/home/analytics",
+    icon: BarChart3,
+    group: "Workspace",
+    keywords: "performance pnl chart",
+  },
+  {
+    id: "ai",
+    label: "Juvo AI",
+    href: "/home/ai/chat",
+    icon: Bot,
+    group: "Workspace",
+    keywords: "chat coach",
+  },
+  {
+    id: "growth",
+    label: "Growth",
+    href: "/home/growth",
+    icon: Target,
+    group: "Workspace",
+    keywords: "goals",
+  },
+  {
+    id: "accounts",
+    label: "Trading Accounts",
+    href: "/home/accounts/trading",
+    icon: WalletCards,
+    group: "Accounts",
+  },
+  {
+    id: "broker",
+    label: "Connect broker",
+    href: "/home/accounts/broker",
+    icon: Link2,
+    group: "Accounts",
+    keywords: "mt5 ctrader",
+  },
+  {
+    id: "export",
+    label: "Export report",
+    href: "/home/accounts/export",
+    icon: Download,
+    group: "Accounts",
+    keywords: "csv pdf download",
+  },
+  {
+    id: "achievements",
+    label: "Achievements",
+    href: "/home/general/achievements",
+    icon: Trophy,
+    group: "General",
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    href: "/home/general/settings",
+    icon: Settings,
+    group: "General",
+    keywords: "profile preferences",
+  },
+  {
+    id: "help",
+    label: "Help & tutorials",
+    href: "/home/general/help",
+    icon: HelpCircle,
+    group: "General",
+    keywords: "support docs",
+  },
 ];
 
 export default function CommandPalette() {
@@ -100,6 +205,16 @@ export default function CommandPalette() {
     router.push(item.href);
   };
 
+  const groups = useMemo(() => {
+    const map = new Map<string, CommandItem[]>();
+    filtered.forEach((item) => {
+      const list = map.get(item.group) || [];
+      list.push(item);
+      map.set(item.group, list);
+    });
+    return Array.from(map.entries());
+  }, [filtered]);
+
   return (
     <AnimatePresence>
       {open ? (
@@ -152,41 +267,41 @@ export default function CommandPalette() {
                 Esc
               </kbd>
             </div>
-            <div className="max-h-72 overflow-y-auto p-2">
+            <div className="max-h-80 overflow-y-auto p-2">
               {filtered.length ? (
-                filtered.map((item, index) => {
-                  const Icon = item.icon;
-                  const selected = index === active;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onMouseEnter={() => setActive(index)}
-                      onClick={() => run(item)}
-                      className={cn(
-                        "flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition",
-                        selected
-                          ? "bg-slate-950 text-white dark:bg-primary dark:text-slate-950"
-                          : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/[0.06]",
-                      )}
-                    >
-                      <Icon size={16} />
-                      <span className="min-w-0 flex-1 truncate font-medium">
-                        {item.label}
-                      </span>
-                      <span
-                        className={cn(
-                          "text-[11px]",
-                          selected
-                            ? "text-white/70 dark:text-slate-950/70"
-                            : "text-slate-400",
-                        )}
-                      >
-                        {item.group}
-                      </span>
-                    </button>
-                  );
-                })
+                groups.map(([group, items]) => (
+                  <div key={group} className="mb-2 last:mb-0">
+                    <p className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted">
+                      {group}
+                    </p>
+                    {items.map((item) => {
+                      const Icon = item.icon;
+                      const index = filtered.findIndex(
+                        (entry) => entry.id === item.id,
+                      );
+                      const selected = index === active;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onMouseEnter={() => setActive(index)}
+                          onClick={() => run(item)}
+                          className={cn(
+                            "flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left text-sm transition",
+                            selected
+                              ? "bg-slate-950 text-white dark:bg-primary dark:text-slate-950"
+                              : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/[0.06]",
+                          )}
+                        >
+                          <Icon size={16} className="shrink-0" />
+                          <span className="min-w-0 flex-1 truncate font-medium">
+                            {item.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))
               ) : (
                 <p className="px-3 py-8 text-center text-sm text-slate-500">
                   No matches
@@ -194,7 +309,7 @@ export default function CommandPalette() {
               )}
             </div>
             <div className="border-t border-border px-3 py-2 text-[11px] text-slate-400">
-              Navigate with ↑ ↓ · Open with Enter · Toggle with Ctrl/⌘ K
+              Navigate with ↑ ↓ · Open with Enter · Toggle with Ctrl/⌘ K or /
             </div>
           </motion.div>
         </motion.div>

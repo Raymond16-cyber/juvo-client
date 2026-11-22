@@ -1,8 +1,9 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import ChartTooltip from "@/components/ui/ChartTooltip";
 import SegmentedControl from "@/components/ui/SegmentedControl";
-import { formatCompactMoney, formatMoney } from "@/lib/format";
+import { formatCompactMoney } from "@/lib/format";
 import { AnalyticsData } from "@/types/analytics.types";
 import { LineChart } from "lucide-react";
 import Link from "next/link";
@@ -101,31 +102,23 @@ export default function PerformanceChart({
               />
               <Tooltip
                 cursor={{ stroke: "rgba(0,212,255,0.35)", strokeWidth: 1 }}
-                contentStyle={{
-                  border: "1px solid rgba(148,163,184,0.25)",
-                  borderRadius: 12,
-                  background: "var(--card)",
-                  color: "var(--text)",
-                  boxShadow: "0 10px 30px rgba(15,23,42,0.12)",
-                  padding: "10px 12px",
-                }}
-                labelStyle={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  marginBottom: 4,
-                  color: "#94a3b8",
-                }}
-                formatter={(value) => [
-                  formatMoney(Number(value ?? 0), currency),
-                  "Cumulative P/L",
-                ]}
+                content={
+                  <ChartTooltip
+                    currency={currency}
+                    valueLabel="Cumulative P/L"
+                  />
+                }
               />
               <Area
                 type="monotone"
                 dataKey="equity"
+                name="Cumulative P/L"
                 stroke="#00D4FF"
                 strokeWidth={2.5}
                 fill="url(#equityGradient)"
+                activeDot={{ r: 5, stroke: "#00D4FF", strokeWidth: 2, fill: "#0B1220" }}
+                isAnimationActive
+                animationDuration={600}
               />
             </AreaChart>
           </ResponsiveContainer>

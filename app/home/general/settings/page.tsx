@@ -3,6 +3,7 @@
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import ExpandableCard from "@/components/ui/ExpandableCard";
 import PageHeader from "@/components/ui/PageHeader";
 import Switch from "@/components/ui/Switch";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -603,27 +604,43 @@ export default function SettingsPage() {
                   </Field>
                 </div>
 
-                <div className="mt-6 space-y-5">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                      Markets
-                    </p>
+                <div className="mt-6 space-y-3">
+                  <ExpandableCard
+                    title="Markets"
+                    summary={
+                      instruments.length
+                        ? `${instruments.length} selected · ${instruments
+                            .slice(0, 3)
+                            .map(labelize)
+                            .join(", ")}${instruments.length > 3 ? "…" : ""}`
+                        : "Choose the instruments you trade"
+                    }
+                    defaultOpen={instruments.length === 0}
+                  >
                     <ChipGroup
                       items={INSTRUMENTS}
                       selected={instruments}
                       onToggle={toggleInstrument}
                     />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                      Main challenges
-                    </p>
+                  </ExpandableCard>
+                  <ExpandableCard
+                    title="Main challenges"
+                    summary={
+                      biggestChallenges.length
+                        ? `${biggestChallenges.length} selected · ${biggestChallenges
+                            .slice(0, 2)
+                            .map(labelize)
+                            .join(", ")}${biggestChallenges.length > 2 ? "…" : ""}`
+                        : "What you want JUVO to help with most"
+                    }
+                    defaultOpen={biggestChallenges.length === 0}
+                  >
                     <ChipGroup
                       items={CHALLENGES}
                       selected={biggestChallenges}
                       onToggle={toggleChallenge}
                     />
-                  </div>
+                  </ExpandableCard>
                 </div>
               </SettingsSection>
             </section>
@@ -648,80 +665,99 @@ export default function SettingsPage() {
                 title="Review rhythm"
                 description="Set the weekly calendar and reminder behavior JUVO should respect."
               >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="Week starts">
-                    <select
-                      className={controlClassName}
-                      value={weekStartsOn}
-                      onChange={(event) => {
+                <Field label="Week starts">
+                  <select
+                    className={controlClassName}
+                    value={weekStartsOn}
+                    onChange={(event) => {
+                      markDirty();
+                      setWeekStartsOn(
+                        event.target.value as "sunday" | "monday",
+                      );
+                    }}
+                  >
+                    {WEEK_START_OPTIONS.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <div className="mt-4 space-y-3">
+                  <ExpandableCard
+                    title="Journal reminders"
+                    summary={
+                      notificationsEnabled
+                        ? `On · daily at ${reminderTime}`
+                        : "Paused"
+                    }
+                    defaultOpen={false}
+                  >
+                    <Field label="Reminder time">
+                      <input
+                        className={controlClassName}
+                        type="time"
+                        value={reminderTime}
+                        onChange={(event) => {
+                          markDirty();
+                          setReminderTime(event.target.value);
+                        }}
+                      />
+                    </Field>
+                    <ToggleRow
+                      icon={Bell}
+                      title="Journal reminders"
+                      description={
+                        notificationsEnabled
+                          ? "Enabled for your review routine"
+                          : "Paused"
+                      }
+                      checked={notificationsEnabled}
+                      onChange={(next) => {
                         markDirty();
-                        setWeekStartsOn(
-                          event.target.value as "sunday" | "monday",
-                        );
-                      }}
-                    >
-                      {WEEK_START_OPTIONS.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label="Reminder time">
-                    <input
-                      className={controlClassName}
-                      type="time"
-                      value={reminderTime}
-                      onChange={(event) => {
-                        markDirty();
-                        setReminderTime(event.target.value);
+                        setNotificationsEnabled(next);
                       }}
                     />
-                  </Field>
+                  </ExpandableCard>
+
+                  {hasAiFeature(aiAccess, "contextual_ai_checkins") ? (
+                    <ExpandableCard
+                      title="Contextual AI check-ins"
+                      summary={
+                        aiCheckinsEnabled
+                          ? "Occasional Super coaching prompts when useful"
+                          : "Off — Juvo will not nudge with proactive AI questions"
+                      }
+                      defaultOpen={false}
+                    >
+                      <ToggleRow
+                        icon={Bot}
+                        title="Contextual AI check-ins"
+                        description={
+                          aiCheckinsEnabled
+                            ? "Occasional Super coaching prompts when useful"
+                            : "Off — Juvo will not nudge with proactive AI questions"
+                        }
+                        checked={aiCheckinsEnabled}
+                        onChange={(next) => {
+                          setAiCheckinsEnabled(next);
+                          setAiCheckinSaving(true);
+                          updateAiCheckinPreferencesService({ enabled: next })
+                            .catch(() => {
+                              setAiCheckinsEnabled(!next);
+                            })
+                            .finally(() => setAiCheckinSaving(false));
+                        }}
+                      />
+                      {aiCheckinSaving ? (
+                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                          Saving check-in preference…
+                        </p>
+                      ) : null}
+                    </ExpandableCard>
+                  ) : null}
                 </div>
-
-                <ToggleRow
-                  icon={Bell}
-                  title="Journal reminders"
-                  description={
-                    notificationsEnabled
-                      ? "Enabled for your review routine"
-                      : "Paused"
-                  }
-                  checked={notificationsEnabled}
-                  onChange={(next) => {
-                    markDirty();
-                    setNotificationsEnabled(next);
-                  }}
-                />
-
-                {hasAiFeature(aiAccess, "contextual_ai_checkins") ? (
-                  <ToggleRow
-                    icon={Bot}
-                    title="Contextual AI check-ins"
-                    description={
-                      aiCheckinsEnabled
-                        ? "Occasional Super coaching prompts when useful"
-                        : "Off Ã¢â‚¬â€ Juvo will not nudge with proactive AI questions"
-                    }
-                    checked={aiCheckinsEnabled}
-                    onChange={(next) => {
-                      setAiCheckinsEnabled(next);
-                      setAiCheckinSaving(true);
-                      updateAiCheckinPreferencesService({ enabled: next })
-                        .catch(() => {
-                          setAiCheckinsEnabled(!next);
-                        })
-                        .finally(() => setAiCheckinSaving(false));
-                    }}
-                  />
-                ) : null}
-                {hasAiFeature(aiAccess, "contextual_ai_checkins") &&
-                aiCheckinSaving ? (
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Saving check-in preferenceÃ¢â‚¬Â¦
-                  </p>
-                ) : null}
               </SettingsSection>
             </section>
 
@@ -920,7 +956,7 @@ function ChipGroup({
   onToggle: (value: string) => void;
 }) {
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2">
       {items.map((item) => {
         const active = selected.includes(item);
         return (
@@ -958,7 +994,7 @@ function ToggleRow({
   onChange: (next: boolean) => void;
 }) {
   return (
-    <div className="mt-5 rounded-card border border-border bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.04]">
+    <div className="mt-3 rounded-card border border-border bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/[0.04]">
       <div className="flex items-start gap-3">
         <Icon size={18} className="mt-0.5 shrink-0 text-primary" />
         <Switch

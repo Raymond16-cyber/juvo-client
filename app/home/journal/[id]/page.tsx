@@ -608,13 +608,12 @@ export default function JournalDetailPage() {
                       <Button
                         type="submit"
                         className="w-full sm:col-span-2 lg:col-span-1"
+                        loading={isLoading || analyzingScreenshot}
                         disabled={isLoading || analyzingScreenshot}
                       >
                         {analyzingScreenshot
                           ? "Saving and reviewing…"
-                          : isLoading
-                            ? "Saving…"
-                            : "Save close"}
+                          : "Save close"}
                       </Button>
                     </div>
                     <TradeScreenshotReview
@@ -853,8 +852,14 @@ export default function JournalDetailPage() {
                       })}
                     </div>
                   ) : null}
-                  <Button className="w-full" type="submit" disabled={isLoading}>
-                    {isLoading ? "Saving..." : "Complete journal"}
+                  <Button
+                    className="w-full"
+                    type="submit"
+                    loading={isLoading}
+                    successLabel="Saved"
+                    disabled={isLoading}
+                  >
+                    Complete journal
                   </Button>
                 </form>
               </Card>

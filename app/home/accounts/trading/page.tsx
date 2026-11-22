@@ -5,6 +5,7 @@ import ActionMenu from "@/components/ui/ActionMenu";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
+import HoverPreview from "@/components/ui/HoverPreview";
 import PageHeader from "@/components/ui/PageHeader";
 import PaginatedCollection from "@/components/ui/PaginatedCollection";
 import SegmentedControl from "@/components/ui/SegmentedControl";
@@ -185,18 +186,40 @@ export default function TradingAccountsPage() {
                   return (
                     <Card className="min-w-0 p-3.5 sm:p-4">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0">
-                          <p className="break-words text-base font-semibold text-slate-950 dark:text-white">
-                            {account.accountName}
-                          </p>
-                          <p className="juvo-break-words mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-                            {account.platform || "Broker"} — {account.broker} ·{" "}
-                            {account.accountType}
-                          </p>
-                          <div className="mt-2">
-                            <AccountStatusBadge account={account} />
+                        <HoverPreview
+                          className="min-w-0 flex-1"
+                          preview={
+                            <div className="space-y-1.5">
+                              <p className="font-semibold text-slate-950 dark:text-white">
+                                {account.accountName}
+                              </p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {account.broker} · {account.platform || "Broker"} ·{" "}
+                                {account.status || "Active"}
+                              </p>
+                              <p className="text-sm tabular-nums text-slate-700 dark:text-slate-200">
+                                Equity {formatMoney(account.currentEquity, currency)} · Est. P/L{" "}
+                                {formatMoney(pnl, currency)}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {account.tradesCount || 0} logged trades
+                              </p>
+                            </div>
+                          }
+                        >
+                          <div className="min-w-0">
+                            <p className="break-words text-base font-semibold text-slate-950 dark:text-white">
+                              {account.accountName}
+                            </p>
+                            <p className="juvo-break-words mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                              {account.platform || "Broker"} — {account.broker} ·{" "}
+                              {account.accountType}
+                            </p>
+                            <div className="mt-2">
+                              <AccountStatusBadge account={account} />
+                            </div>
                           </div>
-                        </div>
+                        </HoverPreview>
                         <div className="flex items-center gap-2">
                           <Link href="/home/analytics">
                             <Button variant="ghost" className="h-9 px-3">

@@ -4,9 +4,10 @@ import { interactionTransition } from "@/lib/motion";
 import { cn } from "@/lib/ui";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const DEFAULT_PER_PAGE = 5;
+const SWIPE_THRESHOLD_PX = 48;
 
 type PaginatedCollectionProps<T> = {
   items: T[];
@@ -35,6 +36,8 @@ export default function PaginatedCollection<T>({
   const totalPages = Math.max(1, Math.ceil(items.length / perPage));
   const [page, setPage] = useState(1);
   const [direction, setDirection] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   useEffect(() => {
     setPage((current) => Math.min(current, totalPages));
@@ -52,6 +55,30 @@ export default function PaginatedCollection<T>({
     setPage(clamped);
   };
 
+  const onTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  };
+
+  const onTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const startX = touchStartX.current;
+    const startY = touchStartY.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+    if (startX == null || startY == null || totalPages <= 1) return;
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) < Math.abs(dy)) {
+      return;
+    }
+    if (dx < 0) goTo(page + 1);
+    else goTo(page - 1);
+  };
+
   if (!items.length) {
     return <div className={className}>{emptyState}</div>;
   }
@@ -60,7 +87,11 @@ export default function PaginatedCollection<T>({
 
   return (
     <div className={cn("min-w-0", className)}>
-      <div className="relative overflow-hidden">
+      <div
+        className="relative overflow-hidden touch-pan-y"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         <AnimatePresence mode="wait" initial={false} custom={direction}>
           <motion.div
             key={page}

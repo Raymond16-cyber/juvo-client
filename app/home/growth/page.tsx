@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
+import SortableList from "@/components/ui/SortableList";
 import { controlClassName, textareaClassName } from "@/lib/ui";
 import { getSelectedAccount, getTradableAccounts } from "@/lib/account";
 import { getApiErrorMessage } from "@/lib/axios";
@@ -16,11 +17,12 @@ import {
 } from "@/services/ai.service";
 import { useAccountsStore } from "@/stores/accounts.store";
 import { useGoalsStore } from "@/stores/goals.store";
+import { useNoticeStore } from "@/stores/notice.store";
 import { AiAccess } from "@/types/ai.types";
-import { CreateGoalPayload } from "@/types/goal.types";
+import { CreateGoalPayload, Goal } from "@/types/goal.types";
 import { Sparkles, Target } from "lucide-react";
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 const defaultGoal: CreateGoalPayload = {
   tradingAccount: "",
@@ -34,6 +36,39 @@ const defaultGoal: CreateGoalPayload = {
   priority: "Medium",
 };
 
+const GOAL_ORDER_KEY = "juvo.growth.goalOrder";
+
+function readGoalOrder(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(GOAL_ORDER_KEY);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeGoalOrder(ids: string[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(GOAL_ORDER_KEY, JSON.stringify(ids));
+}
+
+function orderGoals(goals: Goal[], order: string[]) {
+  if (!goals.length) return [];
+  if (!order.length) return goals;
+  const map = new Map(goals.map((goal) => [goal._id, goal]));
+  const sorted: Goal[] = [];
+  for (const id of order) {
+    const goal = map.get(id);
+    if (goal) {
+      sorted.push(goal);
+      map.delete(id);
+    }
+  }
+  for (const goal of map.values()) sorted.push(goal);
+  return sorted;
+}
+
 export default function GrowthPage() {
   const goals = useGoalsStore((state) => state.goals);
   const isLoading = useGoalsStore((state) => state.isLoading);
@@ -44,11 +79,13 @@ export default function GrowthPage() {
   const accounts = useAccountsStore((state) => state.accounts);
   const selectedAccountId = useAccountsStore((state) => state.selectedAccountId);
   const fetchAccounts = useAccountsStore((state) => state.fetchAccounts);
+  const showNotice = useNoticeStore((state) => state.showNotice);
   const [form, setForm] = useState(defaultGoal);
   const [error, setError] = useState<string | null>(null);
   const [aiAccess, setAiAccess] = useState<AiAccess | null>(null);
   const [coachByGoal, setCoachByGoal] = useState<Record<string, string>>({});
   const [coachLoadingId, setCoachLoadingId] = useState<string | null>(null);
+  const [goalOrder, setGoalOrder] = useState<string[]>([]);
 
   useEffect(() => {
     fetchGoals().catch(() => undefined);
@@ -56,7 +93,13 @@ export default function GrowthPage() {
     getAiAccessService()
       .then((response) => setAiAccess(response.data))
       .catch(() => undefined);
+    setGoalOrder(readGoalOrder());
   }, [fetchAccounts, fetchGoals]);
+
+  const orderedGoals = useMemo(
+    () => orderGoals(goals, goalOrder),
+    [goals, goalOrder],
+  );
 
   const canUseGoalCoach = hasAiFeature(aiAccess, "goal_coach");
 
@@ -116,6 +159,22 @@ export default function GrowthPage() {
     }
   };
 
+  const handleReorder = (next: Goal[]) => {
+    const previous = goalOrder;
+    const ids = next.map((goal) => goal._id);
+    setGoalOrder(ids);
+    writeGoalOrder(ids);
+    showNotice({
+      title: "Goal order saved",
+      body: "Your priority order is stored on this device.",
+      tone: "success",
+      onUndo: () => {
+        setGoalOrder(previous);
+        writeGoalOrder(previous);
+      },
+    });
+  };
+
   return (
     <DashboardShell>
       <div className="space-y-6">
@@ -126,96 +185,109 @@ export default function GrowthPage() {
         />
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,380px)]">
-          <Card className="min-w-0 divide-y divide-slate-200 dark:divide-white/10">
-            {goals.length ? (
-              goals.map((goal) => {
-                const progress = goal.targetValue
-                  ? Math.min(100, Math.round((goal.currentValue / goal.targetValue) * 100))
-                  : 0;
-                return (
-                  <article key={goal._id} className="min-w-0 p-4 sm:p-5">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="break-words text-base font-bold text-slate-950 dark:text-white">
-                          {goal.title}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                          {goal.category} · {goal.priority} · {goal.status}
-                        </p>
+          <div className="min-w-0">
+            {orderedGoals.length ? (
+              <SortableList
+                items={orderedGoals}
+                getKey={(goal) => goal._id}
+                onReorder={handleReorder}
+                className="space-y-3"
+                itemClassName="bg-card"
+                renderItem={(goal) => {
+                  const progress = goal.targetValue
+                    ? Math.min(
+                        100,
+                        Math.round((goal.currentValue / goal.targetValue) * 100),
+                      )
+                    : 0;
+                  return (
+                    <div className="min-w-0 py-1">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="break-words text-base font-bold text-slate-950 dark:text-white">
+                            {goal.title}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            {goal.category} · {goal.priority} · {goal.status}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="ghost"
+                            className="h-11 px-3"
+                            onClick={() =>
+                              updateGoal(goal._id, {
+                                currentValue: Math.min(
+                                  goal.targetValue,
+                                  goal.currentValue + goal.targetValue / 10,
+                                ),
+                                status:
+                                  goal.currentValue + goal.targetValue / 10 >=
+                                  goal.targetValue
+                                    ? "Completed"
+                                    : goal.status,
+                              })
+                            }
+                          >
+                            Log progress
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="h-11 px-3"
+                            onClick={() => void runGoalCoach(goal._id)}
+                            disabled={coachLoadingId === goal._id}
+                          >
+                            <Sparkles size={14} />
+                            {coachLoadingId === goal._id
+                              ? "Coaching…"
+                              : canUseGoalCoach
+                                ? "Goal coach"
+                                : "Unlock coach"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="h-11 px-3"
+                            onClick={() => deleteGoal(goal._id)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          variant="ghost"
-                          className="h-11 px-3"
-                          onClick={() =>
-                            updateGoal(goal._id, {
-                              currentValue: Math.min(
-                                goal.targetValue,
-                                goal.currentValue + goal.targetValue / 10,
-                              ),
-                              status:
-                                goal.currentValue + goal.targetValue / 10 >= goal.targetValue
-                                  ? "Completed"
-                                  : goal.status,
-                            })
-                          }
-                        >
-                          Log progress
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="h-11 px-3"
-                          onClick={() => void runGoalCoach(goal._id)}
-                          disabled={coachLoadingId === goal._id}
-                        >
-                          <Sparkles size={14} />
-                          {coachLoadingId === goal._id
-                            ? "Coaching…"
-                            : canUseGoalCoach
-                              ? "Goal coach"
-                              : "Unlock coach"}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="h-11 px-3"
-                          onClick={() => deleteGoal(goal._id)}
-                        >
-                          Remove
-                        </Button>
+                      <div className="mt-4 h-2 rounded-full bg-slate-100 dark:bg-white/10">
+                        <div
+                          className="h-full rounded-full bg-primary"
+                          style={{ width: `${progress}%` }}
+                        />
                       </div>
+                      {coachByGoal[goal._id] ? (
+                        <div className="juvo-break-words mt-3 rounded-2xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm whitespace-pre-wrap text-slate-700 dark:border-primary/30 dark:bg-primary/10 dark:text-slate-200">
+                          {coachByGoal[goal._id]}
+                          {!canUseGoalCoach ? (
+                            <div className="mt-2">
+                              <Link
+                                href="/home/general/subscriptions"
+                                className="font-semibold text-primary"
+                              >
+                                Upgrade to Super
+                              </Link>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
-                    <div className="mt-4 h-2 rounded-full bg-slate-100 dark:bg-white/10">
-                      <div
-                        className="h-full rounded-full bg-primary"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                    {coachByGoal[goal._id] ? (
-                      <div className="juvo-break-words mt-3 rounded-2xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm whitespace-pre-wrap text-slate-700 dark:border-primary/30 dark:bg-primary/10 dark:text-slate-200">
-                        {coachByGoal[goal._id]}
-                        {!canUseGoalCoach ? (
-                          <div className="mt-2">
-                            <Link
-                              href="/home/general/subscriptions"
-                              className="font-semibold text-primary"
-                            >
-                              Upgrade to Super
-                            </Link>
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              })
-            ) : (
-              <EmptyState
-                icon={Target}
-                title={isLoading ? "Loading goals" : "No goals yet"}
-                body="Create a process goal such as journaling 20 days or keeping risk at 1%."
+                  );
+                }}
               />
+            ) : (
+              <Card className="min-w-0">
+                <EmptyState
+                  icon={Target}
+                  title={isLoading ? "Loading goals" : "No goals yet"}
+                  body="Create a process goal such as journaling 20 days or keeping risk at 1%."
+                />
+              </Card>
             )}
-          </Card>
+          </div>
 
           <form onSubmit={handleCreate} className="min-w-0">
             <Card className="space-y-3 p-3.5 sm:p-4">

@@ -2,6 +2,7 @@
 
 import SmartJournalInterviewer from "@/components/journal/SmartJournalInterviewer";
 import Button from "@/components/ui/Button";
+import SlideToConfirm from "@/components/ui/SlideToConfirm";
 import { showAchievementUnlocks } from "@/lib/achievements";
 import { getApiErrorMessage } from "@/lib/axios";
 import { controlClassName, textareaClassName } from "@/lib/ui";
@@ -285,21 +286,14 @@ export default function NoTradeDayModal({
                 <SmartJournalInterviewer noTradeDayId={existing._id} />
               ) : null}
 
-              <div className="flex flex-wrap justify-end gap-2 pt-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={onClose}
-                  disabled={saving || lifting}
-                >
-                  Close
-                </Button>
+              <div className="space-y-3 pt-1">
                 {existing?.isActive ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
+                  <SlideToConfirm
+                    tone="danger"
+                    label="Slide to lift no-trade lock"
+                    confirmLabel="Releasing lock…"
                     disabled={loading || saving || lifting}
-                    onClick={async () => {
+                    onConfirm={async () => {
                       setLifting(true);
                       setError(null);
                       setSuccess(null);
@@ -326,19 +320,29 @@ export default function NoTradeDayModal({
                         setLifting(false);
                       }
                     }}
-                  >
-                    {lifting ? "Liftingâ€¦" : "Lift lock & allow trades"}
-                  </Button>
+                  />
                 ) : null}
-                <Button type="submit" disabled={loading || saving || lifting}>
-                  {saving
-                    ? "Savingâ€¦"
-                    : existing
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={onClose}
+                    disabled={saving || lifting}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    type="submit"
+                    loading={saving}
+                    disabled={loading || lifting}
+                  >
+                    {existing
                       ? existing.isActive
                         ? "Update no-trade day"
                         : "Re-lock as no-trade day"
                       : "Save no-trade day"}
-                </Button>
+                  </Button>
+                </div>
               </div>
             </form>
           </motion.div>

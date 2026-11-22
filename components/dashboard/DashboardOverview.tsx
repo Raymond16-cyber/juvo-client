@@ -57,6 +57,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { driver } from "driver.js";
@@ -197,6 +198,21 @@ export default function DashboardOverview() {
   useEffect(() => {
     openMyDayWorkflowRef.current = openMyDayWorkflow;
   }, [openMyDayWorkflow]);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Command palette deep-links: ?action=myday | no-trade
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (!action) return;
+    if (action === "myday") {
+      openMyDayWorkflow(Boolean(journalStatus?.hasJournalToday));
+    } else if (action === "no-trade") {
+      setIsNoTradeOpen(true);
+    }
+    router.replace("/home/dashboard", { scroll: false });
+  }, [searchParams, openMyDayWorkflow, journalStatus?.hasJournalToday, router]);
 
   // --------------------------------------------------
   // DRIVER.JS: PRODUCT TOUR, HINTS AND CHECKLIST
