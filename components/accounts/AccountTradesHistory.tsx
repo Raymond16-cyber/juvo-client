@@ -15,7 +15,7 @@ type AccountTrade = {
   status?: string;
   session?: string;
   profitLoss?: number;
-  profitLossCurrency?: string;
+  profitLossCurrency?: string | null;
 };
 
 type AccountTradesHistoryProps = {
