@@ -1,5 +1,6 @@
 "use client";
 
+import CelebrationHost from "@/components/celebrations/CelebrationHost";
 import CommandPalette from "@/components/ui/CommandPalette";
 import CommandPaletteTrigger from "@/components/ui/CommandPaletteTrigger";
 import JuvoNoticeHost from "@/components/ui/JuvoNotice";
@@ -218,6 +219,7 @@ export default function DashboardShell({
         </main>
       </div>
       <JuvoNoticeHost />
+      <CelebrationHost />
       <CommandPalette />
     </div>
   );

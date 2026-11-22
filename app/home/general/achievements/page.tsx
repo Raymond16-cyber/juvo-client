@@ -2,17 +2,20 @@
 
 import AchievementGallery from "@/components/achievements/AchievementGallery";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
-import { showAchievementUnlocks } from "@/lib/achievements";
+import { markAchievementsCelebrated } from "@/lib/achievements";
 import { getApiErrorMessage } from "@/lib/axios";
 import {
   getAchievementsService,
   setFeaturedAchievementsService,
 } from "@/services/achievement.service";
+import { useCelebrationStore } from "@/stores/celebration.store";
 import {
   AchievementItem,
   AchievementSummary,
 } from "@/types/achievement.types";
+import { PartyPopper } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 const EMPTY_SUMMARY: AchievementSummary = {
@@ -27,6 +30,7 @@ export default function AchievementsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [featuringId, setFeaturingId] = useState<string | null>(null);
+  const previewCelebration = useCelebrationStore((state) => state.preview);
 
   const loadAchievements = useCallback(async () => {
     setLoading(true);
@@ -37,11 +41,13 @@ export default function AchievementsPage() {
       setAchievements(payload.achievements || []);
       setSummary(payload.summary || EMPTY_SUMMARY);
 
+      // Visiting this page must not fire celebration UI. Silently acknowledge
+      // any earned-but-uncelebrated rows so refresh/catch-up stays quiet.
       const uncelebrated = (payload.achievements || []).filter(
         (item) => item.state === "earned" && !item.celebratedAt,
       );
       if (uncelebrated.length) {
-        showAchievementUnlocks(
+        markAchievementsCelebrated(
           uncelebrated.map((item) => ({
             id: item.id,
             title: item.title,
@@ -59,8 +65,6 @@ export default function AchievementsPage() {
               : item,
           ),
         );
-      } else if (payload.newlyEarned?.length) {
-        showAchievementUnlocks(payload.newlyEarned);
       }
     } catch (loadError) {
       setError(
@@ -122,6 +126,27 @@ export default function AchievementsPage() {
           eyebrow="General"
           title="Achievements"
           description="Quiet milestones for process, consistency, and discipline — not vanity P&L."
+          actions={
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-10"
+              onClick={() =>
+                previewCelebration({
+                  intensity: "grand",
+                  title: "Hundred Days",
+                  description:
+                    "Joined JUVO one hundred days ago — preview of the piñata celebration.",
+                  tier: "gold",
+                  icon: "award",
+                  category: "journey",
+                })
+              }
+            >
+              <PartyPopper size={16} className="shrink-0" />
+              <span>Preview celebration</span>
+            </Button>
+          }
         />
 
         {error ? (

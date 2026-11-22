@@ -44,7 +44,7 @@ export default function CommandPaletteTrigger({
       type="button"
       onClick={() => openCommandPalette()}
       className={cn(
-        "inline-flex h-10 min-w-0 items-center gap-2 rounded-control border border-border bg-card px-3 text-left text-sm text-slate-500 transition hover:border-primary/40 hover:bg-slate-50 hover:text-slate-950 dark:bg-white/[0.03] dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white",
+        "inline-flex h-10 min-w-0 items-center gap-2 rounded-control border border-border bg-card px-3 text-left text-sm text-slate-500 transition hover:border-primary/40 hover:bg-slate-50 hover:text-slate-950 dark:bg-white/[0.03] dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white mt-3",
         className,
       )}
       aria-label={`Open command palette (${shortcut})`}
