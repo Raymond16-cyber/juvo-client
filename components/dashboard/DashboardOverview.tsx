@@ -865,9 +865,9 @@ useEffect(() => {
             }
           >
             {journalStatus?.hasJournalToday ? (
-              <Plus size={16} />
+              <Plus size={16} className="shrink-0" />
             ) : (
-              <Rocket size={16} />
+              <Rocket size={16} className="shrink-0" />
             )}
             <span className="truncate">
               {journalStatus?.hasJournalToday ? "Log trade" : "Start my day"}

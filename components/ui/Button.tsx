@@ -22,12 +22,21 @@ const variants: Record<ButtonVariant, string> = {
   secondary:
     "border border-border bg-white text-slate-800 hover:bg-slate-50 dark:bg-white/[0.03] dark:text-slate-100 dark:hover:bg-white/[0.06]",
   ghost:
-    "border border-transparent bg-transparent text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/[0.06]",
+    "border border-border bg-white text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.06]",
   danger:
     "border border-loss/30 bg-loss text-white hover:brightness-95",
   onDark:
     "border border-white/15 bg-white/5 text-white hover:bg-white/10",
 };
+
+/** Keep string / number / span labels; drop leading icons while a status icon is shown. */
+function labelChildren(children: React.ReactNode) {
+  return React.Children.toArray(children).filter((child) => {
+    if (typeof child === "string" || typeof child === "number") return true;
+    if (!React.isValidElement(child)) return false;
+    return child.type === "span";
+  });
+}
 
 export default function Button({
   variant = "primary",
@@ -59,13 +68,6 @@ export default function Button({
   const busy = shown === "loading";
   const isDisabled = Boolean(disabled || busy);
 
-  const content =
-    shown === "success" && successLabel
-      ? successLabel
-      : shown === "error" && errorLabel
-        ? errorLabel
-        : children;
-
   return (
     <button
       type={type}
@@ -83,16 +85,28 @@ export default function Button({
       )}
       {...rest}
     >
-      {shown === "loading" ? (
-        <LoaderCircle size={16} className="shrink-0 animate-spin" aria-hidden />
-      ) : null}
-      {shown === "success" && successLabel ? (
-        <Check size={16} className="shrink-0" aria-hidden />
-      ) : null}
-      {shown === "error" && errorLabel ? (
-        <X size={16} className="shrink-0" aria-hidden />
-      ) : null}
-      {content}
+      {shown === "idle" ? (
+        children
+      ) : shown === "loading" ? (
+        <>
+          <LoaderCircle
+            size={16}
+            className="shrink-0 animate-spin"
+            aria-hidden
+          />
+          {labelChildren(children)}
+        </>
+      ) : shown === "success" ? (
+        <>
+          <Check size={16} className="shrink-0" aria-hidden />
+          {successLabel ?? labelChildren(children)}
+        </>
+      ) : (
+        <>
+          <X size={16} className="shrink-0" aria-hidden />
+          {errorLabel ?? labelChildren(children)}
+        </>
+      )}
     </button>
   );
 }

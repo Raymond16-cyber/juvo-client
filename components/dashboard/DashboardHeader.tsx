@@ -117,14 +117,14 @@ export default function DashboardHeader({ onOpenMyDay }: DashboardHeaderProps) {
         <Button
           className="h-11 shrink-0 whitespace-nowrap px-5"
           onClick={handleGetTodayJournalStatus}
-          disabled={isLoadingJournalStatus}
+          loading={isLoadingJournalStatus}
         >
           {journalStatus?.hasJournalToday ? (
-            <Plus size={18} />
+            <Plus size={18} className="shrink-0" />
           ) : (
-            <Rocket size={18} />
+            <Rocket size={18} className="shrink-0" />
           )}
-          {isLoadingJournalStatus ? "Checking..." : primaryJournalLabel}
+          <span>{primaryJournalLabel}</span>
         </Button>
       </div>
     </header>
