@@ -23,6 +23,7 @@ import {
   LockKeyhole,
   type LucideIcon,
 } from "lucide-react";
+import { useState } from "react";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   archive: Archive,
@@ -85,17 +86,21 @@ const TIER_STYLES: Record<
 
 type BadgeSize = "sm" | "md" | "lg";
 
-const SIZE_MAP: Record<
-  BadgeSize,
-  { outer: string; icon: number }
-> = {
-  sm: { outer: "h-14 w-14", icon: 18 },
-  md: { outer: "h-20 w-20", icon: 26 },
-  lg: { outer: "h-28 w-28", icon: 36 },
-};
+const SIZE_MAP: Record<BadgeSize, { outer: string; icon: number; art: string }> =
+  {
+    sm: { outer: "h-14 w-14", icon: 18, art: "h-[58%] w-[58%]" },
+    md: { outer: "h-20 w-20", icon: 26, art: "h-[60%] w-[60%]" },
+    lg: { outer: "h-28 w-28", icon: 36, art: "h-[62%] w-[62%]" },
+  };
+
+function badgeArtSrc(achievementId?: string) {
+  if (!achievementId) return null;
+  return `/achievements/badges/${achievementId}.svg`;
+}
 
 type AchievementBadgeProps = {
   tier: AchievementTier;
+  achievementId?: string;
   icon?: string;
   earned?: boolean;
   animateUnlock?: boolean;
@@ -108,6 +113,7 @@ type AchievementBadgeProps = {
 
 export default function AchievementBadge({
   tier,
+  achievementId,
   icon = "award",
   earned = false,
   animateUnlock = false,
@@ -119,7 +125,10 @@ export default function AchievementBadge({
 }: AchievementBadgeProps) {
   const styles = TIER_STYLES[tier] || TIER_STYLES.bronze;
   const dims = SIZE_MAP[size];
-  const Icon = ICON_MAP[icon] || Award;
+  const FallbackIcon = ICON_MAP[icon] || Award;
+  const artSrc = badgeArtSrc(achievementId);
+  const [artFailed, setArtFailed] = useState(false);
+  const showArt = Boolean(artSrc) && !artFailed && !locked;
 
   const progressValue = Math.max(0, Math.min(100, progress));
   const radius = 43;
@@ -142,8 +151,18 @@ export default function AchievementBadge({
       aria-hidden
     >
       <div className="absolute -bottom-[14%] left-[22%] z-0 flex w-[56%] justify-center gap-1">
-        <span className={cn("h-[42%] w-[38%] -skew-y-12 rounded-b-md bg-gradient-to-b", styles.ring)} />
-        <span className={cn("h-[42%] w-[38%] skew-y-12 rounded-b-md bg-gradient-to-b", styles.ring)} />
+        <span
+          className={cn(
+            "h-[42%] w-[38%] -skew-y-12 rounded-b-md bg-gradient-to-b",
+            styles.ring,
+          )}
+        />
+        <span
+          className={cn(
+            "h-[42%] w-[38%] skew-y-12 rounded-b-md bg-gradient-to-b",
+            styles.ring,
+          )}
+        />
       </div>
       <div
         className={cn(
@@ -152,7 +171,9 @@ export default function AchievementBadge({
           earned
             ? "shadow-slate-300/60 dark:shadow-black/50"
             : "grayscale-[0.45] opacity-75",
-          featured && earned && "ring-2 ring-primary/50 ring-offset-2 ring-offset-white dark:ring-offset-[#070b14]",
+          featured &&
+            earned &&
+            "ring-2 ring-primary/50 ring-offset-2 ring-offset-white dark:ring-offset-[#070b14]",
         )}
       >
         <div
@@ -199,8 +220,18 @@ export default function AchievementBadge({
               className={cn("relative z-10", styles.icon)}
               strokeWidth={2}
             />
+          ) : showArt ? (
+            // Custom crest art sits on the metal coin face.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={artSrc!}
+              alt=""
+              className={cn("relative z-10 object-contain drop-shadow-sm", dims.art)}
+              draggable={false}
+              onError={() => setArtFailed(true)}
+            />
           ) : (
-            <Icon
+            <FallbackIcon
               size={dims.icon}
               className={cn("relative z-10", styles.icon)}
               strokeWidth={2.1}

@@ -188,6 +188,7 @@ export default function AchievementGallery({
                 <Card className="h-full p-5">
                   <div className="flex items-start gap-4">
                     <AchievementBadge
+                      achievementId={item.id}
                       tier={item.tier}
                       icon={item.icon}
                       earned={earned}
@@ -336,6 +337,7 @@ function AchievementDetailModal({
             <div className="space-y-5 px-5 py-5">
               <div className="flex items-center gap-4">
                 <AchievementBadge
+                  achievementId={item.id}
                   tier={item.tier}
                   icon={item.icon}
                   earned={earned}
