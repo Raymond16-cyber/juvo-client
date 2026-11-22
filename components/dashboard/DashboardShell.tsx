@@ -1,6 +1,7 @@
 "use client";
 
 import CommandPalette from "@/components/ui/CommandPalette";
+import CommandPaletteTrigger from "@/components/ui/CommandPaletteTrigger";
 import JuvoNoticeHost from "@/components/ui/JuvoNotice";
 import Sidebar from "@/components/ui/Sidebar";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -163,7 +164,7 @@ export default function DashboardShell({
             fillViewport ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
           }`}
         >
-          <div className="juvo-safe-pt sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card px-3 py-3 sm:px-4 lg:hidden">
+          <div className="juvo-safe-pt sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card/95 px-3 py-3 backdrop-blur sm:px-4 lg:hidden">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
                 JUVO
@@ -173,6 +174,7 @@ export default function DashboardShell({
               </h1>
             </div>
             <div className="flex shrink-0 items-center gap-2">
+              <CommandPaletteTrigger compact />
               <ThemeToggle compact />
               <button
                 type="button"
@@ -184,6 +186,10 @@ export default function DashboardShell({
                 <Menu size={18} />
               </button>
             </div>
+          </div>
+
+          <div className="juvo-safe-pt sticky top-0 z-30 hidden shrink-0 items-center justify-end gap-3 border-b border-border bg-card/95 px-4 py-2.5 backdrop-blur lg:flex xl:px-6">
+            <CommandPaletteTrigger className="w-full max-w-md" />
           </div>
 
           <div

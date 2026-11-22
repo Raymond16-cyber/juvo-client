@@ -23,6 +23,14 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+export const COMMAND_PALETTE_OPEN_EVENT = "juvo:open-command-palette";
+
+/** Open the global command palette from any UI control. */
+export function openCommandPalette() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(COMMAND_PALETTE_OPEN_EVENT));
+}
+
 type CommandItem = {
   id: string;
   label: string;
@@ -171,8 +179,13 @@ export default function CommandPalette() {
       }
       if (event.key === "Escape") setOpen(false);
     };
+    const onOpenEvent = () => setOpen(true);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener(COMMAND_PALETTE_OPEN_EVENT, onOpenEvent);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener(COMMAND_PALETTE_OPEN_EVENT, onOpenEvent);
+    };
   }, []);
 
   useEffect(() => {
