@@ -16,7 +16,7 @@ export default function AboutAuthor() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.65, ease: homeEase }}
-        className="relative overflow-hidden rounded-[2rem] border border-cyan-400/15 bg-gradient-to-br from-cyan-400/10 via-[#09111f]/95 to-[#09111f]/95 p-6 shadow-[0_28px_90px_rgba(2,6,23,0.42)] sm:p-8 lg:p-12"
+        className="relative overflow-hidden rounded-card border border-cyan-400/15 bg-gradient-to-br from-cyan-400/10 via-[#09111f]/95 to-[#09111f]/95 p-6 shadow-[0_28px_90px_rgba(2,6,23,0.42)] sm:p-8 lg:p-12"
       >
         <div
           className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl"
@@ -24,7 +24,7 @@ export default function AboutAuthor() {
         />
         <div className="relative grid items-center gap-10 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16">
           <div className="mx-auto w-full max-w-sm">
-            <div className="relative aspect-square overflow-hidden rounded-[1.75rem] border border-white/15 bg-white/10 p-2 shadow-[0_20px_60px_rgba(2,6,23,0.45)]">
+            <div className="relative aspect-square overflow-hidden rounded-card border border-white/15 bg-white/10 p-2 shadow-[0_20px_60px_rgba(2,6,23,0.45)]">
               <Image
                 src={authorImage}
                 alt="Uchenna Raymond, founder of JUVO"

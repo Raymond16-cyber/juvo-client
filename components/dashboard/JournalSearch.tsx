@@ -19,14 +19,14 @@ function getAccountName(journal: JournalHistoryItem) {
     return "Trading account";
   }
 
-  return `${journal.tradingAccount.accountName} · ${journal.tradingAccount.broker}`;
+  return `${journal.tradingAccount.accountName} Â· ${journal.tradingAccount.broker}`;
 }
 
 function journalLabel(journal: JournalHistoryItem) {
   const note = journal.psychology?.beforeTrading?.trim();
   if (note) return note;
   const symbols = journal.trades?.map((trade) => trade.symbol).filter(Boolean);
-  if (symbols?.length) return symbols.slice(0, 3).join(" · ");
+  if (symbols?.length) return symbols.slice(0, 3).join(" Â· ");
   return getAccountName(journal);
 }
 
@@ -180,7 +180,7 @@ export default function JournalSearch() {
                             : "hover:bg-slate-50 dark:hover:bg-white/[0.04]"
                         }`}
                       >
-                        <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+                        <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
                           <BookOpenText size={15} />
                         </span>
                         <span className="min-w-0 flex-1">

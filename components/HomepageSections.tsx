@@ -219,7 +219,7 @@ export default function HomepageSections() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {featureCards.map((card, index) => (
             <RevealCard key={card.title} delay={index * 0.04}>
-              <article className="h-full rounded-[1.5rem] border border-white/10 bg-[#09111f]/85 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.28)] backdrop-blur-xl transition-transform hover:-translate-y-1">
+              <article className="h-full rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo   transition-transform hover:-translate-y-1">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-cyan-200">
                   <card.icon className="h-5 w-5" />
                 </div>
@@ -244,7 +244,7 @@ export default function HomepageSections() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {problemCards.map((card, index) => (
             <RevealCard key={card.title} delay={index * 0.04}>
-              <article className="h-full rounded-[1.5rem] border border-white/10 bg-[#09111f]/85 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.28)] backdrop-blur-xl transition-transform hover:-translate-y-1">
+              <article className="h-full rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo   transition-transform hover:-translate-y-1">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-cyan-200">
                   <card.icon className="h-5 w-5" />
                 </div>
@@ -269,7 +269,7 @@ export default function HomepageSections() {
       >
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <RevealCard>
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6 shadow-[0_24px_80px_rgba(2,6,23,0.35)] backdrop-blur-xl">
+            <div className="rounded-card border border-white/10 bg-white/[0.04] p-6 shadow-juvo  ">
               <p className="text-sm font-medium text-white">
                 What JUVO captures
               </p>
@@ -321,7 +321,7 @@ export default function HomepageSections() {
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-[1.5rem] border border-white/10 bg-[#09111f]/85 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.28)]"
+                  className="rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo"
                 >
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-400/10 text-cyan-200">
                     <item.icon className="h-5 w-5" />
@@ -349,7 +349,7 @@ export default function HomepageSections() {
       >
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <RevealCard>
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-4 shadow-[0_24px_80px_rgba(2,6,23,0.35)] backdrop-blur-xl">
+            <div className="rounded-card border border-white/10 bg-white/[0.04] p-4 shadow-juvo  ">
               <div className="rounded-[1.25rem] border border-white/10 bg-[#0a1220]/90 p-4">
                 <div className="flex items-center justify-between border-b border-white/8 pb-4">
                   <div>
@@ -414,7 +414,7 @@ export default function HomepageSections() {
                           : "border-white/5 bg-white/[0.02] text-slate-500"
                       }`}
                     >
-                      {value || "•"}
+                      {value || "Ã¢â‚¬Â¢"}
                     </div>
                   ))}
                 </div>
@@ -443,7 +443,7 @@ export default function HomepageSections() {
           </RevealCard>
 
           <RevealCard delay={0.08}>
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6 shadow-[0_24px_80px_rgba(2,6,23,0.35)] backdrop-blur-xl">
+            <div className="rounded-card border border-white/10 bg-white/[0.04] p-6 shadow-juvo  ">
               <p className="text-sm font-medium text-white">
                 Why the calendar matters
               </p>
@@ -475,7 +475,7 @@ export default function HomepageSections() {
       >
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <RevealCard>
-            <div className="rounded-[1.75rem] border border-white/10 bg-[#09111f]/85 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.28)]">
+            <div className="rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo">
               <div className="flex items-center justify-between border-b border-white/8 pb-4">
                 <div>
                   <p className="text-sm font-medium text-white">
@@ -519,7 +519,7 @@ export default function HomepageSections() {
 
           <RevealCard delay={0.06}>
             <div className="grid gap-4">
-              <div className="rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/8 p-5">
+              <div className="rounded-card border border-cyan-400/20 bg-cyan-400/8 p-5">
                 <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/70">
                   Example insight
                 </p>
@@ -528,7 +528,7 @@ export default function HomepageSections() {
                 </p>
               </div>
 
-              <div className="rounded-[1.5rem] border border-white/10 bg-[#09111f]/85 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.28)]">
+              <div className="rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo">
                 <p className="text-sm font-medium text-white">
                   Your strongest performance occurs when you trade fewer than 3
                   setups per day.
@@ -546,7 +546,7 @@ export default function HomepageSections() {
                       </div>
                       <div className="mt-2 h-2 rounded-full bg-white/5">
                         <div
-                          className="h-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500"
+                          className="h-2 rounded-full bg-primary"
                           style={{ width: `${value}%` }}
                         />
                       </div>
@@ -567,7 +567,7 @@ export default function HomepageSections() {
       >
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <RevealCard>
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6 shadow-[0_24px_80px_rgba(2,6,23,0.35)] backdrop-blur-xl">
+            <div className="rounded-card border border-white/10 bg-white/[0.04] p-6 shadow-juvo  ">
               <p className="text-sm font-medium text-white">Plan blueprint</p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {[
@@ -597,7 +597,7 @@ export default function HomepageSections() {
           </RevealCard>
 
           <RevealCard delay={0.08}>
-            <div className="space-y-3 rounded-[1.75rem] border border-white/10 bg-[#09111f]/85 p-6 shadow-[0_18px_50px_rgba(2,6,23,0.28)]">
+            <div className="space-y-3 rounded-card border border-white/10 bg-[#09111f]/85 p-6 shadow-juvo">
               {[
                 "Wait for confirmation before entry.",
                 "Do not trade after a daily loss limit is hit.",
@@ -629,7 +629,7 @@ export default function HomepageSections() {
       >
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <RevealCard>
-            <div className="rounded-[1.75rem] border border-white/10 bg-[#09111f]/85 p-6 shadow-[0_18px_50px_rgba(2,6,23,0.28)]">
+            <div className="rounded-card border border-white/10 bg-[#09111f]/85 p-6 shadow-juvo">
               <p className="text-sm font-medium text-white">Spreadsheet</p>
               <div className="mt-4 space-y-3 text-sm text-slate-300">
                 {[
@@ -650,7 +650,7 @@ export default function HomepageSections() {
           </RevealCard>
 
           <RevealCard delay={0.08}>
-            <div className="rounded-[1.75rem] border border-cyan-400/20 bg-cyan-400/8 p-6 shadow-[0_24px_80px_rgba(2,6,23,0.35)]">
+            <div className="rounded-card border border-cyan-400/20 bg-cyan-400/8 p-6 shadow-juvo">
               <p className="text-sm font-medium text-white">JUVO</p>
               <div className="mt-4 space-y-3 text-sm text-cyan-50/85">
                 {[
@@ -689,7 +689,7 @@ export default function HomepageSections() {
         <div className="grid gap-4 lg:grid-cols-2">
           {faqItems.map((item, index) => (
             <RevealCard key={item.question} delay={index * 0.03}>
-              <details className="group rounded-[1.5rem] border border-white/10 bg-[#09111f]/85 p-5 shadow-[0_18px_50px_rgba(2,6,23,0.28)]">
+              <details className="group rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left text-sm font-medium text-white">
                   {item.question}
                   <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-90" />
@@ -705,7 +705,7 @@ export default function HomepageSections() {
 
       <section id="cta" className="relative">
         <div className="mx-auto max-w-7xl px-4 py-20 lg:py-28">
-          <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-cyan-500/12 via-[#09111f] to-blue-500/12 p-8 shadow-[0_30px_100px_rgba(2,6,23,0.45)] lg:p-12">
+          <div className="relative overflow-hidden rounded-card border border-white/10 bg-[#09111f] p-8 shadow-juvo lg:p-12">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,212,255,0.18),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.15),transparent_28%)]" />
 
             <div className="relative grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
@@ -717,7 +717,7 @@ export default function HomepageSections() {
 
                 <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
                   Your next level is not another strategy.
-                  <span className="block bg-gradient-to-r from-cyan-300 via-white to-blue-300 bg-clip-text text-transparent">
+                  <span className="block text-primary">
                     It is better discipline.
                   </span>
                 </h2>
@@ -754,7 +754,7 @@ export default function HomepageSections() {
                   [ShieldCheck, "Build discipline"],
                 ].map(([Icon, label], index) => (
                   <RevealCard key={label as string} delay={index * 0.04}>
-                    <div className="rounded-[1.5rem] border border-white/10 bg-white/6 p-5 backdrop-blur-xl">
+                    <div className="rounded-card border border-white/10 bg-white/[0.04] p-5  ">
                       <Icon className="h-5 w-5 text-cyan-300" />
                       <p className="mt-4 text-sm font-medium text-white">
                         {label as string}

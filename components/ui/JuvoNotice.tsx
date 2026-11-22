@@ -17,28 +17,28 @@ const toneStyles: Record<
   { wrap: string; icon: string; Icon: typeof Info }
 > = {
   breached: {
-    wrap: "border-rose-400/40 from-rose-500/20 to-transparent",
-    icon: "bg-rose-500/15 text-rose-500 dark:text-rose-300",
+    wrap: "border-loss/40",
+    icon: "bg-loss/10 text-loss",
     Icon: ShieldAlert,
   },
   passed: {
-    wrap: "border-primary/40 from-primary/20 to-transparent",
-    icon: "bg-primary/15 text-primary",
+    wrap: "border-primary/40",
+    icon: "bg-primary/10 text-primary-strong dark:text-primary",
     Icon: Trophy,
   },
   success: {
-    wrap: "border-emerald-400/40 from-emerald-500/20 to-transparent",
-    icon: "bg-emerald-500/15 text-emerald-500 dark:text-emerald-300",
+    wrap: "border-profit/40",
+    icon: "bg-profit/10 text-profit",
     Icon: CircleCheck,
   },
   warning: {
-    wrap: "border-amber-400/40 from-amber-500/20 to-transparent",
-    icon: "bg-amber-500/15 text-amber-500 dark:text-amber-300",
+    wrap: "border-warning/40",
+    icon: "bg-warning/10 text-warning",
     Icon: TriangleAlert,
   },
   info: {
-    wrap: "border-slate-300/50 from-slate-400/15 to-transparent dark:border-white/15",
-    icon: "bg-slate-500/10 text-slate-600 dark:text-slate-300",
+    wrap: "border-border",
+    icon: "bg-slate-100 text-slate-600 dark:bg-white/[0.06] dark:text-slate-300",
     Icon: Info,
   },
 };
@@ -76,29 +76,25 @@ function NoticeCard({ notice }: { notice: JuvoNotice }) {
     <div ref={rootRef} className="pointer-events-auto w-[min(92vw,420px)]">
       <div
         data-notice-card
-        className={`relative overflow-hidden rounded-3xl border bg-white/75 p-5 shadow-2xl shadow-slate-950/10 backdrop-blur-xl dark:bg-[#0B1220]/80 dark:shadow-black/40 ${tone.wrap}`}
+        className={`relative overflow-hidden rounded-card border bg-card p-4 shadow-juvo ${tone.wrap}`}
       >
-        <div
-          data-notice-glow
-          className={`pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br opacity-80 blur-2xl ${tone.wrap}`}
-        />
-        <div className="relative flex items-start gap-4">
+        <div className="relative flex items-start gap-3">
           <span
             data-notice-icon
-            className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${tone.icon}`}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-control ${tone.icon}`}
           >
-            <Icon size={22} />
+            <Icon size={18} />
           </span>
           <div className="min-w-0 flex-1">
             <p
               data-notice-copy
-              className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400"
+              className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted"
             >
               Juvo
             </p>
             <h3
               data-notice-copy
-              className="mt-1 text-lg font-bold text-slate-950 dark:text-white"
+              className="mt-1 text-base font-semibold text-slate-950 dark:text-white"
             >
               {notice.title}
             </h3>
@@ -112,7 +108,7 @@ function NoticeCard({ notice }: { notice: JuvoNotice }) {
               <Link
                 href={`/home/journal/${encodeURIComponent(notice.journalId)}`}
                 onClick={() => void dismiss()}
-                className="mt-3 inline-block text-sm font-semibold text-cyan-700 underline underline-offset-4 dark:text-primary"
+                className="mt-3 inline-block text-sm font-semibold text-primary-strong underline underline-offset-4 dark:text-primary"
               >
                 Review in journal
               </Link>
@@ -121,16 +117,28 @@ function NoticeCard({ notice }: { notice: JuvoNotice }) {
               <Link
                 href={notice.href}
                 onClick={() => void dismiss()}
-                className="mt-3 inline-block text-sm font-semibold text-cyan-700 underline underline-offset-4 dark:text-primary"
+                className="mt-3 inline-block text-sm font-semibold text-primary-strong underline underline-offset-4 dark:text-primary"
               >
                 {notice.linkLabel || "Open"}
               </Link>
+            ) : null}
+            {notice.onUndo ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  await notice.onUndo?.();
+                  void dismiss();
+                }}
+                className="mt-3 inline-flex text-sm font-semibold text-primary-strong underline underline-offset-4 dark:text-primary"
+              >
+                {notice.undoLabel || "Undo"}
+              </button>
             ) : null}
           </div>
           <button
             type="button"
             onClick={() => void dismiss()}
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-control text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-white"
             aria-label="Dismiss notice"
           >
             <X size={16} />

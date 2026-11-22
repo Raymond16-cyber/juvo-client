@@ -1,5 +1,6 @@
 "use client";
 
+import CommandPalette from "@/components/ui/CommandPalette";
 import JuvoNoticeHost from "@/components/ui/JuvoNotice";
 import Sidebar from "@/components/ui/Sidebar";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -126,7 +127,7 @@ export default function DashboardShell({
 
   return (
     <div
-      className={`dashboard-shell bg-slate-50 text-slate-950 dark:bg-background dark:text-white ${
+      className={`dashboard-shell bg-background text-text ${
         fillViewport ? "h-dvh overflow-hidden" : "min-h-screen"
       }`}
     >
@@ -136,7 +137,7 @@ export default function DashboardShell({
             type="button"
             aria-label="Close sidebar overlay"
             onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-40 bg-slate-950/45 lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -158,16 +159,16 @@ export default function DashboardShell({
         />
 
         <main
-          className={`min-w-0 flex-1 bg-[radial-gradient(circle_at_100%_0%,rgba(139,92,246,0.08),transparent_30rem)] dark:bg-[radial-gradient(circle_at_100%_0%,rgba(0,212,255,0.07),transparent_30rem)] ${
+          className={`min-w-0 flex-1 bg-background ${
             fillViewport ? "flex h-full min-h-0 flex-col overflow-hidden" : ""
           }`}
         >
-          <div className="juvo-safe-pt sticky top-0 z-30 mt-3 flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/90 bg-white/85 px-3 py-3 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-background/85 sm:px-4 lg:hidden">
+          <div className="juvo-safe-pt sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card px-3 py-3 sm:px-4 lg:hidden">
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">
                 JUVO
               </p>
-              <h1 className="truncate text-base font-bold tracking-tight sm:text-lg">
+              <h1 className="truncate text-base font-semibold tracking-tight sm:text-lg">
                 {title}
               </h1>
             </div>
@@ -176,11 +177,11 @@ export default function DashboardShell({
               <button
                 type="button"
                 onClick={() => setSidebarOpen(true)}
-                className="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 bg-white text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                className="grid h-10 w-10 place-items-center rounded-control border border-border bg-card text-slate-700 dark:text-white"
                 aria-label="Open sidebar"
                 aria-expanded={sidebarOpen}
               >
-                <Menu size={20} />
+                <Menu size={18} />
               </button>
             </div>
           </div>
@@ -211,6 +212,7 @@ export default function DashboardShell({
         </main>
       </div>
       <JuvoNoticeHost />
+      <CommandPalette />
     </div>
   );
 }

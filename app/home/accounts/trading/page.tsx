@@ -1,22 +1,28 @@
 "use client";
 
-import AccountTradesHistory from "@/components/accounts/AccountTradesHistory";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import ActionMenu from "@/components/ui/ActionMenu";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
-import { formatMoney, formatNumber } from "@/lib/format";
+import PaginatedCollection from "@/components/ui/PaginatedCollection";
+import SegmentedControl from "@/components/ui/SegmentedControl";
+import { formatMoney } from "@/lib/format";
 import { controlClassName } from "@/lib/ui";
 import { sectionStackClassName } from "@/lib/responsive";
 import { useAccountsStore } from "@/stores/accounts.store";
+import { useNoticeStore } from "@/stores/notice.store";
 import {
   CreateTradingAccountPayload,
   TradingAccount,
   TradingAccountStatus,
 } from "@/types/trading-account.types";
 import { Archive, RotateCcw, WalletCards } from "lucide-react";
+import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+
+const ACCOUNTS_PER_PAGE = 5;
 
 const defaultForm: CreateTradingAccountPayload = {
   accountName: "",
@@ -58,37 +64,6 @@ function AccountStatusBadge({ account }: { account: TradingAccount }) {
   );
 }
 
-function ProgressBar({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: "target" | "drawdown";
-}) {
-  const width = Math.min(100, Math.max(0, value));
-
-  return (
-    <div>
-      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-        <span>{label}</span>
-        <span className="font-semibold text-slate-700 dark:text-slate-200">
-          {formatNumber(width, 1)}%
-        </span>
-      </div>
-      <div className="mt-1.5 h-2 rounded-full bg-slate-100 dark:bg-white/10">
-        <div
-          className={`h-full rounded-full ${
-            tone === "drawdown" ? "bg-rose-500" : "bg-primary"
-          }`}
-          style={{ width: `${width}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
 export default function TradingAccountsPage() {
   const accounts = useAccountsStore((state) => state.accounts);
   const archivedAccounts = useAccountsStore((state) => state.archivedAccounts);
@@ -102,8 +77,10 @@ export default function TradingAccountsPage() {
   const activateAccount = useAccountsStore((state) => state.activateAccount);
   const archiveAccount = useAccountsStore((state) => state.archiveAccount);
   const restoreAccount = useAccountsStore((state) => state.restoreAccount);
+  const showNotice = useNoticeStore((state) => state.showNotice);
   const [form, setForm] = useState(defaultForm);
   const [view, setView] = useState<"active" | "archived">("active");
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     fetchAccounts().catch(() => undefined);
@@ -112,8 +89,37 @@ export default function TradingAccountsPage() {
 
   const handleCreate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await createAccount(form);
-    setForm(defaultForm);
+    setCreating(true);
+    try {
+      await createAccount(form);
+      setForm(defaultForm);
+      showNotice({
+        title: "Account created",
+        body: `${form.accountName || "Trading account"} is ready to use.`,
+        tone: "success",
+      });
+    } catch {
+      showNotice({
+        title: "Could not create account",
+        body: "Check the details and try again.",
+        tone: "warning",
+      });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleArchive = async (account: TradingAccount) => {
+    await archiveAccount(account._id);
+    showNotice({
+      title: "Account archived",
+      body: `${account.accountName} was moved to archive.`,
+      tone: "info",
+      undoLabel: "Undo",
+      onUndo: async () => {
+        await restoreAccount(account._id);
+      },
+    });
   };
 
   return (
@@ -124,45 +130,39 @@ export default function TradingAccountsPage() {
           title="Trading Accounts"
           description="Every journal is tied to an account. Active accounts can collect new trades; archived accounts stay available for review."
           actions={
-            <div className="grid w-full grid-cols-2 gap-1 rounded-full bg-slate-100 p-1 text-sm font-semibold dark:bg-white/10 sm:w-auto">
-              <button
-                type="button"
-                className={`min-h-11 rounded-full px-3 py-2 sm:px-4 ${
-                  view === "active"
-                    ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
-                    : "text-slate-500 dark:text-slate-300"
-                }`}
-                onClick={() => setView("active")}
-              >
-                Active {accounts.length}
-              </button>
-              <button
-                type="button"
-                className={`min-h-11 rounded-full px-3 py-2 sm:px-4 ${
-                  view === "archived"
-                    ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950"
-                    : "text-slate-500 dark:text-slate-300"
-                }`}
-                onClick={() => setView("archived")}
-              >
-                Archived {archivedAccounts.length}
-              </button>
-            </div>
+            <SegmentedControl
+              ariaLabel="Account view"
+              size="md"
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "active", label: `Active ${accounts.length}` },
+                {
+                  value: "archived",
+                  label: `Archived ${archivedAccounts.length}`,
+                },
+              ]}
+            />
           }
         />
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,400px)]">
-          <div className="min-w-0 space-y-4">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
+          <div className="min-w-0">
             {view === "archived" ? (
               archivedAccounts.length ? (
-                archivedAccounts.map((account) => (
-                  <ArchivedAccountCard
-                    key={account._id}
-                    account={account}
-                    onRestore={() => restoreAccount(account._id)}
-                    isLoading={isLoading}
-                  />
-                ))
+                <PaginatedCollection
+                  items={archivedAccounts}
+                  itemsPerPage={ACCOUNTS_PER_PAGE}
+                  getKey={(account) => account._id}
+                  listClassName="space-y-3"
+                  renderItem={(account) => (
+                    <ArchivedAccountCard
+                      account={account}
+                      onRestore={() => restoreAccount(account._id)}
+                      isLoading={isLoading}
+                    />
+                  )}
+                />
               ) : (
                 <Card>
                   <EmptyState
@@ -173,118 +173,95 @@ export default function TradingAccountsPage() {
                 </Card>
               )
             ) : accounts.length ? (
-              accounts.map((account) => {
-                const targetProgress = account.profitTarget
-                  ? Math.min(
-                      100,
-                      Math.max(
-                        0,
-                        ((account.profitPercent || 0) / account.profitTarget) *
-                          100,
-                      ),
-                    )
-                  : Math.max(0, account.profitPercent || 0);
-                const drawdownProgress = account.maxDrawnDown
-                  ? Math.min(
-                      100,
-                      Math.max(
-                        0,
-                        ((account.drawdownPercent || 0) /
-                          account.maxDrawnDown) *
-                          100,
-                      ),
-                    )
-                  : Math.max(0, account.drawdownPercent || 0);
-
-                return (
-                  <Card key={account._id} className="min-w-0 p-4 sm:p-5">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="break-words text-lg font-bold text-slate-950 dark:text-white">
-                          {account.accountName}
-                        </p>
-                        <p className="juvo-break-words mt-1 text-sm text-slate-500 dark:text-slate-400">
-                          {account.broker} · {account.platform} ·{" "}
-                          {account.accountType}
-                        </p>
-                        <div className="mt-3">
-                          <AccountStatusBadge account={account} />
+              <PaginatedCollection
+                items={accounts}
+                itemsPerPage={ACCOUNTS_PER_PAGE}
+                getKey={(account) => account._id}
+                listClassName="space-y-3"
+                renderItem={(account) => {
+                  const currency =
+                    account.accountCurrency || account.currency || "USD";
+                  const pnl = (account.currentEquity ?? 0) - (account.initialBalance ?? 0);
+                  return (
+                    <Card className="min-w-0 p-3.5 sm:p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="break-words text-base font-semibold text-slate-950 dark:text-white">
+                            {account.accountName}
+                          </p>
+                          <p className="juvo-break-words mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                            {account.platform || "Broker"} — {account.broker} ·{" "}
+                            {account.accountType}
+                          </p>
+                          <div className="mt-2">
+                            <AccountStatusBadge account={account} />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Link href="/home/analytics">
+                            <Button variant="ghost" className="h-9 px-3">
+                              View account
+                            </Button>
+                          </Link>
+                          <ActionMenu
+                            label={`Actions for ${account.accountName}`}
+                            items={[
+                              ...(!account.isActive &&
+                              (account.status || "Active") === "Active"
+                                ? [
+                                    {
+                                      id: "activate",
+                                      label: "Set active",
+                                      disabled: isLoading,
+                                      onSelect: () =>
+                                        activateAccount(account._id),
+                                    },
+                                  ]
+                                : []),
+                              {
+                                id: "archive",
+                                label: "Archive",
+                                tone: "danger" as const,
+                                icon: <Archive size={14} />,
+                                onSelect: () => handleArchive(account),
+                              },
+                            ]}
+                          />
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {!account.isActive &&
-                        (account.status || "Active") === "Active" ? (
-                          <Button
-                            variant="ghost"
-                            className="h-11 px-3"
-                            onClick={() => activateAccount(account._id)}
-                            disabled={isLoading}
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        {[
+                          [
+                            "Balance",
+                            formatMoney(account.currentBalance, currency),
+                          ],
+                          [
+                            "Est. P/L",
+                            formatMoney(pnl, currency),
+                          ],
+                          ["Trades", String(account.tradesCount || 0)],
+                          [
+                            "Equity",
+                            formatMoney(account.currentEquity, currency),
+                          ],
+                        ].map(([label, value]) => (
+                          <div
+                            key={label}
+                            className="min-w-0 rounded-control bg-slate-50 px-2.5 py-2 dark:bg-white/[0.04]"
                           >
-                            Set active
-                          </Button>
-                        ) : null}
-                        <Button
-                          variant="ghost"
-                          className="h-11 px-3"
-                          onClick={() => archiveAccount(account._id)}
-                        >
-                          Archive
-                        </Button>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                              {label}
+                            </p>
+                            <p className="mt-0.5 break-words text-sm font-semibold text-slate-950 dark:text-white">
+                              {value}
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      {[
-                        [
-                          "Balance",
-                          formatMoney(
-                            account.currentBalance,
-                            account.accountCurrency || account.currency,
-                          ),
-                        ],
-                        [
-                          "Equity",
-                          formatMoney(
-                            account.currentEquity,
-                            account.accountCurrency || account.currency,
-                          ),
-                        ],
-                        ["Trades", String(account.tradesCount || 0)],
-                        ["Target", `${formatNumber(account.profitTarget)}%`],
-                      ].map(([label, value]) => (
-                        <div
-                          key={label}
-                          className="min-w-0 rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/[0.04]"
-                        >
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {label}
-                          </p>
-                          <p className="mt-1 break-words text-sm font-bold text-slate-950 dark:text-white">
-                            {value}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <ProgressBar
-                        label={`Profit target ${formatNumber(account.profitTarget)}%`}
-                        value={targetProgress}
-                        tone="target"
-                      />
-                      <ProgressBar
-                        label={`Max drawdown ${formatNumber(account.maxDrawnDown)}%`}
-                        value={drawdownProgress}
-                        tone="drawdown"
-                      />
-                    </div>
-                    <AccountTradesHistory
-                      trades={account.trades || []}
-                      currency={
-                        account.accountCurrency || account.currency || "USD"
-                      }
-                    />
-                  </Card>
-                );
-              })
+                    </Card>
+                  );
+                }}
+              />
             ) : (
               <Card>
                 <EmptyState
@@ -297,8 +274,8 @@ export default function TradingAccountsPage() {
           </div>
 
           <form onSubmit={handleCreate} className={`min-w-0 ${view === "archived" ? "hidden xl:block" : ""}`}>
-            <Card className="space-y-3 p-4 sm:p-5">
-              <h2 className="text-lg font-bold text-slate-950 dark:text-white">
+            <Card className="space-y-2.5 p-3.5 sm:p-4">
+              <h2 className="text-base font-semibold text-slate-950 dark:text-white">
                 Add account
               </h2>
               {error ? (
@@ -422,7 +399,12 @@ export default function TradingAccountsPage() {
                   }
                 />
               </div>
-              <Button className="w-full" type="submit" disabled={isLoading}>
+              <Button
+                className="w-full"
+                type="submit"
+                loading={creating || isLoading}
+                successLabel="Created"
+              >
                 Create account
               </Button>
             </Card>
@@ -443,18 +425,18 @@ function ArchivedAccountCard({
   onRestore: () => void;
 }) {
   return (
-    <Card className="p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <Card className="p-3.5 sm:p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-lg font-bold text-slate-950 dark:text-white">
+            <p className="text-base font-semibold text-slate-950 dark:text-white">
               {account.accountName}
             </p>
             <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-white/10 dark:text-slate-300">
               Archived
             </span>
           </div>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
             {account.broker} · {account.platform} · {account.accountType}
           </p>
         </div>
@@ -469,7 +451,7 @@ function ArchivedAccountCard({
         </Button>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
           [
             "Balance",
@@ -487,21 +469,15 @@ function ArchivedAccountCard({
         ].map(([label, value]) => (
           <div
             key={label}
-            className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-white/[0.04]"
+            className="rounded-control bg-slate-50 px-2.5 py-2 dark:bg-white/[0.04]"
           >
-            <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
-            <p className="mt-1 text-sm font-bold text-slate-950 dark:text-white">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">{label}</p>
+            <p className="mt-0.5 text-sm font-semibold text-slate-950 dark:text-white">
               {value}
             </p>
           </div>
         ))}
       </div>
-
-      <AccountTradesHistory
-        trades={account.trades || []}
-        currency={account.accountCurrency || account.currency || "USD"}
-        title="Archived account trades"
-      />
     </Card>
   );
 }

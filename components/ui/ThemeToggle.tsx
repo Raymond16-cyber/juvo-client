@@ -36,7 +36,7 @@ export default function ThemeToggle({ compact = false }: ThemeToggleProps) {
       <button
         type="button"
         onClick={() => apply(next)}
-        className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/10"
+        className="grid h-10 w-10 place-items-center rounded-control border border-border bg-card text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10"
         aria-label={`Theme: ${preference}. Switch to ${next}`}
       >
         <Icon size={17} />
@@ -45,7 +45,7 @@ export default function ThemeToggle({ compact = false }: ThemeToggleProps) {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-2 rounded-2xl bg-slate-100 p-1 dark:bg-white/10">
+    <div className="grid grid-cols-3 gap-1 rounded-control border border-border bg-slate-50 p-1 dark:bg-white/[0.04]">
       {options.map((option) => {
         const Icon = option.icon;
         const isActive = preference === option.value;
@@ -55,13 +55,13 @@ export default function ThemeToggle({ compact = false }: ThemeToggleProps) {
             key={option.value}
             type="button"
             onClick={() => apply(option.value)}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${
+            className={`inline-flex items-center justify-center gap-1.5 rounded-[0.5rem] px-2.5 py-1.5 text-xs font-semibold transition ${
               isActive
-                ? "bg-white text-slate-950 shadow-sm dark:bg-primary dark:text-slate-950"
+                ? "bg-slate-950 text-white dark:bg-primary dark:text-slate-950"
                 : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
             }`}
           >
-            <Icon size={15} />
+            <Icon size={14} />
             {option.label}
           </button>
         );

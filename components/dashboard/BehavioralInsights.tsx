@@ -45,12 +45,12 @@ export default function BehavioralInsights({ insights = [] }: BehavioralInsights
     <section
       ref={insightsRef}
       data-dashboard-card
-      className="dashboard-card rounded-2xl border border-slate-200/90 bg-white p-4 dark:border-white/10 dark:bg-card sm:p-5"
+      className="dashboard-card rounded-card border border-border bg-card p-4 sm:p-5"
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
         Behaviour
       </p>
-      <h2 className="mt-1 text-xl font-bold text-slate-950 dark:text-white">
+      <h2 className="mt-1 text-xl font-semibold text-slate-950 dark:text-white">
         Actionable insights
       </h2>
       {!insights.length ? (
@@ -68,13 +68,13 @@ export default function BehavioralInsights({ insights = [] }: BehavioralInsights
               key={insight.title}
               data-insight-card
               data-progress-item
-              className="flex gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.04]"
+              className="flex gap-3 rounded-control border border-border bg-slate-50/80 p-3.5 dark:bg-white/[0.03]"
             >
-              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
-                <Icon size={17} />
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-control border border-border bg-card text-slate-600 dark:text-slate-300">
+                <Icon size={16} />
               </div>
               <div className="min-w-0">
-                <p className="font-bold text-slate-950 dark:text-white">
+                <p className="font-semibold text-slate-950 dark:text-white">
                   {insight.title}
                 </p>
                 <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">

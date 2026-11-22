@@ -34,26 +34,26 @@ const ALL_ACCOUNTS = "all";
 
 function MetricCard({ label, value, caption, tone, icon: Icon }: MetricCardProps) {
   return (
-    <Card className="p-5">
-      <div className="flex items-start justify-between gap-3">
+    <Card className="p-3 sm:p-3.5">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             {label}
           </p>
           <p
-            className={`mt-3 break-words text-2xl font-bold sm:text-3xl ${
+            className={`mt-1.5 break-words text-lg font-semibold tabular-nums sm:text-xl ${
               tone || "text-slate-950 dark:text-white"
             }`}
           >
             {value}
           </p>
         </div>
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary">
-          <Icon size={18} />
+        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-control bg-primary/15 text-primary">
+          <Icon size={14} />
         </div>
       </div>
       {caption ? (
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">
           {caption}
         </p>
       ) : null}
@@ -227,7 +227,7 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-          <Card className="p-6">
+          <Card className="p-4 sm:p-5">
             <h2 className="text-lg font-bold text-slate-950 dark:text-white">
               Direction edge
             </h2>
@@ -279,7 +279,7 @@ export default function AnalyticsPage() {
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-5">
             <h2 className="text-lg font-bold text-slate-950 dark:text-white">
               Sessions
             </h2>
@@ -306,7 +306,7 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="p-6">
+          <Card className="p-4 sm:p-5">
             <h2 className="text-lg font-bold text-slate-950 dark:text-white">
               By symbol
             </h2>
@@ -331,7 +331,7 @@ export default function AnalyticsPage() {
             </div>
           </Card>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-5">
             <h2 className="text-lg font-bold text-slate-950 dark:text-white">
               Accounts in this view
             </h2>

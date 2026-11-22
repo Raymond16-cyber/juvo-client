@@ -94,7 +94,7 @@ export default function InsightsPage() {
 
   return (
     <DashboardShell>
-      <div className="mx-auto w-full max-w-4xl space-y-5 sm:space-y-6">
+      <div className="w-full space-y-5 sm:space-y-6">
         <PageHeader
           eyebrow="Behavioural Insights"
           title="Trading Behavior Review"

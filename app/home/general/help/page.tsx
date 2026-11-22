@@ -29,7 +29,7 @@ const faqs = [
 export default function HelpPage() {
   return (
     <DashboardShell>
-      <div className="mx-auto w-full max-w-3xl space-y-6">
+      <div className="w-full space-y-6">
         <PageHeader
           eyebrow="General"
           title="Help Center"

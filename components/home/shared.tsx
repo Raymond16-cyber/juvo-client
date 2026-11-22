@@ -92,7 +92,7 @@ export function AppChrome({
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
         </div>
         <p className="truncate text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
-          JUVO · {title}
+          JUVO Â· {title}
         </p>
       </div>
 
@@ -107,7 +107,7 @@ export function AppChrome({
                 key={item.id}
                 className={cn(
                   "mb-1 flex items-center gap-2 rounded-xl px-2.5 py-2 text-[11px] font-medium transition-colors",
-                  on ? "bg-primary/15 text-primary" : "text-slate-500",
+                  on ? "border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300" : "text-slate-500",
                 )}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />

@@ -24,69 +24,76 @@ export default function AccountSummary({ account, livePnl = 0 }: AccountSummaryP
     ? Math.min(100, Math.max(0, ((account?.drawdownPercent || 0) / maxDrawdown) * 100))
     : Math.max(0, account?.drawdownPercent || 0);
   const status = account?.status || "Active";
+  const pnlTone =
+    livePnl > 0 ? "text-profit" : livePnl < 0 ? "text-loss" : "text-slate-200";
 
   return (
     <section
       data-dashboard-card
-      className="dashboard-card rounded-2xl border border-slate-800 bg-slate-950 p-5 text-white dark:border-white/10 dark:bg-[#08111f] sm:p-6"
+      className="dashboard-card rounded-card border border-slate-800 bg-slate-950 p-4 text-white dark:border-border dark:bg-card sm:p-4"
     >
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-slate-300">
-            {account ? `${account.accountName} · ${account.broker}` : "Primary Account"}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            {account ? `${account.accountName} · ${account.broker}` : "Primary account"}
           </p>
-          <h2 className="mt-2 text-3xl font-bold">
+          <h2 className="mt-1.5 text-2xl font-semibold tracking-tight tabular-nums">
             {account
               ? `${account.accountCurrency || account.currency} ${formatNumber(equity)}`
               : "No account yet"}
           </h2>
           {account ? (
-            <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-              {account.isActive ? "Active account" : "Inactive"} · {status}
+            <p className="mt-1.5 text-xs font-medium text-slate-400">
+              {account.isActive ? "Active" : "Inactive"} · {status}
               {typeof account.tradesCount === "number"
                 ? ` · ${account.tradesCount} trades`
                 : ""}
             </p>
           ) : null}
         </div>
-        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
-          <WalletCards size={22} />
+        <div className="grid h-9 w-9 place-items-center rounded-control border border-white/10 bg-white/5 text-primary">
+          <WalletCards size={16} />
         </div>
       </div>
 
-      <div className="mt-7 grid gap-3 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+      <div className="mt-4 grid gap-2 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
         {[
           [
             "Balance",
             account
               ? formatMoney(balance, account.accountCurrency || account.currency)
               : "—",
+            "text-white",
           ],
           [
             "Equity",
             account ? formatMoney(equity, account.accountCurrency || account.currency) : "—",
+            "text-white",
           ],
           [
             "Floating P/L",
             account ? formatMoney(livePnl, account.accountCurrency || account.currency) : "—",
+            pnlTone,
           ],
-        ].map(([label, value]) => (
-          <div key={label} className="rounded-2xl bg-white/[0.06] p-4">
-            <p className="text-xs text-slate-400">{label}</p>
-            <p className="mt-1 text-sm font-bold">{value}</p>
+        ].map(([label, value, tone]) => (
+          <div key={label} className="rounded-control border border-white/10 bg-white/[0.04] p-2.5">
+            <p className="text-[10px] uppercase tracking-[0.08em] text-slate-400">{label}</p>
+            <p className={`mt-0.5 text-sm font-semibold tabular-nums ${tone}`}>{value}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-4 space-y-3">
         <div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-300">
               {target ? `Profit target ${target}%` : "Account progress"}
             </span>
-            <span className="font-bold text-primary">{Math.round(targetProgress)}%</span>
+            <span className="font-semibold tabular-nums text-primary">
+              {Math.round(targetProgress)}%
+            </span>
           </div>
-          <div className="mt-2 h-2 rounded-full bg-white/10">
+          <div className="mt-2 h-1.5 rounded-full bg-white/10">
             <motion.div
               className="h-full rounded-full bg-primary"
               initial={false}
@@ -99,13 +106,13 @@ export default function AccountSummary({ account, livePnl = 0 }: AccountSummaryP
           <div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-300">Max drawdown {maxDrawdown}%</span>
-              <span className="font-bold text-rose-300">
+              <span className="font-semibold tabular-nums text-loss">
                 {Math.round(drawdownProgress)}%
               </span>
             </div>
-            <div className="mt-2 h-2 rounded-full bg-white/10">
+            <div className="mt-2 h-1.5 rounded-full bg-white/10">
               <motion.div
-                className="h-full rounded-full bg-rose-400"
+                className="h-full rounded-full bg-loss"
                 initial={false}
                 animate={{ width: `${drawdownProgress}%` }}
                 transition={panelTransition}

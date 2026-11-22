@@ -52,7 +52,7 @@ export default function AuthLoadingScreen({
       <div ref={rootRef} className="flex flex-col items-center gap-6">
         <div
           data-auth-mark
-          className="relative grid h-[5.75rem] w-[5.75rem] place-items-center rounded-[1.75rem] bg-slate-950 shadow-[0_20px_50px_rgba(0,212,255,0.18)] dark:bg-[#070b14] dark:shadow-[0_20px_50px_rgba(0,212,255,0.12)]"
+          className="relative grid h-[5.75rem] w-[5.75rem] place-items-center rounded-card bg-slate-950 shadow-[0_20px_50px_rgba(0,212,255,0.18)] dark:bg-[#070b14] dark:shadow-[0_20px_50px_rgba(0,212,255,0.12)]"
         >
           <div
             className="relative"

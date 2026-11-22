@@ -152,10 +152,10 @@ export default function OnboardingPage() {
       <div className="mx-auto flex min-h-screen w-full max-w-6xl">
         <div className="hidden flex-1 items-center justify-center lg:flex">
           <div ref={brandRef} className="relative">
-            <div className="absolute inset-0 rounded-full bg-primary/20 blur-[120px] dark:bg-primary/10" />
+
 
             <div className="relative">
-              <div className="mb-8 inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-950 text-3xl font-bold text-primary shadow-xl shadow-slate-300/60 dark:bg-white dark:text-slate-950 dark:shadow-black/30">
+              <div className="mb-8 inline-flex h-16 w-16 items-center justify-center rounded-card bg-slate-950 text-3xl font-bold text-primary shadow-xl shadow-slate-300/60 dark:bg-white dark:text-slate-950 dark:shadow-black/30">
                 J
               </div>
 
@@ -198,7 +198,7 @@ export default function OnboardingPage() {
         <div className="flex w-full min-w-0 max-w-xl flex-col justify-center px-4 py-10 sm:px-6 sm:py-12 lg:px-12">
           <div
             ref={panelRef}
-            className="min-w-0 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card sm:p-8"
+            className="min-w-0 rounded-card border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card sm:p-8"
           >
             <OnboardingProgress
               currentStep={currentStep}

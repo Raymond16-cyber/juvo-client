@@ -74,7 +74,7 @@ export default function PeriodReviewCard() {
     <Card className="p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary/15 text-primary">
+          <div className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
             <CalendarRange size={18} />
           </div>
           <div>
@@ -167,9 +167,9 @@ export default function PeriodReviewCard() {
           ) : null}
           {review.stats ? (
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Based on {review.stats.journalDays || 0} journaled days ·{" "}
+              Based on {review.stats.journalDays || 0} journaled days Â·{" "}
               {review.stats.periodTrades || 0} trades
-              {review.cached ? " · cached" : ""}
+              {review.cached ? " Â· cached" : ""}
             </p>
           ) : null}
           {improvements.length ? (

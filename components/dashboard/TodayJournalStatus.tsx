@@ -114,7 +114,11 @@ export default function TodayJournalStatus({
             className="h-10"
             onClick={() => (hasJournal ? onLogTrade?.() : onOpenMyDay?.(false))}
           >
-            {hasJournal ? <Plus size={16} /> : <Rocket size={16} />}
+            {hasJournal ? (
+              <Plus size={16} className="shrink-0" />
+            ) : (
+              <Rocket size={16} className="shrink-0" />
+            )}
             {hasJournal ? "Log Trade" : "Start My Day"}
           </Button>
           <Button
@@ -123,7 +127,7 @@ export default function TodayJournalStatus({
             className="h-10"
             onClick={() => onNoTradeDay?.()}
           >
-            <Coffee size={16} />
+            <Coffee size={16} className="shrink-0" />
             {key === "no_trade_day" ? "View no-trade day" : "No Trade Today"}
           </Button>
           {hasJournal ? (
@@ -133,7 +137,7 @@ export default function TodayJournalStatus({
               className="h-10"
               onClick={() => onOpenMyDay?.(true)}
             >
-              <NotebookPen size={16} />
+              <NotebookPen size={16} className="shrink-0" />
               Open My Day
             </Button>
           ) : null}

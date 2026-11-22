@@ -86,7 +86,7 @@ export default function PlanComplianceCard({
   return (
     <Card className="min-w-0 p-4 sm:p-5">
       <div className="flex items-start gap-3">
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
           <ClipboardCheck size={18} />
         </div>
         <div className="min-w-0 flex-1">
@@ -136,8 +136,8 @@ export default function PlanComplianceCard({
         <div className="mt-4 space-y-3 text-sm">
           {result.counts ? (
             <p className="juvo-break-words text-slate-500 dark:text-slate-400">
-              {result.counts.followed || 0} followed · {result.counts.violated || 0}{" "}
-              not followed · {result.counts.unknown || 0} unverified
+              {result.counts.followed || 0} followed Â· {result.counts.violated || 0}{" "}
+              not followed Â· {result.counts.unknown || 0} unverified
             </p>
           ) : null}
           {result.interpretation ? (
@@ -169,7 +169,7 @@ export default function PlanComplianceCard({
                   {group.items.map((item, index) => (
                     <li key={`${group.label}-${index}`}>
                       {checkTitle(item)}
-                      {checkDetail(item) ? ` — ${checkDetail(item)}` : null}
+                      {checkDetail(item) ? ` â€” ${checkDetail(item)}` : null}
                     </li>
                   ))}
                 </ul>

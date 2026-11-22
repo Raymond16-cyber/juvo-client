@@ -218,10 +218,10 @@ export default function GrowthPage() {
           </Card>
 
           <form onSubmit={handleCreate} className="min-w-0">
-            <Card className="space-y-4 p-4 sm:p-5">
-              <h2 className="text-lg font-bold text-slate-950 dark:text-white">New goal</h2>
+            <Card className="space-y-3 p-3.5 sm:p-4">
+              <h2 className="text-base font-semibold text-slate-950 dark:text-white">New goal</h2>
               {error ? (
-                <p className="rounded-2xl bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">
+                <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-xs text-rose-700 dark:text-rose-300">
                   {error}
                 </p>
               ) : null}
@@ -257,9 +257,9 @@ export default function GrowthPage() {
                 }
                 placeholder="Why this matters"
                 helperText="Dictate the reason behind the goal."
-                textareaClassNameOverride={textareaClassName}
+                textareaClassNameOverride={`${textareaClassName} min-h-20`}
               />
-              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2.5 min-[380px]:grid-cols-2">
                 <select
                   className={controlClassName}
                   value={form.category}
@@ -292,7 +292,7 @@ export default function GrowthPage() {
                   }
                 />
               </div>
-              <Button className="w-full" type="submit" disabled={isLoading}>
+              <Button className="h-9 w-full" type="submit" disabled={isLoading}>
                 Create goal
               </Button>
             </Card>

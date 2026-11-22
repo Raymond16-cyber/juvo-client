@@ -18,7 +18,7 @@ function journalLabel(journal: JournalHistoryItem) {
   const note = journal.psychology?.beforeTrading?.trim();
   if (note) return note;
   const symbols = journal.trades?.map((trade) => trade.symbol).filter(Boolean);
-  if (symbols?.length) return symbols.slice(0, 3).join(" · ");
+  if (symbols?.length) return symbols.slice(0, 3).join(" Â· ");
   return "Journal session";
 }
 
@@ -83,7 +83,7 @@ export default function JournalAttachPicker({
         role="dialog"
         aria-modal="true"
         aria-labelledby="journal-attach-title"
-        className="juvo-safe-pb relative z-10 flex max-h-[min(85dvh,720px)] w-full max-w-lg min-w-0 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0b1220]"
+        className="juvo-safe-pb relative z-10 flex max-h-[min(85dvh,720px)] w-full max-w-lg min-w-0 flex-col overflow-hidden rounded-card border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0b1220]"
       >
         <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-5 dark:border-white/10">
           <div className="min-w-0">
@@ -135,7 +135,7 @@ export default function JournalAttachPicker({
                       : "border-slate-200 hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/[0.04]"
                   }`}
                 >
-                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+                  <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
                     {selected ? <Check size={16} /> : <BookOpenText size={16} />}
                   </span>
                   <span className="min-w-0 flex-1">

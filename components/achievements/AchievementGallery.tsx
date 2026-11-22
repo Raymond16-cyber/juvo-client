@@ -99,7 +99,7 @@ export default function AchievementGallery({
       <Card className="p-5 sm:p-6" interactive={false}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/15 text-primary">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
               <Trophy size={20} />
             </div>
             <div>
@@ -114,7 +114,7 @@ export default function AchievementGallery({
                 </span>
               </p>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Feature up to three earned badges on your profile · {featuredCount}/3
+                Feature up to three earned badges on your profile Â· {featuredCount}/3
               </p>
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function AchievementGallery({
 
       {loading ? (
         <Card className="p-8 text-center text-sm text-slate-500 dark:text-slate-400" interactive={false}>
-          Loading achievements…
+          Loading achievementsâ€¦
         </Card>
       ) : filtered.length ? (
         <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 xl:grid-cols-3 xl:gap-4">
@@ -237,7 +237,7 @@ export default function AchievementGallery({
                     <p className="mt-4 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                       Earned
                       {formatEarnedAt(item.earnedAt)
-                        ? ` · ${formatEarnedAt(item.earnedAt)}`
+                        ? ` Â· ${formatEarnedAt(item.earnedAt)}`
                         : ""}
                     </p>
                   )}
@@ -306,7 +306,7 @@ function AchievementDetailModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="achievement-detail-title"
-            className="relative z-10 max-h-[min(92dvh,900px)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0B1220]"
+            className="relative z-10 max-h-[min(92dvh,900px)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-card border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0B1220]"
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -315,7 +315,7 @@ function AchievementDetailModal({
             <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-white/10">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  {achievementTierLabel(item.tier)} · {CATEGORY_LABELS[item.category]}
+                  {achievementTierLabel(item.tier)} Â· {CATEGORY_LABELS[item.category]}
                 </p>
                 <h2
                   id="achievement-detail-title"
@@ -395,7 +395,7 @@ function AchievementDetailModal({
                   >
                     <Star size={15} />
                     {featuring
-                      ? "Saving…"
+                      ? "Savingâ€¦"
                       : item.featured
                         ? "Unfeature"
                         : "Feature"}
@@ -403,7 +403,7 @@ function AchievementDetailModal({
                 </div>
               ) : (
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Keep going — earn this badge to feature it on your profile.
+                  Keep going â€” earn this badge to feature it on your profile.
                 </p>
               )}
             </div>

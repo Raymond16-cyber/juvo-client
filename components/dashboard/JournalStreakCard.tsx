@@ -61,38 +61,38 @@ export default function JournalStreakCard({
         <div className="flex min-w-0 items-center gap-3">
           <div
             className={cn(
-              "relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl",
+              "relative grid h-10 w-10 shrink-0 place-items-center rounded-xl",
               current > 0
-                ? "bg-gradient-to-br from-orange-500/25 via-amber-400/20 to-rose-500/10 text-orange-500 shadow-[0_0_24px_rgba(249,115,22,0.18)]"
+                ? "bg-gradient-to-br from-orange-500/25 via-amber-400/20 to-rose-500/10 text-orange-500 shadow-[0_0_16px_rgba(249,115,22,0.14)]"
                 : "bg-slate-100 text-slate-400 dark:bg-white/10 dark:text-slate-500",
             )}
           >
             <Flame
-              size={22}
+              size={18}
               className={cn(current > 0 && "fill-orange-500/30")}
             />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-orange-600/80 dark:text-orange-300/80">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-orange-600/80 dark:text-orange-300/80">
               Journal streak
             </p>
-            <p className="mt-1 break-words text-xl font-bold text-slate-950 sm:text-2xl dark:text-white">
+            <p className="mt-0.5 break-words text-lg font-semibold text-slate-950 sm:text-xl dark:text-white">
               {headline}
             </p>
           </div>
         </div>
         {todayCompleted ? (
-          <span className="shrink-0 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+          <span className="shrink-0 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
             Today done
           </span>
         ) : null}
       </div>
 
-      <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+      <p className="mt-2 text-sm leading-5 text-slate-600 dark:text-slate-300">
         {message}
       </p>
 
-      <div className="mt-4 grid grid-cols-7 gap-1 sm:gap-1.5">
+      <div className="mt-3 grid grid-cols-7 gap-1 sm:gap-1.5">
         {week.map((day) => (
           <div key={day.date} className="min-w-0 text-center">
             <p className="mb-1 truncate text-[9px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500 sm:text-[10px]">
@@ -118,7 +118,7 @@ export default function JournalStreakCard({
         ))}
       </div>
 
-      <div className="mt-4 flex flex-col gap-1 border-t border-slate-200 pt-3 text-xs sm:flex-row sm:items-center sm:justify-between sm:gap-3 dark:border-white/10">
+      <div className="mt-3 flex flex-col gap-1 border-t border-slate-200 pt-2.5 text-xs sm:flex-row sm:items-center sm:justify-between sm:gap-3 dark:border-white/10">
         <p className="text-slate-500 dark:text-slate-400">
           Longest streak{" "}
           <span className="font-bold text-slate-950 dark:text-white">
@@ -140,7 +140,7 @@ export default function JournalStreakCard({
         data-tour="journal-streak"
         className="block w-full rounded-2xl text-left transition hover:-translate-y-0.5 hover:shadow-md"
       >
-        <Card className="border-orange-500/15 p-4 dark:border-orange-400/15 sm:p-5">
+        <Card className="border-orange-500/15 p-3.5 dark:border-orange-400/15 sm:p-4">
           {content}
         </Card>
       </button>
@@ -153,7 +153,7 @@ export default function JournalStreakCard({
       data-tour="journal-streak"
       className="block rounded-2xl transition hover:-translate-y-0.5 hover:shadow-md"
     >
-      <Card className="border-orange-500/15 p-4 dark:border-orange-400/15 sm:p-5">
+      <Card className="border-orange-500/15 p-3.5 dark:border-orange-400/15 sm:p-4">
         {content}
       </Card>
     </Link>

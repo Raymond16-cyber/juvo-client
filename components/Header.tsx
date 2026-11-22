@@ -53,8 +53,8 @@ export default function Header() {
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? "border-b border-white/10 bg-[#050816]/82 shadow-[0_12px_40px_rgba(2,6,23,0.5)] backdrop-blur-xl"
-          : "border-b border-white/10 bg-[#050816]/58 shadow-[0_10px_30px_rgba(2,6,23,0.28)] backdrop-blur-xl"
+          ? "border-b border-white/10 bg-[#050816]/95 shadow-juvo"
+          : "border-b border-white/10 bg-[#050816]/90"
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:py-5">
@@ -146,7 +146,7 @@ export default function Header() {
             transition={{ duration: 0.25 }}
             className="mx-auto max-w-7xl px-4 lg:hidden"
           >
-            <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#07101d]/95 p-4 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
+            <div className="overflow-hidden rounded-card border border-white/10 bg-[#07101d]/95 p-4 shadow-juvo  ">
               {!isAuthPage ? (
                 <nav className="flex flex-col gap-2 text-sm text-slate-200">
                   {navLinks.map((link) => (

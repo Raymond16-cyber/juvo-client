@@ -32,7 +32,7 @@ export default function JuvoAIInsight() {
             Analyzing your recent trades
           </h2>
         </div>
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
           <BrainCircuit size={21} />
         </div>
       </div>

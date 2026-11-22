@@ -55,8 +55,8 @@ export function formatNumber(value: number, digits = 2) {
 }
 
 export function pnlClass(value: number) {
-  if (value > 0) return "text-emerald-600 dark:text-emerald-300";
-  if (value < 0) return "text-rose-600 dark:text-rose-300";
+  if (value > 0) return "text-profit";
+  if (value < 0) return "text-loss";
   return "text-slate-950 dark:text-white";
 }
 

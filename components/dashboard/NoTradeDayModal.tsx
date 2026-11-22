@@ -163,7 +163,7 @@ export default function NoTradeDayModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="no-trade-day-title"
-            className="relative z-10 max-h-[min(92dvh,900px)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0b1220]"
+            className="relative z-10 max-h-[min(92dvh,900px)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-card border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0b1220]"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
@@ -199,7 +199,7 @@ export default function NoTradeDayModal({
             <form className="space-y-4 px-5 py-5" onSubmit={handleSubmit}>
               {loading ? (
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Checking today's status…
+                  Checking today's statusâ€¦
                 </p>
               ) : (
                 <>
@@ -327,12 +327,12 @@ export default function NoTradeDayModal({
                       }
                     }}
                   >
-                    {lifting ? "Lifting…" : "Lift lock & allow trades"}
+                    {lifting ? "Liftingâ€¦" : "Lift lock & allow trades"}
                   </Button>
                 ) : null}
                 <Button type="submit" disabled={loading || saving || lifting}>
                   {saving
-                    ? "Saving…"
+                    ? "Savingâ€¦"
                     : existing
                       ? existing.isActive
                         ? "Update no-trade day"

@@ -33,7 +33,7 @@ export default function ReferralsPage() {
 
   return (
     <DashboardShell>
-      <div className="mx-auto w-full max-w-3xl space-y-6">
+      <div className="w-full space-y-6">
         <PageHeader
           eyebrow="General"
           title="Referrals"
@@ -44,7 +44,7 @@ export default function ReferralsPage() {
           description="Share invite codes after your email is verified so invitations stay tied to a real account."
         >
           <Card className="p-4 sm:p-6">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
               <Gift size={22} />
             </div>
             <h2 className="mt-4 text-xl font-bold text-slate-950 sm:text-2xl dark:text-white">

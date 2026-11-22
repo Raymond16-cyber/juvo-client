@@ -12,6 +12,8 @@ export type JuvoNotice = {
   journalId?: string;
   href?: string;
   linkLabel?: string;
+  undoLabel?: string;
+  onUndo?: () => void | Promise<void>;
 };
 
 type NoticeInput = {
@@ -23,6 +25,8 @@ type NoticeInput = {
   journalId?: string;
   href?: string;
   linkLabel?: string;
+  undoLabel?: string;
+  onUndo?: () => void | Promise<void>;
 };
 
 const SEEN_KEY = "juvo.seenAccountOutcomes";
@@ -82,10 +86,12 @@ export const useNoticeStore = create<NoticeStore>((set, get) => ({
       title: notice.title,
       body: notice.body,
       tone: notice.tone || "info",
-      duration: notice.duration ?? 7000,
+      duration: notice.duration ?? (notice.onUndo ? 8000 : 7000),
       journalId: notice.journalId,
       href: notice.href,
       linkLabel: notice.linkLabel,
+      undoLabel: notice.undoLabel || (notice.onUndo ? "Undo" : undefined),
+      onUndo: notice.onUndo,
     };
 
     if (get().notices.some((item) => item.id === id)) return id;

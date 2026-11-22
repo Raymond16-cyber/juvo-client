@@ -76,7 +76,7 @@ export default function Hero() {
 
           <h1 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl">
             Trade with intent.
-            <span className="block bg-gradient-to-r from-cyan-300 via-white to-blue-300 bg-clip-text text-transparent">
+            <span className="block text-primary">
               Build discipline over time.
             </span>
           </h1>
@@ -98,7 +98,7 @@ export default function Hero() {
             </Button>
 
             <Button
-              variant="ghost"
+              variant="onDark"
               onClick={() => scrollToTarget("how-it-works")}
               className="min-w-[200px]"
             >
@@ -114,9 +114,9 @@ export default function Hero() {
             ].map((item) => (
               <div
                 key={item.label}
-                className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-sm text-slate-300 shadow-[0_10px_35px_rgba(2,6,23,0.26)] backdrop-blur"
+                className="flex items-center gap-3 rounded-control border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300"
               >
-                <item.icon className="h-4 w-4 text-cyan-300" />
+                <item.icon className="h-4 w-4 text-primary" />
                 <span>{item.label}</span>
               </div>
             ))}
@@ -129,9 +129,9 @@ export default function Hero() {
           transition={{ duration: 0.9, ease: "easeOut" }}
           className="juvo-hero-visual relative"
         >
-          <div className="absolute inset-0 -z-10 rounded-[2rem] bg-gradient-to-br from-cyan-500/10 via-transparent to-blue-500/10 blur-2xl" />
-          <div className="rounded-[2rem] border border-white/10 bg-white/6 p-4 shadow-[0_30px_90px_rgba(2,6,23,0.45)] backdrop-blur-2xl">
-            <div className="rounded-[1.5rem] border border-white/10 bg-[#08111f]/90 p-4 sm:p-5">
+          <div className="absolute inset-0 -z-10 rounded-card bg-gradient-to-br from-cyan-500/10 via-transparent to-blue-500/10 blur-2xl" />
+          <div className="rounded-card border border-white/10 bg-white/6 p-4 shadow-[0_30px_90px_rgba(2,6,23,0.45)]  ">
+            <div className="rounded-card border border-white/10 bg-[#08111f]/90 p-4 sm:p-5">
               <div className="flex items-center justify-between border-b border-white/8 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="relative h-11 w-11 overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-1.5">
@@ -161,7 +161,7 @@ export default function Hero() {
               </div>
 
               <div className="mt-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-                <div className="rounded-[1.5rem] border border-white/8 bg-white/5 p-4">
+                <div className="rounded-card border border-white/8 bg-white/5 p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-white">
@@ -226,7 +226,7 @@ export default function Hero() {
                             : "border-white/5 bg-white/[0.02] text-slate-500"
                         }`}
                       >
-                        {value || "•"}
+                        {value || "â€¢"}
                       </div>
                     ))}
                   </div>
@@ -253,7 +253,7 @@ export default function Hero() {
                 </div>
 
                 <div className="grid gap-4">
-                  <div className="juvo-floating-card rounded-[1.5rem] border border-white/8 bg-[#0b1425] p-4">
+                  <div className="juvo-floating-card rounded-card border border-white/8 bg-[#0b1425] p-4">
                     <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/70">
                       Journal note
                     </p>
@@ -304,7 +304,7 @@ export default function Hero() {
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -left-2 top-10 hidden w-44 rounded-2xl border border-white/10 bg-[#0a1220]/90 p-4 shadow-xl shadow-slate-950/40 backdrop-blur-lg lg:block"
+            className="absolute -left-2 top-10 hidden w-44 rounded-2xl border border-white/10 bg-[#0a1220]/90 p-4 shadow-xl shadow-slate-950/40   lg:block"
           >
             <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/70">
               Session note
@@ -315,7 +315,7 @@ export default function Hero() {
           <motion.div
             animate={{ y: [0, 12, 0] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -right-4 bottom-8 hidden w-44 rounded-2xl border border-white/10 bg-[#0a1220]/90 p-4 shadow-xl shadow-slate-950/40 backdrop-blur-lg lg:block"
+            className="absolute -right-4 bottom-8 hidden w-44 rounded-2xl border border-white/10 bg-[#0a1220]/90 p-4 shadow-xl shadow-slate-950/40   lg:block"
           >
             <p className="text-[11px] uppercase tracking-[0.2em] text-cyan-100/70">
               Rule check

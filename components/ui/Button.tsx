@@ -1,10 +1,32 @@
 "use client";
 
-import { motion } from "framer-motion";
-import React from "react";
+import { cn } from "@/lib/ui";
+import { Check, LoaderCircle, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 
-type ButtonProps = React.ComponentPropsWithoutRef<typeof motion.button> & {
-  variant?: "primary" | "ghost" | "onDark";
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "onDark";
+type ButtonStatus = "idle" | "loading" | "success" | "error";
+
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant;
+  /** Controlled async status. When omitted, use `loading` for a simple busy state. */
+  status?: ButtonStatus;
+  loading?: boolean;
+  successLabel?: string;
+  errorLabel?: string;
+};
+
+const variants: Record<ButtonVariant, string> = {
+  primary:
+    "border border-slate-950 bg-slate-950 text-white hover:bg-slate-800 dark:border-primary dark:bg-primary dark:text-slate-950 dark:hover:bg-secondary",
+  secondary:
+    "border border-border bg-white text-slate-800 hover:bg-slate-50 dark:bg-white/[0.03] dark:text-slate-100 dark:hover:bg-white/[0.06]",
+  ghost:
+    "border border-transparent bg-transparent text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-white/[0.06]",
+  danger:
+    "border border-loss/30 bg-loss text-white hover:brightness-95",
+  onDark:
+    "border border-white/15 bg-white/5 text-white hover:bg-white/10",
 };
 
 export default function Button({
@@ -12,30 +34,65 @@ export default function Button({
   children,
   className = "",
   type = "button",
+  status,
+  loading = false,
+  successLabel,
+  errorLabel,
+  disabled,
   ...rest
 }: ButtonProps) {
-  const base =
-    "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-transform duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:pointer-events-none disabled:opacity-50 sm:px-5";
+  const resolved: ButtonStatus =
+    status || (loading ? "loading" : "idle");
+  const [flash, setFlash] = useState<ButtonStatus>("idle");
 
-  const variants: Record<string, string> = {
-    primary:
-      "bg-gradient-to-r from-cyan-400 via-sky-400 to-violet-500 text-slate-950 shadow-[0_12px_30px_rgba(56,189,248,0.25)] hover:-translate-y-0.5 hover:from-cyan-300 hover:to-violet-400",
-    ghost:
-      "border border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-violet-300 hover:bg-violet-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:hover:bg-violet-500/10",
-    onDark:
-      "border border-white/10 bg-white/5 text-white hover:-translate-y-0.5 hover:bg-white/10",
-  };
+  useEffect(() => {
+    if (resolved !== "success" && resolved !== "error") {
+      setFlash("idle");
+      return;
+    }
+    setFlash(resolved);
+    const timer = window.setTimeout(() => setFlash("idle"), 1400);
+    return () => window.clearTimeout(timer);
+  }, [resolved]);
+
+  const shown = flash !== "idle" ? flash : resolved;
+  const busy = shown === "loading";
+  const isDisabled = Boolean(disabled || busy);
+
+  const content =
+    shown === "success" && successLabel
+      ? successLabel
+      : shown === "error" && errorLabel
+        ? errorLabel
+        : children;
 
   return (
-    <motion.button
+    <button
       type={type}
-      whileHover={{ scale: 1.04 }}
-      whileTap={{ scale: 0.96 }}
-      transition={{ type: "spring", stiffness: 300 }}
-      className={`${base} ${variants[variant]} ${className}`.trim()}
+      disabled={isDisabled}
+      aria-busy={busy || undefined}
+      data-status={shown}
+      className={cn(
+        "inline-flex min-h-10 items-center justify-center gap-2 rounded-control px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-juvo disabled:pointer-events-none disabled:opacity-50",
+        variants[variant],
+        shown === "success" &&
+          "border-profit/40 bg-profit text-white hover:bg-profit",
+        shown === "error" &&
+          "border-loss/40 bg-loss text-white hover:bg-loss",
+        className,
+      )}
       {...rest}
     >
-      {children}
-    </motion.button>
+      {shown === "loading" ? (
+        <LoaderCircle size={16} className="shrink-0 animate-spin" aria-hidden />
+      ) : null}
+      {shown === "success" && successLabel ? (
+        <Check size={16} className="shrink-0" aria-hidden />
+      ) : null}
+      {shown === "error" && errorLabel ? (
+        <X size={16} className="shrink-0" aria-hidden />
+      ) : null}
+      {content}
+    </button>
   );
 }

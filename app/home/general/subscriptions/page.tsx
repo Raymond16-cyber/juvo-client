@@ -15,8 +15,8 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import HistoryModal from "@/components/ui/HistoryModal";
-import HistoryPreview from "@/components/ui/HistoryPreview";
 import PageHeader from "@/components/ui/PageHeader";
+import PaginatedCollection from "@/components/ui/PaginatedCollection";
 import { getApiErrorMessage } from "@/lib/axios";
 import { formatDate, formatMoney } from "@/lib/format";
 import { useAuthStore } from "@/stores/auth.store";
@@ -256,7 +256,7 @@ export default function SubscriptionsPage() {
           </p>
         )}
         {notice && (
-          <p role="status" className="text-sm text-cyan-800 dark:text-cyan-300">
+          <p role="status" className="text-sm text-cyan-800 dark:text-primary">
             {notice}
           </p>
         )}
@@ -276,7 +276,7 @@ export default function SubscriptionsPage() {
                 overview?.current?.status || authUser?.subscription?.status,
               )}
               {overview?.current?.expiresAt
-                ? ` · Access until ${formatDate(overview.current.expiresAt, { month: "short", day: "numeric", year: "numeric" })}`
+                ? ` Â· Access until ${formatDate(overview.current.expiresAt, { month: "short", day: "numeric", year: "numeric" })}`
                 : ""}
             </p>
           </div>
@@ -447,7 +447,7 @@ export default function SubscriptionsPage() {
             {activeSubscription ? (
               <div className="mt-3 border-t border-slate-200 py-4 dark:border-white/10">
                 <p className="text-sm font-medium text-slate-950 dark:text-white">
-                  {planDetails[activeSubscription.plan].name} ·{" "}
+                  {planDetails[activeSubscription.plan].name} Â·{" "}
                   {statusLabel(activeSubscription.status)}
                 </p>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -490,21 +490,17 @@ export default function SubscriptionsPage() {
               Billing history
             </h2>
             {overview?.payments.length ? (
-              <HistoryPreview
-                hasMore={overview.payments.length > 10}
-                countLabel={`${overview.payments.length} payments`}
-                onSeeAll={() => {
-                  setBillingHistoryVisible(10);
-                  setBillingHistoryOpen(true);
-                }}
-                seeAllLabel="See full billing history"
-              >
-                <div className="mt-3 divide-y divide-slate-200 border-y border-slate-200 dark:divide-white/10 dark:border-white/10">
-                  {overview.payments.slice(0, 10).map((payment) => (
-                    <div
-                      key={payment.id}
-                      className="flex min-w-0 items-center justify-between gap-3 py-3 text-sm"
-                    >
+              <div className="mt-3">
+                <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                  {overview.payments.length} payments · 5 per page
+                </p>
+                <PaginatedCollection
+                  items={overview.payments}
+                  itemsPerPage={5}
+                  getKey={(payment) => payment.id}
+                  listClassName="divide-y divide-border border-y border-border"
+                  renderItem={(payment) => (
+                    <div className="flex min-w-0 items-center justify-between gap-3 py-2.5 text-sm">
                       <div className="min-w-0">
                         <p className="truncate font-medium text-slate-950 dark:text-white">
                           {planDetails[payment.plan].name} ·{" "}
@@ -524,9 +520,9 @@ export default function SubscriptionsPage() {
                         {payment.status}
                       </span>
                     </div>
-                  ))}
-                </div>
-              </HistoryPreview>
+                  )}
+                />
+              </div>
             ) : (
               <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
                 No Paystack payments yet.
@@ -557,7 +553,7 @@ export default function SubscriptionsPage() {
           )
         }
       >
-        <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 dark:divide-white/10 dark:border-white/10">
+        <div className="divide-y divide-slate-200 overflow-hidden rounded-card border border-border dark:divide-white/10 dark:border-white/10">
           {(overview?.payments || [])
             .slice(0, billingHistoryVisible)
             .map((payment) => (
@@ -567,7 +563,7 @@ export default function SubscriptionsPage() {
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium text-slate-950 dark:text-white">
-                    {planDetails[payment.plan].name} ·{" "}
+                    {planDetails[payment.plan].name} Â·{" "}
                     {money(payment.expectedAmount, payment.currency)}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400">

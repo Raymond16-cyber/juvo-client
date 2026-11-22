@@ -1,4 +1,4 @@
-import type { Variants } from "framer-motion";
+import type { Transition, Variants } from "framer-motion";
 
 export const juvoEase = [0.22, 1, 0.36, 1] as const;
 
@@ -7,6 +7,21 @@ export const motionDuration = {
   normal: 0.24,
   slow: 0.38,
 };
+
+/** Prefer CSS/instant transitions when the user requests reduced motion. */
+export function prefersReducedMotion() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+export function interactionTransition(
+  duration = motionDuration.normal,
+): Transition {
+  if (prefersReducedMotion()) {
+    return { duration: 0 };
+  }
+  return { duration, ease: juvoEase };
+}
 
 export const pageTransition: Variants = {
   initial: { opacity: 0, y: 2 },

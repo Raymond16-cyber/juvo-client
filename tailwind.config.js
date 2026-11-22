@@ -9,18 +9,34 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "#050816",
-        card: "#0B1220",
-        primary: "#00D4FF",
-        secondary: "#5EEBFF",
-        accent: "#3B82F6",
-        text: "#FFFFFF",
-        muted: "#9CA3AF",
-        success: "#22C55E",
-        danger: "#EF4444",
+        background: "var(--bg)",
+        surface: "var(--surface)",
+        card: "var(--card)",
+        primary: "var(--primary)",
+        "primary-strong": "var(--primary-strong)",
+        secondary: "var(--secondary)",
+        accent: "var(--accent)",
+        text: "var(--text)",
+        muted: "var(--muted)",
+        border: "var(--border)",
+        "border-strong": "var(--border-strong)",
+        profit: "var(--profit)",
+        loss: "var(--loss)",
+        warning: "var(--warning)",
       },
       fontFamily: {
+        saira: ["var(--font-saira)", "ui-sans-serif", "system-ui", "sans-serif"],
         geist: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui"],
+      },
+      borderRadius: {
+        control: "var(--radius-control)",
+        card: "var(--radius-card)",
+      },
+      boxShadow: {
+        juvo: "var(--shadow)",
+      },
+      ringColor: {
+        juvo: "var(--ring)",
       },
     },
   },

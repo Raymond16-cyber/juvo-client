@@ -61,14 +61,14 @@ export default function MetricCard({
   return (
     <section
       data-dashboard-card
-      className="dashboard-card min-h-[7.25rem] min-w-0 rounded-2xl border border-slate-200/90 bg-white p-3.5 dark:border-white/10 dark:bg-card sm:min-h-[7.75rem] sm:p-5"
+      className="dashboard-card min-h-[5.75rem] min-w-0 rounded-card border border-border bg-card p-3 sm:min-h-[6.25rem] sm:p-3.5"
     >
-      <div className="flex items-start justify-between gap-2 sm:gap-3">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400 sm:text-xs">
+          <p className="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-muted sm:text-[11px]">
             {label}
           </p>
-          <p className="juvo-break-words mt-2 text-xl font-bold tabular-nums leading-tight text-slate-950 dark:text-white sm:mt-3 sm:text-2xl sm:leading-none">
+          <p className="juvo-break-words mt-1.5 text-lg font-semibold tabular-nums leading-tight text-slate-950 dark:text-white sm:text-xl">
             {counter ? (
               <AnimatedCounter
                 value={counter.value}
@@ -81,22 +81,22 @@ export default function MetricCard({
         </div>
         <div
           className={cn(
-            "grid h-9 w-9 shrink-0 place-items-center rounded-xl sm:h-10 sm:w-10",
+            "grid h-8 w-8 shrink-0 place-items-center rounded-control",
             iconTone,
           )}
         >
-          <Icon size={18} />
+          <Icon size={15} />
         </div>
       </div>
-      <div className="mt-3 flex items-start justify-between gap-2 sm:mt-4 sm:items-center sm:gap-3">
-        <p className={cn("min-w-0 text-xs font-medium leading-5 sm:text-sm", toneClass)}>
+      <div className="mt-2 flex items-start justify-between gap-2 sm:items-center">
+        <p className={cn("min-w-0 text-[11px] font-medium leading-4 sm:text-xs", toneClass)}>
           {change}
         </p>
         {onExplain ? (
           <button
             type="button"
             onClick={onExplain}
-            className="shrink-0 py-1 text-xs font-semibold text-primary transition hover:underline"
+            className="shrink-0 py-0.5 text-[11px] font-semibold text-primary transition hover:underline"
           >
             {explainLabel}
           </button>

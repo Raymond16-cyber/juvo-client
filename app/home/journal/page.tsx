@@ -5,7 +5,8 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import VoiceNoteTextarea from "@/components/journal/VoiceNoteTextarea";
 import Button from "@/components/ui/Button";
 import HistoryModal from "@/components/ui/HistoryModal";
-import HistoryPreview from "@/components/ui/HistoryPreview";
+import PaginatedCollection from "@/components/ui/PaginatedCollection";
+import SegmentedControl from "@/components/ui/SegmentedControl";
 import {
   getJournalDisplayPnl,
   getSelectedAccount,
@@ -25,8 +26,6 @@ import {
   CheckCircle2,
   Clock3,
   Database,
-  LayoutGrid,
-  List,
   NotebookPen,
   Plus,
   Search,
@@ -38,7 +37,9 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
-const PREVIEW_LIMIT = 10;
+/** Fetch a working set; UI shows 5 per page via PaginatedCollection. */
+const PREVIEW_LIMIT = 50;
+const JOURNALS_PER_PAGE = 5;
 
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat("en", {
@@ -332,128 +333,101 @@ export default function JournalPage() {
           />
         </div>
 
-        <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(300px,360px)]">
-          <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-card">
-            <div className="flex flex-col gap-3 border-b border-slate-200 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <section className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(260px,300px)]">
+          <div className="min-w-0 overflow-hidden rounded-card border border-border bg-card shadow-sm">
+            <div className="flex flex-col gap-3 border-b border-border p-3.5 sm:flex-row sm:items-center sm:justify-between sm:p-4">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h2 className="text-lg font-bold text-slate-950 dark:text-white">
+                  <h2 className="text-base font-semibold text-slate-950 dark:text-white">
                     Daily journals
                   </h2>
                   <AccountSwitcher compact />
                 </div>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Showing {journals.length}
                   {journalPagination?.total
-                    ? ` of ${journalPagination.total}`
-                    : ""}{" "}
-                  · newest first
+                    ? `${journalPagination.total} sessions`
+                    : `${journals.length} loaded`}{" "}
+                  · newest first · {JOURNALS_PER_PAGE} per page
                 </p>
               </div>
-              <div className="flex items-center justify-end gap-3 text-sm text-slate-500 dark:text-slate-400">
-                <div
-                  className="flex items-center gap-1 rounded-full bg-slate-100 p-1 dark:bg-white/10"
-                  role="group"
-                  aria-label="Journal display mode"
-                >
-                  <button
+              <div className="flex items-center justify-end gap-2 text-sm text-slate-500 dark:text-slate-400">
+                {previewHasMore ? (
+                  <Button
                     type="button"
-                    aria-label="Show journals as a list"
-                    aria-pressed={journalView === "list"}
-                    title="List view"
-                    onClick={() => setJournalView("list")}
-                    className={`grid h-11 w-11 place-items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-                      journalView === "list"
-                        ? "bg-white text-slate-950 shadow-sm dark:bg-card dark:text-white"
-                        : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                    }`}
+                    variant="ghost"
+                    className="h-9 px-3 text-xs"
+                    onClick={() => void openHistory()}
                   >
-                    <List size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Show journals as a grid"
-                    aria-pressed={journalView === "grid"}
-                    title="Grid view"
-                    onClick={() => setJournalView("grid")}
-                    className={`grid h-11 w-11 place-items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
-                      journalView === "grid"
-                        ? "bg-white text-slate-950 shadow-sm dark:bg-card dark:text-white"
-                        : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
-                    }`}
-                  >
-                    <LayoutGrid size={16} />
-                  </button>
-                </div>
+                    Full history
+                  </Button>
+                ) : null}
+                <SegmentedControl
+                  ariaLabel="Journal display mode"
+                  value={journalView}
+                  onChange={setJournalView}
+                  options={[
+                    { value: "list", label: "List" },
+                    { value: "grid", label: "Grid" },
+                  ]}
+                />
               </div>
             </div>
 
-            <HistoryPreview
-              hasMore={previewHasMore}
-              onSeeAll={() => void openHistory()}
-              seeAllLabel="See full journal history"
-              countLabel={
-                journalPagination?.total
-                  ? `${journalPagination.total} total sessions`
-                  : undefined
-              }
-            >
-              <div
-                className={
-                  journalView === "list"
-                    ? "divide-y divide-slate-200 dark:divide-white/10"
-                    : "grid gap-4 p-4 sm:grid-cols-2"
-                }
-              >
-                {isLoading && !journals.length ? (
-                  <EmptyState
-                    title="Loading journals"
-                    body="Your journal history is coming in."
-                  />
-                ) : journals.length ? (
-                  journals.map((journal) => (
-                    <JournalRow
-                      key={journal._id}
-                      journal={journal}
-                      view={journalView}
-                    />
-                  ))
-                ) : (
-                  <EmptyState
-                    title="No journals found"
-                    body={
-                      searchTerm
-                        ? "Try a different symbol, account, or note."
-                        : "Create your first journal from the panel on this page."
-                    }
-                  />
-                )}
-              </div>
-            </HistoryPreview>
+            <div className="p-0 sm:p-0">
+              {isLoading && !journals.length ? (
+                <EmptyState
+                  title="Loading journals"
+                  body="Your journal history is coming in."
+                />
+              ) : journals.length ? (
+                <PaginatedCollection
+                  items={journals}
+                  itemsPerPage={JOURNALS_PER_PAGE}
+                  getKey={(journal) => journal._id}
+                  listClassName={
+                    journalView === "list"
+                      ? "divide-y divide-border"
+                      : "grid gap-3 p-3 sm:grid-cols-2"
+                  }
+                  renderItem={(journal) => (
+                    <JournalRow journal={journal} view={journalView} />
+                  )}
+                />
+              ) : (
+                <EmptyState
+                  title="No journals found"
+                  body={
+                    searchTerm
+                      ? "Try a different symbol, account, or note."
+                      : "Create your first journal from the panel on this page."
+                  }
+                />
+              )}
+            </div>
           </div>
 
-          <aside className="min-w-0 space-y-4 xl:sticky xl:top-8">
+          <aside className="min-w-0 space-y-3 xl:sticky xl:top-8">
             <form
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card sm:p-5"
+              className="rounded-card border border-border bg-card p-3.5 shadow-sm sm:p-4"
               onSubmit={handleCreateJournal}
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                     Create
                   </p>
-                  <h2 className="mt-1 text-lg font-bold text-slate-950 dark:text-white">
+                  <h2 className="mt-0.5 text-base font-semibold text-slate-950 dark:text-white">
                     New journal
                   </h2>
                 </div>
-                <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-                  <NotebookPen size={21} />
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-control bg-primary/15 text-primary">
+                  <NotebookPen size={16} />
                 </div>
               </div>
 
               {(error || accountError || successMessage) && (
                 <div
-                  className={`mt-4 rounded-2xl px-3 py-2 text-sm ${
+                  className={`mt-3 rounded-lg px-3 py-2 text-xs ${
                     successMessage
                       ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                       : "bg-rose-500/10 text-rose-700 dark:text-rose-300"
@@ -463,11 +437,11 @@ export default function JournalPage() {
                 </div>
               )}
 
-              <div className="mt-5 space-y-4">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <div className="mt-3 space-y-3">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200">
                   Trading account
                   <select
-                    className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                    className="mt-1.5 h-9 w-full rounded-control border border-border bg-white px-2.5 text-sm text-slate-900 outline-none focus:border-primary dark:bg-white/[0.04] dark:text-white"
                     value={selectedAccountId}
                     onChange={(event) =>
                       setSelectedAccountId(event.target.value)
@@ -499,13 +473,13 @@ export default function JournalPage() {
                   onChange={setBeforeTrading}
                   placeholder="Bias, setup focus, emotional state"
                   helperText="Dictate your prep note if typing feels heavy."
-                  textareaClassNameOverride="mt-0 min-h-28 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+                  textareaClassNameOverride="mt-0 min-h-20 w-full resize-none rounded-control border border-border bg-white px-2.5 py-2 text-sm text-slate-900 outline-none focus:border-primary dark:bg-white/[0.04] dark:text-white"
                 />
 
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200">
                   Confidence: {confidenceBefore}/10
                   <input
-                    className="mt-2 w-full accent-cyan-400"
+                    className="mt-1.5 w-full accent-cyan-400"
                     type="range"
                     min="1"
                     max="10"
@@ -517,24 +491,24 @@ export default function JournalPage() {
                 </label>
 
                 <Button
-                  className="w-full whitespace-nowrap"
+                  className="h-9 w-full whitespace-nowrap"
                   type="submit"
-                  disabled={
-                    isLoading || isLoadingAccounts || !tradableAccounts.length
-                  }
+                  loading={isLoading}
+                  successLabel="Created"
+                  disabled={isLoadingAccounts || !tradableAccounts.length}
                 >
-                  <Plus size={18} />
-                  {isLoading ? "Creating..." : "Create Journal"}
+                  <Plus size={15} />
+                  Create Journal
                 </Button>
               </div>
             </form>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-card">
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                <WalletCards size={17} />
+            <div className="rounded-card border border-border bg-card p-3.5 shadow-sm">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                <WalletCards size={15} />
                 Journal quality
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="mt-2.5 grid grid-cols-2 gap-2 text-sm">
                 <MiniMetric
                   label="Winning trades"
                   value={stats.winningTrades}
@@ -606,20 +580,20 @@ function StatCard({ icon: Icon, label, value, helper, tone }: StatCardProps) {
         : "text-slate-950 dark:text-white";
 
   return (
-    <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-card sm:p-5">
-      <div className="flex items-center justify-between gap-3">
-        <p className="min-w-0 truncate text-sm font-semibold text-slate-500 dark:text-slate-400">
+    <div className="min-w-0 rounded-card border border-border bg-card p-3 shadow-sm sm:p-3.5">
+      <div className="flex items-center justify-between gap-2">
+        <p className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
           {label}
         </p>
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white">
-          <Icon size={19} />
+        <div className="grid h-7 w-7 shrink-0 place-items-center rounded-control bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white">
+          <Icon size={14} />
         </div>
       </div>
-      <p className={`mt-3 break-words text-2xl font-bold sm:mt-4 sm:text-3xl ${toneClass}`}>
+      <p className={`mt-2 break-words text-lg font-semibold sm:text-xl ${toneClass}`}>
         {value}
       </p>
       {helper && (
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
           {helper}
         </p>
       )}

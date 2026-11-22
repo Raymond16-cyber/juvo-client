@@ -215,15 +215,15 @@ export default function ExportPage() {
           {entitled ? (
             <>
               {([
-                { format: "pdf", title: "PDF Report", description: "A polished performance report with trades, journals, accounts, and analytics.", icon: FileText },
-                { format: "excel", title: "Excel Workbook", description: "Structured worksheets for trade history, journals, accounts, and analytics.", icon: FileSpreadsheet },
+                { format: "pdf", title: "Analytics PDF", description: "Trade history, journal history, account data, and analytics in one report.", icon: FileText },
+                { format: "excel", title: "Analytics Excel", description: "Worksheets for trade history, journal history, account data, and analytics.", icon: FileSpreadsheet },
               ] as const).map((item) => (
-                <section key={item.format} className="flex min-w-0 flex-col items-start rounded-lg border border-primary/20 bg-primary/[0.04] p-4 dark:bg-primary/[0.06] sm:p-5">
-                  <item.icon size={22} className="text-primary" />
-                  <h2 className="mt-3 text-lg font-semibold">{item.title}</h2>
-                  <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.description}</p>
-                  <Button className="mt-5 w-full sm:w-auto" onClick={() => void exportPaidReport(item.format)} disabled={Boolean(exporting) || loading || Boolean(error) || invalidRange} aria-label={`Export ${item.title}`}>
-                    {exporting === item.format ? <LoaderCircle size={16} className="animate-spin" /> : <Download size={16} />}
+                <section key={item.format} className="flex min-w-0 flex-col items-start rounded-lg border border-primary/20 bg-primary/[0.04] p-3.5 dark:bg-primary/[0.06] sm:p-4">
+                  <item.icon size={18} className="text-primary" />
+                  <h2 className="mt-2 text-base font-semibold">{item.title}</h2>
+                  <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{item.description}</p>
+                  <Button className="mt-3 h-9 w-full sm:w-auto" onClick={() => void exportPaidReport(item.format)} disabled={Boolean(exporting) || loading || Boolean(error) || invalidRange} aria-label={`Export ${item.title}`}>
+                    {exporting === item.format ? <LoaderCircle size={15} className="animate-spin" /> : <Download size={15} />}
                     {exporting === item.format ? "Preparing..." : `Export ${item.format === "pdf" ? "PDF" : "Excel"}`}
                   </Button>
                 </section>
@@ -231,16 +231,16 @@ export default function ExportPage() {
             </>
           ) : null}
           {([
-            { key: "json", title: "Journal JSON", count: `${journals.length} sessions`, icon: FileJson },
-            { key: "journals", title: "Session CSV", count: `${journals.length} rows`, icon: Table2 },
-            { key: "trades", title: "Trade CSV", count: `${tradeCount} rows`, icon: Table2 },
+            { key: "json", title: "Journal History", count: `${journals.length} journal sessions (JSON)`, icon: FileJson },
+            { key: "journals", title: "Account Data", count: `${journals.length} session rows (CSV)`, icon: Table2 },
+            { key: "trades", title: "Trade History", count: `${tradeCount} trades (CSV)`, icon: Table2 },
           ] as const).map((item) => (
-            <section key={item.key} className="flex min-w-0 flex-col items-start rounded-lg border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-card sm:p-5">
-              <item.icon size={22} className="text-primary" />
-              <h2 className="mt-3 text-lg font-semibold">{item.title}</h2>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{item.count}</p>
-              <Button className="mt-5 w-full sm:w-auto" onClick={() => exportData(item.key)} disabled={!canDownload || (item.key === "trades" && !tradeCount)} aria-label={`Download ${item.title}`}>
-                <Download size={16} /> Download
+            <section key={item.key} className="flex min-w-0 flex-col items-start rounded-lg border border-border bg-card p-3.5 sm:p-4">
+              <item.icon size={18} className="text-primary" />
+              <h2 className="mt-2 text-base font-semibold">{item.title}</h2>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{item.count}</p>
+              <Button className="mt-3 h-9 w-full sm:w-auto" onClick={() => exportData(item.key)} disabled={!canDownload || (item.key === "trades" && !tradeCount)} aria-label={`Download ${item.title}`}>
+                <Download size={15} /> Download
               </Button>
             </section>
           ))}

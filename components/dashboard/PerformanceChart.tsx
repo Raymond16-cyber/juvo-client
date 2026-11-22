@@ -1,8 +1,8 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import SegmentedControl from "@/components/ui/SegmentedControl";
 import { formatCompactMoney, formatMoney } from "@/lib/format";
-import { cn } from "@/lib/ui";
 import { AnalyticsData } from "@/types/analytics.types";
 import { LineChart } from "lucide-react";
 import Link from "next/link";
@@ -41,7 +41,7 @@ export default function PerformanceChart({
   return (
     <section
       data-dashboard-card
-      className="dashboard-card overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 dark:border-white/10 dark:bg-card sm:p-5"
+      className="dashboard-card overflow-hidden rounded-card border border-border bg-card p-4 sm:p-5"
     >
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -52,23 +52,16 @@ export default function PerformanceChart({
             Journaled performance
           </h2>
         </div>
-        <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1 text-xs font-bold dark:border-white/10 dark:bg-white/[0.04]">
-          {(["7D", "30D", "1Y"] as Range[]).map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setRange(item)}
-              className={cn(
-                "min-h-9 rounded-lg px-2.5 py-1.5 transition sm:px-3",
-                range === item
-                  ? "bg-slate-950 text-white dark:bg-primary dark:text-slate-950"
-                  : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white",
-              )}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          ariaLabel="Performance range"
+          value={range}
+          onChange={setRange}
+          options={[
+            { value: "7D", label: "7D" },
+            { value: "30D", label: "30D" },
+            { value: "1Y", label: "1Y" },
+          ]}
+        />
       </div>
 
       {hasRealData ? (
@@ -107,11 +100,20 @@ export default function PerformanceChart({
                 }
               />
               <Tooltip
+                cursor={{ stroke: "rgba(0,212,255,0.35)", strokeWidth: 1 }}
                 contentStyle={{
                   border: "1px solid rgba(148,163,184,0.25)",
-                  borderRadius: 14,
+                  borderRadius: 12,
                   background: "var(--card)",
                   color: "var(--text)",
+                  boxShadow: "0 10px 30px rgba(15,23,42,0.12)",
+                  padding: "10px 12px",
+                }}
+                labelStyle={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  marginBottom: 4,
+                  color: "#94a3b8",
                 }}
                 formatter={(value) => [
                   formatMoney(Number(value ?? 0), currency),
@@ -129,11 +131,11 @@ export default function PerformanceChart({
           </ResponsiveContainer>
         </div>
       ) : (
-        <div className="flex min-h-56 flex-col items-start justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 px-5 py-8 dark:border-white/10 dark:bg-white/[0.03] sm:min-h-72">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/15 text-primary">
+        <div className="flex min-h-56 flex-col items-start justify-center rounded-card border border-dashed border-border bg-slate-50/80 px-5 py-8 dark:bg-white/[0.02] sm:min-h-72">
+          <span className="grid h-10 w-10 place-items-center rounded-control border border-border bg-card text-slate-500">
             <LineChart size={18} />
           </span>
-          <h3 className="mt-4 text-base font-bold text-slate-950 dark:text-white">
+          <h3 className="mt-4 text-base font-semibold text-slate-950 dark:text-white">
             Not enough journaled history yet
           </h3>
           <p className="mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">

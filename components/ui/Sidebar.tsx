@@ -173,12 +173,12 @@ const Sidebar = ({
                     href={item.href}
                     onClick={onClose}
                     title={isCollapsed ? item.name : undefined}
-                    className={`group relative flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                    className={`group relative flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
                       isCollapsed ? "lg:h-11 lg:justify-center lg:px-0 lg:py-0" : ""
-                    } ${
+                    } bg-transparent hover:bg-slate-100 dark:hover:bg-white/[0.06] ${
                       isActive
-                        ? "bg-slate-950/95 text-white dark:bg-primary/15 dark:text-primary"
-                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
+                        ? "text-slate-950 dark:text-white"
+                        : "text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white"
                     }`}
                   >
                     {isActive ? (
@@ -190,11 +190,13 @@ const Sidebar = ({
                     ) : null}
                     <Icon
                       size={18}
-                      className={`relative z-10 shrink-0 ${
-                        isActive ? "text-primary dark:text-primary" : item.color
-                      }`}
+                      className={`relative z-10 shrink-0 ${item.color}`}
                     />
-                    <span className={`relative z-10 truncate ${isCollapsed ? "lg:hidden" : ""}`}>
+                    <span
+                      className={`relative z-10 truncate ${isActive ? "font-semibold" : ""} ${
+                        isCollapsed ? "lg:hidden" : ""
+                      }`}
+                    >
                       {item.name}
                     </span>
                   </Link>

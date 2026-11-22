@@ -314,7 +314,7 @@ export default function MyDayWorkflow({
       setPanel(status.data.hasJournalToday ? "trade" : "start");
       setSuccessMessage(
         status.data.hasJournalToday
-          ? "New account ready. Today's journal stays open — keep logging trades."
+          ? "New account ready. Today's journal stays open â€” keep logging trades."
           : "Trading account created. You can start today's journal.",
       );
       onJournalUpdated?.();
@@ -515,7 +515,7 @@ export default function MyDayWorkflow({
             {hasJournalToday ? "Journal started" : "Start your journal"}
           </h2>
         </div>
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
           {hasJournalToday ? (
             <CheckCircle2 size={21} />
           ) : (
@@ -630,9 +630,9 @@ export default function MyDayWorkflow({
                       value={account._id}
                       disabled={!inPlay}
                     >
-                      {account.accountName} - {account.broker} ·{" "}
+                      {account.accountName} - {account.broker} Â·{" "}
                       {account.accountCurrency || account.currency}
-                      {inPlay ? "" : ` · ${getAccountStatusLabel(account)}`}
+                      {inPlay ? "" : ` Â· ${getAccountStatusLabel(account)}`}
                     </option>
                   );
                 })}
@@ -1017,9 +1017,9 @@ export default function MyDayWorkflow({
 
       <div className="mt-5 border-t border-slate-200 pt-4 text-sm text-slate-500 dark:border-white/10 dark:text-slate-400">
         {journalStatus?.noTradeDay?.isActive
-          ? "No-trade day active — trades locked."
+          ? "No-trade day active â€” trades locked."
           : journalStatus?.journalingStatus === "no_trade_day"
-            ? "No-trade day logged ✓"
+            ? "No-trade day logged âœ“"
             : hasJournalToday
               ? `${journal?.tradesCount || 0} trade${journal?.tradesCount === 1 ? "" : "s"} logged today.`
               : accounts.length

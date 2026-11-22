@@ -325,7 +325,7 @@ export default function JuvoAIChatPage() {
   const accessPanel = (
     <div className="flex min-h-0 flex-1 items-center justify-center p-3 sm:p-4">
       <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center dark:border-white/10 dark:bg-white/[0.04] sm:p-6">
-        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-primary/15 text-primary">
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
           {trialStatus === "expired" ? (
             <LockKeyhole size={22} />
           ) : (
@@ -548,7 +548,7 @@ export default function JuvoAIChatPage() {
         <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-card">
           <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 p-3 sm:gap-3 sm:p-4 dark:border-white/10">
             <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
                 <Bot size={20} />
               </div>
               <div className="min-w-0">
@@ -769,7 +769,7 @@ export default function JuvoAIChatPage() {
                     onKeyDown={handleComposerKeyDown}
                     placeholder={
                       canAskJournal
-                        ? "Ask about your process — \\ attaches journals"
+                        ? "Ask about your process â€” \\ attaches journals"
                         : "Ask about your process, not the next setup"
                     }
                   />

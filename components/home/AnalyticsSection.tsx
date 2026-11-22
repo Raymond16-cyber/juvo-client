@@ -63,7 +63,7 @@ export default function AnalyticsSection() {
             The week, not the last winner.
           </>
         }
-        description="Juvo builds this from journals on the selected account — win rate next to discipline, P/L next to the session that actually produced it."
+        description="Juvo builds this from journals on the selected account â€” win rate next to discipline, P/L next to the session that actually produced it."
       />
 
       <div className="mt-12 grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
@@ -109,7 +109,7 @@ export default function AnalyticsSection() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-white">Equity from logged days</p>
-              <p className="text-xs text-slate-500">Sample curve · session-level P/L</p>
+              <p className="text-xs text-slate-500">Sample curve Â· session-level P/L</p>
             </div>
             <p className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold text-emerald-200">
               +$3,240
@@ -127,10 +127,10 @@ export default function AnalyticsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55, ease: homeEase }}
-          className="rounded-[1.5rem] border border-white/10 bg-[#09111f]/90 p-5"
+          className="rounded-card border border-white/10 bg-[#09111f]/90 p-5"
         >
           <p className="text-sm font-semibold text-white">By session</p>
-          <p className="mt-1 text-xs text-slate-500">Tap a session. The leak is usually not “the market.”</p>
+          <p className="mt-1 text-xs text-slate-500">Tap a session. The leak is usually not â€œthe market.â€</p>
 
           <div className="mt-5 space-y-2">
             {sessions.map((item, index) => {
@@ -153,7 +153,7 @@ export default function AnalyticsSection() {
                     <div>
                       <p className="text-sm font-semibold text-white">{item.name}</p>
                       <p className="text-[11px] text-slate-500">
-                        {item.trades} trades · {item.win}% win
+                        {item.trades} trades Â· {item.win}% win
                       </p>
                     </div>
                     <p className={cn("text-sm font-semibold", win ? "text-emerald-300" : "text-rose-300")}>
@@ -182,7 +182,7 @@ export default function AnalyticsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55, delay: 0.08, ease: homeEase }}
-          className="rounded-[1.5rem] border border-white/10 bg-[#09111f]/90 p-5"
+          className="rounded-card border border-white/10 bg-[#09111f]/90 p-5"
         >
           <p className="text-sm font-semibold text-white">By symbol</p>
           <p className="mt-1 text-xs text-slate-500">Where the account actually lives.</p>
@@ -200,7 +200,7 @@ export default function AnalyticsSection() {
                 <div>
                   <p className="font-semibold text-white">{item.symbol}</p>
                   <p className="text-[11px] text-slate-500">
-                    {item.trades} trades · {item.win}% win
+                    {item.trades} trades Â· {item.win}% win
                   </p>
                 </div>
                 <p

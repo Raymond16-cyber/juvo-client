@@ -91,7 +91,7 @@ export default function SmartJournalInterviewer({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border bg-slate-50 text-slate-600 dark:bg-white/[0.04] dark:text-slate-300">
             <MessageCircleQuestion size={18} />
           </div>
           <div className="min-w-0">
@@ -99,7 +99,7 @@ export default function SmartJournalInterviewer({
               Optional reflection
             </p>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Juvo can ask 1–2 follow-ups from what you already wrote.
+              Juvo can ask 1â€“2 follow-ups from what you already wrote.
             </p>
           </div>
         </div>
