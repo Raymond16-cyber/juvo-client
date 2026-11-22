@@ -5,6 +5,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import Button from "@/components/ui/Button";
 import PageHeader from "@/components/ui/PageHeader";
 import { markAchievementsCelebrated } from "@/lib/achievements";
+import { intensityFromTier } from "@/lib/celebrations/intensity";
 import { getApiErrorMessage } from "@/lib/axios";
 import {
   getAchievementsService,
@@ -16,7 +17,7 @@ import {
   AchievementSummary,
 } from "@/types/achievement.types";
 import { PartyPopper } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const EMPTY_SUMMARY: AchievementSummary = {
   earned: 0,
@@ -79,6 +80,32 @@ export default function AchievementsPage() {
     void loadAchievements();
   }, [loadAchievements]);
 
+  const lastEarned = useMemo(() => {
+    const earned = achievements.filter(
+      (item) => item.state === "earned" && item.earnedAt,
+    );
+    if (!earned.length) return null;
+    return earned.reduce((latest, item) => {
+      const latestTime = new Date(latest.earnedAt || 0).getTime();
+      const itemTime = new Date(item.earnedAt || 0).getTime();
+      return itemTime >= latestTime ? item : latest;
+    });
+  }, [achievements]);
+
+  const handlePreviewLastEarned = () => {
+    if (!lastEarned) return;
+    previewCelebration({
+      id: `preview-${lastEarned.id}`,
+      title: lastEarned.title,
+      description: lastEarned.description,
+      tier: lastEarned.tier,
+      category: lastEarned.category,
+      icon: lastEarned.icon,
+      earnedAt: lastEarned.earnedAt,
+      intensity: intensityFromTier(lastEarned.tier),
+    });
+  };
+
   const handleToggleFeatured = async (
     achievementId: string,
     nextFeatured: boolean,
@@ -131,16 +158,12 @@ export default function AchievementsPage() {
               type="button"
               variant="ghost"
               className="h-10"
-              onClick={() =>
-                previewCelebration({
-                  intensity: "grand",
-                  title: "Hundred Days",
-                  description:
-                    "Joined JUVO one hundred days ago — preview of the piñata celebration.",
-                  tier: "gold",
-                  icon: "award",
-                  category: "journey",
-                })
+              disabled={!lastEarned || loading}
+              onClick={handlePreviewLastEarned}
+              title={
+                lastEarned
+                  ? `Replay celebration for ${lastEarned.title}`
+                  : "Earn an achievement to preview its celebration"
               }
             >
               <PartyPopper size={16} className="shrink-0" />
