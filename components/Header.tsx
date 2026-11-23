@@ -1,13 +1,13 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import images from "@/constants/images.service";
+import BrandLogo from "@/components/BrandLogo";
 import Button from "@/components/ui/Button";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import { useAuthStore } from "@/stores/auth.store";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/auth.store";
+import { useEffect, useState } from "react";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -53,45 +53,46 @@ export default function Header() {
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? "border-b border-white/10 bg-[#050816]/95 shadow-juvo"
-          : "border-b border-white/10 bg-[#050816]/90"
+          ? "border-b border-slate-200/90 bg-white/95 shadow-juvo dark:border-white/10 dark:bg-[#050816]/95"
+          : "border-b border-slate-200/80 bg-white/90 dark:border-white/10 dark:bg-[#050816]/90"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:py-5">
-        <a href={isAuthPage ? "/" : "#top"} className="flex items-center gap-3">
-          <div className="relative h-11 w-11 overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-1.5 shadow-lg shadow-cyan-950/30">
-            <Image
-              src={images.appLogo}
-              alt="JUVO logo"
-              fill
-              className="object-contain"
-            />
-          </div>
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-200/80">
+      <div className="mx-auto flex max-w-[90rem] items-center justify-between px-4 py-4 sm:px-5 lg:px-6 lg:py-5">
+        <a
+          href={isAuthPage ? "/" : "#top"}
+          className="flex items-center gap-3 rounded-control outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label="JUVO home"
+        >
+          <BrandLogo size={44} plateClassName="rounded-lg" />
+          <div className="min-w-0">
+            <p className="text-[15px] font-bold leading-none tracking-[0.18em] text-slate-950 dark:text-white">
               JUVO
             </p>
-            <p className="text-xs text-slate-400">Building Discipline.</p>
+            <p className="mt-1.5 text-xs leading-none text-slate-500 dark:text-slate-400">
+              Building Discipline
+            </p>
           </div>
         </a>
 
-        <div className="hidden items-center gap-4 lg:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           {!isAuthPage ? (
             <nav
-              className="flex items-center gap-8 text-sm text-slate-300"
+              className="mr-1 flex items-center gap-8 text-sm text-slate-600 dark:text-slate-300"
               aria-label="Main navigation"
             >
               {navLinks.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
-                  className="transition-colors duration-200 hover:text-white"
+                  className="transition-colors duration-200 hover:text-slate-950 dark:hover:text-white"
                 >
                   {link.label}
                 </a>
               ))}
             </nav>
           ) : null}
+
+          <ThemeToggle compact />
 
           {showDashboardAction ? (
             <Button
@@ -105,8 +106,8 @@ export default function Header() {
           ) : (
             <>
               <Button
-                variant="onDark"
-                className="min-w-[110px]"
+                variant="secondary"
+                className="min-w-[110px] dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
                 onClick={() => router.push("/auth/login")}
               >
                 Sign In
@@ -123,18 +124,21 @@ export default function Header() {
           )}
         </div>
 
-        <Button
-          variant="onDark"
-          onClick={() => setMobileOpen((value) => !value)}
-          className="px-4 py-2 lg:hidden"
-          aria-label="Toggle navigation menu"
-        >
-          {mobileOpen ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <Menu className="h-5 w-5" />
-          )}
-        </Button>
+        <div className="flex items-center gap-2 lg:hidden">
+          <ThemeToggle compact />
+          <Button
+            variant="secondary"
+            onClick={() => setMobileOpen((value) => !value)}
+            className="px-4 py-2 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+            aria-label="Toggle navigation menu"
+          >
+            {mobileOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -144,17 +148,17 @@ export default function Header() {
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -12, height: 0 }}
             transition={{ duration: 0.25 }}
-            className="mx-auto max-w-7xl px-4 lg:hidden"
+            className="mx-auto max-w-[90rem] px-4 sm:px-5 lg:hidden lg:px-6"
           >
-            <div className="overflow-hidden rounded-card border border-white/10 bg-[#07101d]/95 p-4 shadow-juvo  ">
+            <div className="overflow-hidden rounded-card border border-slate-200 bg-white p-4 shadow-juvo dark:border-white/10 dark:bg-[#07101d]/95">
               {!isAuthPage ? (
-                <nav className="flex flex-col gap-2 text-sm text-slate-200">
+                <nav className="flex flex-col gap-2 text-sm text-slate-700 dark:text-slate-200">
                   {navLinks.map((link) => (
                     <a
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileOpen(false)}
-                      className="rounded-2xl px-4 py-3 transition-colors hover:bg-white/6 hover:text-white"
+                      className="rounded-2xl px-4 py-3 transition-colors hover:bg-slate-50 hover:text-slate-950 dark:hover:bg-white/6 dark:hover:text-white"
                     >
                       {link.label}
                     </a>
@@ -177,12 +181,12 @@ export default function Header() {
               ) : (
                 <>
                   <Button
-                    variant="onDark"
+                    variant="secondary"
                     onClick={() => {
                       setMobileOpen(false);
                       router.push("/auth/login");
                     }}
-                    className="mt-4 w-full"
+                    className="mt-4 w-full dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
                   >
                     Sign In
                   </Button>

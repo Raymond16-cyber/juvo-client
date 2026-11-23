@@ -63,7 +63,7 @@ export default function LongTermProgress() {
         title={
           <>
             Edge is quieter
-            <span className="block text-slate-300">than a new strategy.</span>
+            <span className="block text-slate-500 dark:text-slate-300">than a new strategy.</span>
           </>
         }
         description="Not a glow-up funnel. Twelve months of logging the session until revenge trading has nowhere to hide."
@@ -75,7 +75,7 @@ export default function LongTermProgress() {
         onMouseLeave={() => setPaused(false)}
       >
         <div className="relative pl-2 sm:pl-3">
-          <div className="absolute bottom-4 left-5 top-4 w-px bg-white/10 sm:left-6" aria-hidden />
+          <div className="absolute bottom-4 left-5 top-4 w-px bg-slate-200 dark:bg-white/10 sm:left-6" aria-hidden />
           <motion.div
             className="absolute left-5 top-4 w-px origin-top bg-gradient-to-b from-primary via-accent to-primary/20 sm:left-6"
             aria-hidden
@@ -97,7 +97,7 @@ export default function LongTermProgress() {
                       "relative w-full rounded-[1.35rem] border py-4 pl-12 pr-4 text-left transition-colors sm:pl-14",
                       on
                         ? "border-primary/30 bg-primary/10"
-                        : "border-white/8 bg-[#09111f]/70 hover:bg-white/[0.04]",
+                        : "border-slate-200/80 dark:border-white/8 bg-white dark:bg-[#09111f]/70 hover:bg-slate-100 dark:hover:bg-white/[0.04]",
                     )}
                   >
                     <span
@@ -105,14 +105,14 @@ export default function LongTermProgress() {
                         "absolute left-3.5 top-6 h-3.5 w-3.5 rounded-full border-2 sm:left-4",
                         on
                           ? "border-primary bg-primary shadow-[0_0_16px_rgba(0,212,255,0.75)]"
-                          : "border-slate-500 bg-[#050816]",
+                          : "border-slate-300 bg-white dark:border-slate-500 dark:bg-[#050816]",
                       )}
                     />
                     <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary/75">
                       {item.when}
                     </p>
-                    <p className="mt-1 text-lg font-semibold text-white">{item.title}</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-400">{item.body}</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-950 dark:text-white">{item.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.body}</p>
                   </button>
                 </li>
               );
@@ -122,7 +122,7 @@ export default function LongTermProgress() {
 
         <motion.div
           layout
-          className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#09111f]/90 p-5 shadow-[0_24px_80px_rgba(2,6,23,0.4)] sm:p-6 lg:sticky lg:top-28"
+          className="dark overflow-hidden rounded-[1.6rem] border border-white/10 bg-[#09111f]/90 p-5 shadow-[0_24px_80px_rgba(2,6,23,0.4)] sm:p-6 lg:sticky lg:top-28"
         >
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
             {chapter.when}

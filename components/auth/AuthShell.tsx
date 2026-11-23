@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import images from "@/constants/images.service";
+import BrandLogo from "@/components/BrandLogo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import styles from "./AuthShell.module.css";
 
@@ -24,7 +23,7 @@ export default function AuthShell({
     <main className={styles.shell}>
       <header className={styles.header}>
         <Link href="/" className={styles.brand} aria-label="JUVO home">
-          <Image src={images.appLogo} alt="" width={32} height={32} />
+          <BrandLogo size={36} plateClassName="rounded-lg" alt="" />
           <span>JUVO</span>
         </Link>
         <div title="Appearance">

@@ -67,7 +67,7 @@ export default function Pricing() {
         title={
           <>
             Free until the journal
-            <span className="block text-slate-300">is a habit.</span>
+            <span className="block text-slate-500 dark:text-slate-300">is a habit.</span>
           </>
         }
         description="Start on Free, then choose Pro or Super from your JUVO subscriptions page through secure Paystack checkout."
@@ -85,15 +85,15 @@ export default function Pricing() {
               "flex h-full flex-col rounded-[1.7rem] border p-6",
               plan.featured
                 ? "border-primary/35 bg-primary/10 shadow-[0_24px_80px_rgba(0,212,255,0.08)] lg:-translate-y-2"
-                : "border-white/10 bg-[#09111f]/90",
+                : "border-slate-200 dark:border-white/10 bg-white dark:bg-[#09111f]/90",
               plan.id === "pro" && "order-first lg:order-none",
             )}
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-white">{plan.name}</p>
+                <p className="text-sm font-semibold text-slate-950 dark:text-white">{plan.name}</p>
                 <p className="mt-3 flex items-baseline gap-1">
-                  <span className="text-4xl font-semibold tracking-tight text-white">
+                  <span className="text-4xl font-semibold tracking-tight text-slate-950 dark:text-white">
                     {plan.price}
                   </span>
                   <span className="text-sm text-slate-500">{plan.cadence}</span>
@@ -104,13 +104,13 @@ export default function Pricing() {
                   Daily desk
                 </span>
               ) : (
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-slate-500">
+                <span className="rounded-full border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-slate-500">
                   {plan.id === "free" ? "Start" : "Later"}
                 </span>
               )}
             </div>
 
-            <p className="mt-4 text-sm leading-6 text-slate-300">
+            <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
               {plan.blurb}
             </p>
 
@@ -118,7 +118,7 @@ export default function Pricing() {
               {plan.features.map((feature) => (
                 <li
                   key={feature}
-                  className="flex items-start gap-3 text-sm text-slate-300"
+                  className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300"
                 >
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   {feature}

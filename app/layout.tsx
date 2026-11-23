@@ -43,9 +43,25 @@ export const metadata: Metadata = {
   description:
     "JUVO is a premium trading journal and trader-development platform built to help traders build discipline, understand behavior, and improve over time.",
   icons: {
-    icon: appLogo.src,
-    shortcut: appLogo.src,
-    apple: appLogo.src,
+    icon: [
+      {
+        url: appLogo.src,
+        type: "image/png",
+        sizes: "any",
+      },
+    ],
+    shortcut: [
+      {
+        url: appLogo.src,
+        type: "image/png",
+      },
+    ],
+    apple: [
+      {
+        url: appLogo.src,
+        type: "image/png",
+      },
+    ],
   },
   keywords: [
     "trading journal",
@@ -112,8 +128,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
-        <link rel="icon" href={appLogo.src} />
-        <link rel="apple-touch-icon" href={appLogo.src} />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="flex min-h-full flex-col">

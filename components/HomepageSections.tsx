@@ -58,16 +58,16 @@ function SectionShell({
 }) {
   return (
     <section id={id} className="relative">
-      <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
+      <div className="mx-auto max-w-[90rem] px-4 py-20 sm:px-5 lg:px-6 lg:py-28">
         <div className={`max-w-3xl ${centered ? "mx-auto text-center" : ""}`}>
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/8 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-cyan-100/80">
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-cyan-700 dark:border-cyan-400/20 dark:bg-cyan-400/8 dark:text-cyan-100/80">
             <Sparkles className="h-3.5 w-3.5" />
             {eyebrow}
           </div>
-          <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
+          <h2 className="mt-5 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-4xl lg:text-5xl">
             {title}
           </h2>
-          <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg">
+          <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
             {description}
           </p>
         </div>
@@ -219,14 +219,14 @@ export default function HomepageSections() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {featureCards.map((card, index) => (
             <RevealCard key={card.title} delay={index * 0.04}>
-              <article className="h-full rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo   transition-transform hover:-translate-y-1">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-cyan-200">
+              <article className="h-full rounded-card border border-slate-200 bg-white p-5 shadow-juvo transition-transform hover:-translate-y-1 dark:border-white/10 dark:bg-[#09111f]/85">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 text-cyan-700 dark:border-white/10 dark:bg-white/5 dark:text-cyan-200">
                   <card.icon className="h-5 w-5" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-white">
+                <h3 className="mt-4 text-lg font-semibold text-slate-950 dark:text-white">
                   {card.title}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                   {card.desc}
                 </p>
               </article>
@@ -244,14 +244,14 @@ export default function HomepageSections() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {problemCards.map((card, index) => (
             <RevealCard key={card.title} delay={index * 0.04}>
-              <article className="h-full rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo   transition-transform hover:-translate-y-1">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-cyan-200">
+              <article className="h-full rounded-card border border-slate-200 bg-white p-5 shadow-juvo transition-transform hover:-translate-y-1 dark:border-white/10 dark:bg-[#09111f]/85">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 text-cyan-700 dark:border-white/10 dark:bg-white/5 dark:text-cyan-200">
                   <card.icon className="h-5 w-5" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-white">
+                <h3 className="mt-4 text-lg font-semibold text-slate-950 dark:text-white">
                   {card.title}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                   {card.desc}
                 </p>
               </article>
@@ -269,8 +269,8 @@ export default function HomepageSections() {
       >
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <RevealCard>
-            <div className="rounded-card border border-white/10 bg-white/[0.04] p-6 shadow-juvo  ">
-              <p className="text-sm font-medium text-white">
+            <div className="rounded-card border border-slate-200 bg-slate-50 p-6 shadow-juvo dark:border-white/10 dark:bg-white/[0.04]">
+              <p className="text-sm font-medium text-slate-950 dark:text-white">
                 What JUVO captures
               </p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -285,9 +285,9 @@ export default function HomepageSections() {
                 ].map((item) => (
                   <div
                     key={item}
-                    className="flex items-center gap-3 rounded-2xl border border-white/8 bg-[#0b1425] px-4 py-3 text-sm text-slate-200"
+                    className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-700 dark:border-white/8 dark:bg-[#0b1425] dark:text-slate-200"
                   >
-                    <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
                     {item}
                   </div>
                 ))}
@@ -321,15 +321,15 @@ export default function HomepageSections() {
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo"
+                  className="rounded-card border border-slate-200 bg-white p-5 shadow-juvo dark:border-white/10 dark:bg-[#09111f]/85"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/15 bg-cyan-400/10 text-cyan-200">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-500/25 bg-cyan-500/10 text-cyan-700 dark:border-cyan-400/15 dark:bg-cyan-400/10 dark:text-cyan-200">
                     <item.icon className="h-5 w-5" />
                   </div>
-                  <h3 className="mt-4 text-base font-semibold text-white">
+                  <h3 className="mt-4 text-base font-semibold text-slate-950 dark:text-white">
                     {item.title}
                   </h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">
+                  <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                     {item.desc}
                   </p>
                 </div>
@@ -349,7 +349,7 @@ export default function HomepageSections() {
       >
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <RevealCard>
-            <div className="rounded-card border border-white/10 bg-white/[0.04] p-4 shadow-juvo  ">
+            <div className="dark rounded-card border border-white/10 bg-white/[0.04] p-4 shadow-juvo">
               <div className="rounded-[1.25rem] border border-white/10 bg-[#0a1220]/90 p-4">
                 <div className="flex items-center justify-between border-b border-white/8 pb-4">
                   <div>
@@ -443,11 +443,11 @@ export default function HomepageSections() {
           </RevealCard>
 
           <RevealCard delay={0.08}>
-            <div className="rounded-card border border-white/10 bg-white/[0.04] p-6 shadow-juvo  ">
-              <p className="text-sm font-medium text-white">
+            <div className="rounded-card border border-slate-200 bg-slate-50 p-6 shadow-juvo dark:border-white/10 dark:bg-white/[0.04]">
+              <p className="text-sm font-medium text-slate-950 dark:text-white">
                 Why the calendar matters
               </p>
-              <div className="mt-4 space-y-3 text-sm text-slate-300">
+              <div className="mt-4 space-y-3 text-sm text-slate-600 dark:text-slate-300">
                 {[
                   "See the consistency of your trading sessions over time.",
                   "Identify sequences where discipline slips after wins or losses.",
@@ -455,9 +455,9 @@ export default function HomepageSections() {
                 ].map((item) => (
                   <div
                     key={item}
-                    className="flex items-start gap-3 rounded-2xl border border-white/8 bg-[#0b1425] p-4"
+                    className="flex items-start gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-white/8 dark:bg-[#0b1425]"
                   >
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-cyan-300" />
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-cyan-600 dark:text-cyan-300" />
                     <span>{item}</span>
                   </div>
                 ))}
@@ -475,7 +475,7 @@ export default function HomepageSections() {
       >
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <RevealCard>
-            <div className="rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo">
+            <div className="dark rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo">
               <div className="flex items-center justify-between border-b border-white/8 pb-4">
                 <div>
                   <p className="text-sm font-medium text-white">
@@ -518,7 +518,7 @@ export default function HomepageSections() {
           </RevealCard>
 
           <RevealCard delay={0.06}>
-            <div className="grid gap-4">
+            <div className="dark grid gap-4">
               <div className="rounded-card border border-cyan-400/20 bg-cyan-400/8 p-5">
                 <p className="text-[11px] uppercase tracking-[0.22em] text-cyan-100/70">
                   Example insight
@@ -567,7 +567,7 @@ export default function HomepageSections() {
       >
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <RevealCard>
-            <div className="rounded-card border border-white/10 bg-white/[0.04] p-6 shadow-juvo  ">
+            <div className="dark rounded-card border border-white/10 bg-white/[0.04] p-6 shadow-juvo">
               <p className="text-sm font-medium text-white">Plan blueprint</p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {[
@@ -597,7 +597,7 @@ export default function HomepageSections() {
           </RevealCard>
 
           <RevealCard delay={0.08}>
-            <div className="space-y-3 rounded-card border border-white/10 bg-[#09111f]/85 p-6 shadow-juvo">
+            <div className="space-y-3 rounded-card border border-slate-200 bg-white p-6 shadow-juvo dark:border-white/10 dark:bg-[#09111f]/85">
               {[
                 "Wait for confirmation before entry.",
                 "Do not trade after a daily loss limit is hit.",
@@ -606,9 +606,9 @@ export default function HomepageSections() {
               ].map((rule) => (
                 <div
                   key={rule}
-                  className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/5 p-4 text-sm text-slate-300"
+                  className="flex items-start gap-3 rounded-2xl border border-slate-200/80 bg-slate-100 p-4 text-sm text-slate-600 dark:border-white/8 dark:bg-white/5 dark:text-slate-300"
                 >
-                  <ListChecks className="mt-0.5 h-4 w-4 text-cyan-300" />
+                  <ListChecks className="mt-0.5 h-4 w-4 text-cyan-600 dark:text-cyan-300" />
                   <span>{rule}</span>
                 </div>
               ))}
@@ -627,7 +627,7 @@ export default function HomepageSections() {
         title="Because your trading history is more than numbers."
         description="A spreadsheet can tell you what happened. JUVO is designed to help you understand why it happened."
       >
-        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="dark grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <RevealCard>
             <div className="rounded-card border border-white/10 bg-[#09111f]/85 p-6 shadow-juvo">
               <p className="text-sm font-medium text-white">Spreadsheet</p>
@@ -689,12 +689,12 @@ export default function HomepageSections() {
         <div className="grid gap-4 lg:grid-cols-2">
           {faqItems.map((item, index) => (
             <RevealCard key={item.question} delay={index * 0.03}>
-              <details className="group rounded-card border border-white/10 bg-[#09111f]/85 p-5 shadow-juvo">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left text-sm font-medium text-white">
+              <details className="group rounded-card border border-slate-200 bg-white p-5 shadow-juvo dark:border-white/10 dark:bg-[#09111f]/85">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left text-sm font-medium text-slate-950 dark:text-white">
                   {item.question}
-                  <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-90" />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-slate-500 transition group-open:rotate-90 dark:text-slate-400" />
                 </summary>
-                <p className="mt-4 text-sm leading-6 text-slate-300">
+                <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-300">
                   {item.answer}
                 </p>
               </details>
@@ -704,25 +704,25 @@ export default function HomepageSections() {
       </SectionShell>
 
       <section id="cta" className="relative">
-        <div className="mx-auto max-w-7xl px-4 py-20 lg:py-28">
-          <div className="relative overflow-hidden rounded-card border border-white/10 bg-[#09111f] p-8 shadow-juvo lg:p-12">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,212,255,0.18),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.15),transparent_28%)]" />
+        <div className="mx-auto max-w-[90rem] px-4 py-20 sm:px-5 lg:px-6 lg:py-28">
+          <div className="relative overflow-hidden rounded-card border border-slate-200 bg-white p-8 shadow-juvo dark:border-white/10 dark:bg-[#09111f] lg:p-12">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,212,255,0.12),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.1),transparent_28%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(0,212,255,0.18),transparent_32%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.15),transparent_28%)]" />
 
             <div className="relative grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
               <div className="max-w-2xl">
-                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/8 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-cyan-100/80">
+                <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-cyan-700 dark:border-cyan-400/20 dark:bg-cyan-400/8 dark:text-cyan-100/80">
                   <Sparkles className="h-3.5 w-3.5" />
                   Final CTA
                 </div>
 
-                <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl">
+                <h2 className="mt-5 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-4xl lg:text-5xl">
                   Your next level is not another strategy.
                   <span className="block text-primary">
                     It is better discipline.
                   </span>
                 </h2>
 
-                <p className="mt-4 max-w-xl text-base leading-7 text-slate-300">
+                <p className="mt-4 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300">
                   JUVO is built to help traders document decisions, understand
                   behavior, and improve over time with a product that feels
                   serious, premium, and focused.
@@ -754,9 +754,9 @@ export default function HomepageSections() {
                   [ShieldCheck, "Build discipline"],
                 ].map(([Icon, label], index) => (
                   <RevealCard key={label as string} delay={index * 0.04}>
-                    <div className="rounded-card border border-white/10 bg-white/[0.04] p-5  ">
-                      <Icon className="h-5 w-5 text-cyan-300" />
-                      <p className="mt-4 text-sm font-medium text-white">
+                    <div className="rounded-card border border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-white/[0.04]">
+                      <Icon className="h-5 w-5 text-cyan-600 dark:text-cyan-300" />
+                      <p className="mt-4 text-sm font-medium text-slate-950 dark:text-white">
                         {label as string}
                       </p>
                     </div>

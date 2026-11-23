@@ -361,6 +361,7 @@ export default function SettingsPage() {
               <div className="bg-gradient-to-br from-primary/15 via-primary/5 to-transparent p-3.5 sm:p-4">
                 <div className="flex items-center gap-3">
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-control bg-slate-950 text-xs font-bold text-white dark:bg-white dark:text-slate-950">
+                    {/* Profile Image */}
                     {initials}
                   </div>
                   <div className="min-w-0">

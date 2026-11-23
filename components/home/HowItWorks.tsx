@@ -160,7 +160,7 @@ export default function HowItWorks() {
         title={
           <>
             Four moves.
-            <span className="block text-slate-300">Same loop every session.</span>
+            <span className="block text-slate-500 dark:text-slate-300">Same loop every session.</span>
           </>
         }
         description="Trade. Write what actually happened. Look at the week. Change one rule. That’s the whole product."
@@ -173,7 +173,7 @@ export default function HowItWorks() {
       >
         <div className="relative">
           <div
-            className="absolute bottom-3 left-[1.15rem] top-3 hidden w-px bg-white/10 sm:block"
+            className="absolute bottom-3 left-[1.15rem] top-3 hidden w-px bg-slate-200 dark:bg-white/10 sm:block"
             aria-hidden
           />
           <motion.div
@@ -198,7 +198,7 @@ export default function HowItWorks() {
                     "relative flex w-full gap-4 rounded-2xl border px-4 py-4 text-left transition-colors sm:pl-12",
                     on
                       ? "border-primary/25 bg-primary/8"
-                      : "border-white/8 bg-white/[0.02] hover:bg-white/[0.04]",
+                      : "border-slate-200/80 dark:border-white/8 bg-slate-50 dark:bg-white/[0.02] hover:bg-slate-100 dark:hover:bg-white/[0.04]",
                   )}
                 >
                   <span
@@ -206,17 +206,17 @@ export default function HowItWorks() {
                       "absolute left-3 top-1/2 hidden h-3 w-3 -translate-y-1/2 rounded-full border-2 sm:block",
                       on
                         ? "border-primary bg-primary shadow-[0_0_12px_rgba(0,212,255,0.7)]"
-                        : "border-slate-600 bg-[#050816]",
+                        : "border-slate-300 bg-white dark:border-slate-600 dark:bg-[#050816]",
                     )}
                   />
                   <span className="text-sm font-semibold tabular-nums text-primary/80">
                     {item.n}
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-base font-semibold text-white">
+                    <span className="block text-base font-semibold text-slate-950 dark:text-white">
                       {item.title}
                     </span>
-                    <span className="mt-1 block text-sm leading-6 text-slate-400">
+                    <span className="mt-1 block text-sm leading-6 text-slate-500 dark:text-slate-400">
                       {item.line}
                     </span>
                   </span>

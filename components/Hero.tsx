@@ -67,21 +67,21 @@ export default function Hero() {
         <div className="absolute right-[-10%] top-24 h-80 w-80 rounded-full bg-blue-500/14 blur-3xl" />
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 pb-12 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:pb-20">
+      <div className="mx-auto grid max-w-[90rem] gap-12 px-4 pb-12 sm:px-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-6 lg:pb-20">
         <div className="juvo-hero-copy max-w-3xl text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/8 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-cyan-100/80">
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-cyan-700 dark:border-cyan-400/20 dark:bg-cyan-400/8 dark:text-cyan-100/80">
             <Sparkles className="h-3.5 w-3.5" />
             Building Discipline
           </div>
 
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl xl:text-7xl">
+          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl lg:text-6xl xl:text-7xl">
             Trade with intent.
             <span className="block text-primary">
               Build discipline over time.
             </span>
           </h1>
 
-          <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg lg:text-xl">
+          <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg lg:text-xl">
             JUVO helps traders journal decisions, understand emotional patterns,
             track progress, and build the discipline needed for long-term
             consistency.
@@ -114,7 +114,7 @@ export default function Hero() {
             ].map((item) => (
               <div
                 key={item.label}
-                className="flex items-center gap-3 rounded-control border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300"
+                className="flex items-center gap-3 rounded-control border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:shadow-none"
               >
                 <item.icon className="h-4 w-4 text-primary" />
                 <span>{item.label}</span>
@@ -130,8 +130,8 @@ export default function Hero() {
           className="juvo-hero-visual relative"
         >
           <div className="absolute inset-0 -z-10 rounded-card bg-gradient-to-br from-cyan-500/10 via-transparent to-blue-500/10 blur-2xl" />
-          <div className="rounded-card border border-white/10 bg-white/6 p-4 shadow-[0_30px_90px_rgba(2,6,23,0.45)]  ">
-            <div className="rounded-card border border-white/10 bg-[#08111f]/90 p-4 sm:p-5">
+          <div className="dark rounded-card border border-slate-200 bg-slate-100/80 p-4 shadow-[0_30px_90px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-white/6 dark:shadow-[0_30px_90px_rgba(2,6,23,0.45)]">
+            <div className="rounded-card border border-white/10 bg-[#08111f]/90 p-4 text-white sm:p-5">
               <div className="flex items-center justify-between border-b border-white/8 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="relative h-11 w-11 overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-1.5">

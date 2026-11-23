@@ -53,7 +53,7 @@ export default function Testimonials() {
         title={
           <>
             Not five-star reviews.
-            <span className="block text-slate-300">After-action notes.</span>
+            <span className="block text-slate-500 dark:text-slate-300">After-action notes.</span>
           </>
         }
         description="Sample session notes, written like a trader actually talks. Swap in real names when you have them."
@@ -65,7 +65,7 @@ export default function Testimonials() {
         onMouseLeave={() => setPaused(false)}
       >
         <motion.figure
-          className="relative overflow-hidden rounded-[1.7rem] border border-white/10 bg-[#09111f]/90 p-6 sm:p-8"
+          className="relative overflow-hidden rounded-[1.7rem] border border-slate-200 dark:border-white/10 bg-white dark:bg-[#09111f]/90 p-6 sm:p-8"
           initial={reduce ? false : { opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -86,7 +86,7 @@ export default function Testimonials() {
               animate={{ opacity: 1, y: 0 }}
               exit={reduce ? undefined : { opacity: 0, y: -8 }}
               transition={{ duration: 0.35, ease: homeEase }}
-              className="mt-5 text-xl font-medium leading-8 text-white sm:text-2xl sm:leading-10"
+              className="mt-5 text-xl font-medium leading-8 text-slate-950 dark:text-white sm:text-2xl sm:leading-10"
             >
               “{active.quote}”
             </motion.blockquote>
@@ -98,7 +98,7 @@ export default function Testimonials() {
                 {active.initials}
               </span>
               <div>
-                <p className="text-sm font-semibold text-white">{active.name}</p>
+                <p className="text-sm font-semibold text-slate-950 dark:text-white">{active.name}</p>
                 <p className="text-xs text-slate-500">{active.desk}</p>
               </div>
             </div>
@@ -106,7 +106,7 @@ export default function Testimonials() {
               {active.flags.map((flag) => (
                 <span
                   key={flag}
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-slate-300"
+                  className="rounded-full border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 px-3 py-1 text-[11px] text-slate-600 dark:text-slate-300"
                 >
                   {flag}
                 </span>
@@ -128,14 +128,14 @@ export default function Testimonials() {
                   "rounded-[1.35rem] border p-4 text-left transition-colors",
                   on
                     ? "border-primary/30 bg-primary/10"
-                    : "border-white/10 bg-[#09111f]/80 hover:bg-white/[0.04]",
+                    : "border-slate-200 dark:border-white/10 bg-white dark:bg-[#09111f]/80 hover:bg-slate-100 dark:hover:bg-white/[0.04]",
                 )}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-white">{note.name}</p>
+                  <p className="text-sm font-semibold text-slate-950 dark:text-white">{note.name}</p>
                   <p className="text-[11px] text-slate-500">{note.date}</p>
                 </div>
-                <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-400">
+                <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
                   {note.quote}
                 </p>
               </button>

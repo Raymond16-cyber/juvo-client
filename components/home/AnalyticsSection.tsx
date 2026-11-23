@@ -75,12 +75,12 @@ export default function AnalyticsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.4 }}
               transition={{ delay: index * 0.06, duration: 0.55, ease: homeEase }}
-              className="rounded-[1.35rem] border border-white/10 bg-[#09111f]/90 p-5"
+              className="rounded-[1.35rem] border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#09111f]/90"
             >
               <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500">
                 {item.label}
               </p>
-              <p className="mt-3 text-3xl font-semibold tracking-tight text-white">
+              <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
                 {item.prefix}
                 {inView ? (
                   <CountUp
@@ -104,14 +104,14 @@ export default function AnalyticsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.65, ease: homeEase }}
-          className="rounded-[1.6rem] border border-white/10 bg-white/[0.04] p-4 shadow-[0_24px_80px_rgba(2,6,23,0.35)] sm:p-5"
+          className="rounded-[1.6rem] border border-slate-200 bg-slate-50 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-white/[0.04] dark:shadow-[0_24px_80px_rgba(2,6,23,0.35)] sm:p-5"
         >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-white">Equity from logged days</p>
+              <p className="text-sm font-semibold text-slate-950 dark:text-white">Equity from logged days</p>
               <p className="text-xs text-slate-500">Sample curve Â· session-level P/L</p>
             </div>
-            <p className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold text-emerald-200">
+            <p className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-200">
               +$3,240
             </p>
           </div>
@@ -127,9 +127,9 @@ export default function AnalyticsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55, ease: homeEase }}
-          className="rounded-card border border-white/10 bg-[#09111f]/90 p-5"
+          className="rounded-card border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#09111f]/90"
         >
-          <p className="text-sm font-semibold text-white">By session</p>
+          <p className="text-sm font-semibold text-slate-950 dark:text-white">By session</p>
           <p className="mt-1 text-xs text-slate-500">Tap a session. The leak is usually not â€œthe market.â€</p>
 
           <div className="mt-5 space-y-2">
@@ -146,21 +146,21 @@ export default function AnalyticsSection() {
                     "w-full rounded-2xl border p-3 text-left transition-colors",
                     on
                       ? "border-primary/30 bg-primary/10"
-                      : "border-white/8 bg-white/[0.03] hover:bg-white/[0.05]",
+                      : "border-slate-200/80 bg-slate-50 hover:bg-slate-100 dark:border-white/8 dark:bg-white/[0.03] dark:hover:bg-white/[0.05]",
                   )}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-white">{item.name}</p>
+                      <p className="text-sm font-semibold text-slate-950 dark:text-white">{item.name}</p>
                       <p className="text-[11px] text-slate-500">
                         {item.trades} trades Â· {item.win}% win
                       </p>
                     </div>
-                    <p className={cn("text-sm font-semibold", win ? "text-emerald-300" : "text-rose-300")}>
+                    <p className={cn("text-sm font-semibold", win ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300")}>
                       {item.pnl}
                     </p>
                   </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-white/5">
                     <motion.div
                       className="h-full rounded-full bg-gradient-to-r from-primary to-accent"
                       initial={reduce ? false : { width: 0 }}
@@ -182,9 +182,9 @@ export default function AnalyticsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.55, delay: 0.08, ease: homeEase }}
-          className="rounded-card border border-white/10 bg-[#09111f]/90 p-5"
+          className="rounded-card border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-[#09111f]/90"
         >
-          <p className="text-sm font-semibold text-white">By symbol</p>
+          <p className="text-sm font-semibold text-slate-950 dark:text-white">By symbol</p>
           <p className="mt-1 text-xs text-slate-500">Where the account actually lives.</p>
 
           <div className="mt-5 space-y-3">
@@ -195,10 +195,10 @@ export default function AnalyticsSection() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.07, duration: 0.45, ease: homeEase }}
-                className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
+                className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 dark:border-white/8 dark:bg-white/[0.03]"
               >
                 <div>
-                  <p className="font-semibold text-white">{item.symbol}</p>
+                  <p className="font-semibold text-slate-950 dark:text-white">{item.symbol}</p>
                   <p className="text-[11px] text-slate-500">
                     {item.trades} trades Â· {item.win}% win
                   </p>
@@ -206,7 +206,7 @@ export default function AnalyticsSection() {
                 <p
                   className={cn(
                     "text-sm font-semibold",
-                    item.pnl.startsWith("+") ? "text-emerald-300" : "text-rose-300",
+                    item.pnl.startsWith("+") ? "text-emerald-600 dark:text-emerald-300" : "text-rose-600 dark:text-rose-300",
                   )}
                 >
                   {item.pnl}
@@ -226,7 +226,7 @@ function AnimateNote({ text }: { text: string }) {
       key={text}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mt-4 rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-sm leading-6 text-slate-300"
+      className="mt-4 rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-white/8 dark:bg-white/[0.03] dark:text-slate-300"
     >
       {text}
     </motion.p>

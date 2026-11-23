@@ -378,7 +378,7 @@ export default function ProductShowcase() {
         title={
           <>
             The same screens you open
-            <span className="block text-slate-300">after you close the charts.</span>
+            <span className="block text-slate-500 dark:text-slate-300">after you close the charts.</span>
           </>
         }
         description="Calendar, journal, insights, analytics — pulled from the actual workspace, not a pile of feature tiles."
@@ -416,7 +416,7 @@ export default function ProductShowcase() {
                     "relative shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors",
                     on
                       ? "text-slate-950"
-                      : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/8",
+                      : "border border-slate-200 bg-slate-100 text-slate-600 hover:bg-slate-200 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/8",
                   )}
                 >
                   {on ? (
@@ -448,10 +448,10 @@ export default function ProductShowcase() {
               transition={{ duration: 0.35, ease: homeEase }}
               className="mt-6"
             >
-              <h3 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+              <h3 className="text-2xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-3xl">
                 {view.title}
               </h3>
-              <p className="mt-3 max-w-md text-sm leading-7 text-slate-300 sm:text-base">
+              <p className="mt-3 max-w-md text-sm leading-7 text-slate-600 dark:text-slate-300 sm:text-base">
                 {view.body}
               </p>
             </motion.div>
@@ -463,7 +463,7 @@ export default function ProductShowcase() {
                 key={item.id}
                 className={cn(
                   "h-1 rounded-full transition-all duration-300",
-                  itemIndex === index ? "w-8 bg-primary" : "w-3 bg-white/15",
+                  itemIndex === index ? "w-8 bg-primary" : "w-3 bg-slate-300 dark:bg-white/15",
                 )}
               />
             ))}

@@ -26,7 +26,7 @@ const variants: Record<ButtonVariant, string> = {
   danger:
     "border border-loss/30 bg-loss text-white hover:brightness-95",
   onDark:
-    "border border-white/15 bg-white/5 text-white hover:bg-white/10",
+    "border border-slate-300 bg-slate-100 text-slate-900 hover:bg-slate-200 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10",
 };
 
 /** Keep string / number / span labels; drop leading icons while a status icon is shown. */
