@@ -71,11 +71,6 @@ const ASSET_CANDIDATES = {
   ],
   mt5: [path.join(IMAGE_DIR, "mt5.png")],
   ctrader: [path.join(IMAGE_DIR, "ctrader.png")],
-  qr: [
-    path.join(IMAGE_DIR, "juvo_qr-code-trimmed.png"),
-    path.join(IMAGE_DIR, "juvo_qr-code.png"),
-    path.join(IMAGE_DIR, "juvo_qr_code.png"),
-  ],
   founder: [path.join(IMAGE_DIR, "authorImage.png")],
 };
 
@@ -182,11 +177,16 @@ async function repairPptxPackage(filePath) {
   const raw = fs.readFileSync(filePath);
   const zip = await JSZip.loadAsync(raw);
 
-  // Only keep real file entries (skip directory markers).
+  // OPC packages must contain parts, not ZIP directory entries.
   const names = new Set();
   Object.keys(zip.files).forEach((n) => {
     const entry = zip.files[n];
-    if (entry && !entry.dir) names.add(n);
+    if (!entry) return;
+    if (entry.dir) {
+      delete zip.files[n];
+      return;
+    }
+    names.add(n);
   });
 
   const ctFile = zip.file("[Content_Types].xml");
@@ -562,33 +562,34 @@ if (missing.length) {
   kicker(s, "HOW JUVO WORKS");
   headline(s, "From account activity to self-awareness");
   const steps = [
-    { t: "Connect or log", d: "Use a supported account connection or enter trades manually." },
-    { t: "Journal", d: "Add the reasoning, emotion and plan context." },
-    { t: "Analyze", d: "Review performance and trading behavior over time." },
-    { t: "Adjust", d: "Use what you learn to refine your process." },
+    { t: "Connect / Log", d: "Manual entry or supported connection" },
+    { t: "Journal", d: "Record reasoning and emotion" },
+    { t: "Analyze", d: "Review outcomes over time" },
+    { t: "Understand", d: "Notice recurring behavior" },
+    { t: "Adjust", d: "Refine your process" },
   ];
   steps.forEach((st, i) => {
-    const x = 0.55 + i * 2.35;
+    const x = 0.55 + i * 1.82;
     s.addText(`0${i + 1}`, {
-      x, y: 1.55, w: 0.55, h: 0.35, fontFace: F.head,
+      x, y: 1.55, w: 0.45, h: 0.35, fontFace: F.head,
       fontSize: 12, bold: true, color: C.blue, margin: 0,
     });
     s.addText(st.t, {
-      x, y: 2.0, w: 2.1, h: 0.45, fontFace: F.head,
-      fontSize: 16, bold: true, color: C.navy, margin: 0,
+      x, y: 2.0, w: 1.55, h: 0.45, fontFace: F.head,
+      fontSize: 14, bold: true, color: C.navy, margin: 0,
     });
     s.addText(st.d, {
-      x, y: 2.55, w: 2.05, h: 0.9, fontFace: F.body,
-      fontSize: 12, color: C.slate, margin: 0, valign: "top",
+      x, y: 2.55, w: 1.55, h: 0.75, fontFace: F.body,
+      fontSize: 11, color: C.slate, margin: 0, valign: "top",
     });
     if (i < steps.length - 1) {
       s.addShape("rect", {
-        x: x + 1.72, y: 1.7, w: 0.43, h: 0.025,
+        x: x + 1.57, y: 2.2, w: 0.18, h: 0.02,
         fill: { color: C.light }, line: { width: 0 },
       });
     }
   });
-  s.addText("A shared view of the trading week and the review.", {
+  s.addText("The value compounds as your personal trading history grows.", {
     x: 0.55, y: 3.65, w: 8.9, h: 0.3,
     fontFace: F.head, fontSize: 13, bold: true, color: C.navy, margin: 0,
   });
@@ -655,36 +656,52 @@ if (missing.length) {
   const s = pres.addSlide();
   s.background = { color: C.white };
   kicker(s, "MARKET & BUSINESS MODEL");
-  headline(s, "A focused product for traders who want to improve");
-  const marketColumns = [
-    { title: "WHO IT SERVES", body: "Active retail forex traders who want a clearer record of decisions, outcomes and habits." },
-    { title: "WHY THEY ADOPT", body: "One place to journal, review performance and recognize recurring behavior." },
-    { title: "HOW IT CAN GROW", body: "Free entry to build the journaling habit; paid subscriptions can support advanced review and connected workflows." },
+  headline(s, "A clear user. A recurring need. A product-led model.");
+  const marketBlocks = [
+    {
+      title: "WHO",
+      body: "Active retail forex traders who want to understand the habits behind their results.",
+      x: 0.65, y: 1.55,
+    },
+    {
+      title: "THE NEED",
+      body: "Outcomes are visible; decision-making and behavior are harder to review systematically.",
+      x: 5.15, y: 1.55,
+    },
+    {
+      title: "WHY THEY RETURN",
+      body: "Each recorded trade adds personal context. Over time, the review history makes patterns easier to compare.",
+      x: 0.65, y: 3.0,
+    },
+    {
+      title: "BUSINESS MODEL",
+      body: "A free tier supports habit-building. Paid subscriptions can support advanced analytics, behavioral insights, AI and premium workflows.",
+      x: 5.15, y: 3.0,
+    },
   ];
-  marketColumns.forEach((item, i) => {
-    const x = 0.55 + i * 3.05;
-    s.addText(`0${i + 1}`, {
-      x, y: 1.65, w: 0.55, h: 0.35, fontFace: F.head,
-      fontSize: 13, bold: true, color: C.blue, margin: 0,
-    });
+  marketBlocks.forEach((item) => {
     s.addText(item.title, {
-      x, y: 2.15, w: 2.7, h: 0.32, fontFace: F.head,
-      fontSize: 11, bold: true, color: C.navy, charSpacing: 0.9, margin: 0,
+      x: item.x, y: item.y, w: 3.9, h: 0.28, fontFace: F.head,
+      fontSize: 11, bold: true, color: C.blue, charSpacing: 1, margin: 0,
     });
     s.addText(item.body, {
-      x, y: 2.65, w: 2.65, h: 1.15, fontFace: F.body,
-      fontSize: 14, color: C.slate, margin: 0, valign: "top",
+      x: item.x, y: item.y + 0.38, w: 3.9, h: 0.82, fontFace: F.body,
+      fontSize: 14, color: C.dark, margin: 0, valign: "top",
     });
   });
   s.addShape("rect", {
-    x: 0.55, y: 4.25, w: 8.95, h: 0.02,
+    x: 4.75, y: 1.55, w: 0.02, h: 2.35,
     fill: { color: C.light }, line: { width: 0 },
   });
-  s.addText("No market-size or traction claims — the opportunity starts with a real, repeatable trader problem.", {
-    x: 0.55, y: 4.48, w: 8.8, h: 0.35, fontFace: F.body,
-    fontSize: 12, color: C.slate, italic: true, margin: 0,
+  s.addShape("rect", {
+    x: 0.65, y: 2.72, w: 8.4, h: 0.02,
+    fill: { color: C.light }, line: { width: 0 },
   });
-  addSpeakerNotes(s, "JUVO starts with a clear user and a product-led subscription opportunity.", "Describe active retail forex traders as the initial customer segment. Explain value through review and self-awareness, not promised profitability. Paid tiers are an opportunity; do not state prices, adoption, or revenue without verified data.", "Differentiate JUVO from tools built primarily for execution and account monitoring.", "50 seconds");
+  s.addText("A qualitative opportunity — no unverified market or traction figures.", {
+    x: 0.65, y: 4.55, w: 8.5, h: 0.3, fontFace: F.body,
+    fontSize: 11, color: C.slate, italic: true, margin: 0,
+  });
+  addSpeakerNotes(s, "JUVO addresses a recurring review need with a product-led subscription opportunity.", "Identify active retail forex traders as the initial customer. Explain that the value comes from combining trading records, journal context, analytics and behavioral review. Personal history becomes more useful for comparison as it grows. A free tier can establish the habit, with paid tiers supporting premium capabilities; do not claim specific pricing, demand or conversion.", "Differentiate JUVO as a complement to execution platforms, not a replacement.", "60 seconds");
   pageNum(s, 7);
 }
 
@@ -845,18 +862,19 @@ if (missing.length) {
   });
   s.addShape("rect", {
     x: 6.65, y: 1.15, w: 2.45, h: 2.45,
-    fill: { color: C.white }, line: { color: C.white, width: 1 },
+    fill: { color: C.white }, line: { color: C.light, width: 1 },
   });
-  addImageIfExists(s, "qr", {
-    x: 6.72, y: 1.22, maxW: 2.31, maxH: 2.31,
-    align: "center", valign: "middle",
+  s.addText("QR CODE", {
+    x: 6.65, y: 1.15, w: 2.45, h: 2.45, fontFace: F.head,
+    fontSize: 13, bold: true, color: C.muted, charSpacing: 1.2,
+    align: "center", valign: "middle", margin: 0,
   });
   s.addText("SCAN TO EXPLORE", {
     x: 6.65, y: 3.78, w: 2.45, h: 0.3, fontFace: F.head,
     fontSize: 10, bold: true, color: C.muted, charSpacing: 1.1,
     align: "center", margin: 0,
   });
-  addSpeakerNotes(s, "The ask is to try JUVO and give honest feedback.", "Point to juvo-os.app and the real QR code. Ask traders to try the product and tell you what is useful or confusing.", "Close with the product promise.", "30 seconds");
+  addSpeakerNotes(s, "The ask is to try JUVO and give honest feedback.", "Point to juvo-os.app and the intentionally blank QR placeholder. Insert the final QR image manually before presenting. Invite traders to create an account, try the product and tell you what is useful or confusing.", "Close with the product promise.", "30 seconds");
   pageNum(s, 11, true);
 }
 
@@ -888,12 +906,15 @@ if (missing.length) {
 
 // ─── Write ───────────────────────────────────────────────────────────────────
 const outPath = path.join(__dirname, "..", "..", "..", "JUVO_Idea2Impact_Final_Pitch.pptx");
+const desktopCopy = path.join(os.homedir(), "Desktop", "JUVO_Idea2Impact_Final_Pitch.pptx");
 
 pres
   .writeFile({ fileName: outPath })
   .then(async () => {
     await repairPptxPackage(outPath);
+    fs.copyFileSync(outPath, desktopCopy);
     console.log("Wrote", outPath);
+    console.log("Also copied to", desktopCopy);
     console.log("Resolved assets:");
     for (const key of Object.keys(ASSET_CANDIDATES)) {
       const p = resolveAsset(key);
