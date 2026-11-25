@@ -80,6 +80,12 @@ export type CreateTradingAccountPayload = {
   profitTarget: number;
 };
 
+export type UpdateTradingAccountPayload = {
+  accountName?: string;
+  maxDrawnDown?: number;
+  profitTarget?: number;
+};
+
 export interface TradingAccountsResponse {
   data: TradingAccount[];
   message: string;

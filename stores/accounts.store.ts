@@ -6,10 +6,12 @@ import {
   getArchivedTradingAccountsService,
   getTradingAccountsService,
   restoreTradingAccountService,
+  updateTradingAccountService,
 } from "@/services/trading-account.service";
 import {
   CreateTradingAccountPayload,
   TradingAccount,
+  UpdateTradingAccountPayload,
 } from "@/types/trading-account.types";
 import { create } from "zustand";
 
@@ -38,6 +40,7 @@ interface AccountsStore {
   fetchAccounts: () => Promise<TradingAccount[]>;
   fetchArchivedAccounts: () => Promise<TradingAccount[]>;
   createAccount: (data: CreateTradingAccountPayload) => Promise<TradingAccount>;
+  updateAccount: (accountId: string, data: UpdateTradingAccountPayload) => Promise<TradingAccount>;
   selectAccount: (accountId: string) => Promise<TradingAccount | null>;
   activateAccount: (accountId: string) => Promise<TradingAccount>;
   archiveAccount: (accountId: string) => Promise<void>;
@@ -103,6 +106,27 @@ export const useAccountsStore = create<AccountsStore>((set, get) => ({
     } catch (error) {
       void error;
       set({ error: "Unable to create trading account.", isLoading: false });
+      throw error;
+    }
+  },
+  updateAccount: async (accountId, data) => {
+    set({ isLoading: true, error: null });
+    try {
+      const previous = get().accounts.find((account) => account._id === accountId);
+      const response = await updateTradingAccountService(accountId, data);
+      set((state) => ({
+        accounts: state.accounts.map((account) =>
+          account._id === accountId ? response.data : account,
+        ),
+        isLoading: false,
+      }));
+      if (previous?.status !== response.data.status) {
+        await get().fetchAccounts();
+      }
+      return get().accounts.find((account) => account._id === accountId) || response.data;
+    } catch (error) {
+      void error;
+      set({ error: "Unable to update trading account.", isLoading: false });
       throw error;
     }
   },

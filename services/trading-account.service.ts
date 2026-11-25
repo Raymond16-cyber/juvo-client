@@ -3,6 +3,7 @@ import {
   CreateTradingAccountPayload,
   CreateTradingAccountResponse,
   TradingAccountsResponse,
+  UpdateTradingAccountPayload,
 } from "@/types/trading-account.types";
 
 export const getTradingAccountsService =
@@ -28,6 +29,18 @@ export const createTradingAccountService = async (
 ): Promise<CreateTradingAccountResponse> => {
   const response = await api.post<CreateTradingAccountResponse>(
     "/trading-account/create-trading-account",
+    { data },
+  );
+
+  return response.data;
+};
+
+export const updateTradingAccountService = async (
+  accountId: string,
+  data: UpdateTradingAccountPayload,
+): Promise<CreateTradingAccountResponse> => {
+  const response = await api.patch<CreateTradingAccountResponse>(
+    `/trading-account/${accountId}`,
     { data },
   );
 

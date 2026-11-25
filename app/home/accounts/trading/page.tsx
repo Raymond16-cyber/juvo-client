@@ -19,7 +19,7 @@ import {
   TradingAccount,
   TradingAccountStatus,
 } from "@/types/trading-account.types";
-import { Archive, RotateCcw, WalletCards } from "lucide-react";
+import { Archive, Pencil, RotateCcw, WalletCards } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 
@@ -75,6 +75,7 @@ export default function TradingAccountsPage() {
     (state) => state.fetchArchivedAccounts,
   );
   const createAccount = useAccountsStore((state) => state.createAccount);
+  const updateAccount = useAccountsStore((state) => state.updateAccount);
   const activateAccount = useAccountsStore((state) => state.activateAccount);
   const archiveAccount = useAccountsStore((state) => state.archiveAccount);
   const restoreAccount = useAccountsStore((state) => state.restoreAccount);
@@ -82,6 +83,16 @@ export default function TradingAccountsPage() {
   const [form, setForm] = useState(defaultForm);
   const [view, setView] = useState<"active" | "archived">("active");
   const [creating, setCreating] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<TradingAccount | null>(
+    null,
+  );
+  const [editForm, setEditForm] = useState({
+    accountName: "",
+    maxDrawnDown: 0,
+    profitTarget: 0,
+  });
+  const [editError, setEditError] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     fetchAccounts().catch(() => undefined);
@@ -121,6 +132,36 @@ export default function TradingAccountsPage() {
         await restoreAccount(account._id);
       },
     });
+  };
+
+  const beginEdit = (account: TradingAccount) => {
+    setEditingAccount(account);
+    setEditError(null);
+    setEditForm({
+      accountName: account.accountName,
+      maxDrawnDown: account.maxDrawnDown,
+      profitTarget: account.profitTarget,
+    });
+  };
+
+  const handleUpdate = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!editingAccount) return;
+    setSavingEdit(true);
+    setEditError(null);
+    try {
+      await updateAccount(editingAccount._id, editForm);
+      setEditingAccount(null);
+      showNotice({
+        title: "Account settings saved",
+        body: "Your name and account limits have been updated.",
+        tone: "success",
+      });
+    } catch {
+      setEditError("Could not save account settings. Please try again.");
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   return (
@@ -218,6 +259,17 @@ export default function TradingAccountsPage() {
                             <div className="mt-2">
                               <AccountStatusBadge account={account} />
                             </div>
+                            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                              Profit target:{" "}
+                              {account.profitTarget > 0
+                                ? `${account.profitTarget}%`
+                                : "Not set"}
+                              {" · "}
+                              Max drawdown:{" "}
+                              {account.maxDrawnDown > 0
+                                ? `${account.maxDrawnDown}%`
+                                : "Not set"}
+                            </p>
                           </div>
                         </HoverPreview>
                         <div className="flex items-center gap-2">
@@ -229,6 +281,12 @@ export default function TradingAccountsPage() {
                           <ActionMenu
                             label={`Actions for ${account.accountName}`}
                             items={[
+                              {
+                                id: "edit",
+                                label: "Edit account settings",
+                                icon: <Pencil size={14} />,
+                                onSelect: () => beginEdit(account),
+                              },
                               ...(!account.isActive &&
                               (account.status || "Active") === "Active"
                                 ? [
@@ -296,6 +354,117 @@ export default function TradingAccountsPage() {
             )}
           </div>
 
+          {editingAccount ? (
+            <form
+              onSubmit={handleUpdate}
+              className={`min-w-0 ${view === "archived" ? "hidden xl:block" : ""}`}
+            >
+              <Card className="space-y-3 p-3.5 sm:p-4">
+                <div>
+                  <h2 className="text-base font-semibold text-slate-950 dark:text-white">
+                    Edit account settings
+                  </h2>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Broker identity and account number stay linked to the platform.
+                  </p>
+                </div>
+                {editError ? (
+                  <p
+                    className="rounded-control bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-300"
+                    role="alert"
+                  >
+                    {editError}
+                  </p>
+                ) : null}
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    Account name
+                  </span>
+                  <input
+                    className={controlClassName}
+                    value={editForm.accountName}
+                    maxLength={100}
+                    onChange={(event) =>
+                      setEditForm((current) => ({
+                        ...current,
+                        accountName: event.target.value,
+                      }))
+                    }
+                    required
+                  />
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    Platform account number
+                  </span>
+                  <input
+                    className={`${controlClassName} cursor-not-allowed opacity-70`}
+                    value={editingAccount.accountNumber}
+                    readOnly
+                    aria-readonly="true"
+                  />
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    Maximum drawdown (%)
+                  </span>
+                  <input
+                    className={controlClassName}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editForm.maxDrawnDown}
+                    onChange={(event) =>
+                      setEditForm((current) => ({
+                        ...current,
+                        maxDrawnDown: Number(event.target.value),
+                      }))
+                    }
+                  />
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    Profit target (%)
+                  </span>
+                  <input
+                    className={controlClassName}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editForm.profitTarget}
+                    onChange={(event) =>
+                      setEditForm((current) => ({
+                        ...current,
+                        profitTarget: Number(event.target.value),
+                      }))
+                    }
+                  />
+                </label>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Enter 0 to leave a limit unset. Limits are measured against the
+                  account&apos;s initial balance.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1"
+                    type="submit"
+                    loading={savingEdit}
+                  >
+                    Save settings
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    type="button"
+                    variant="ghost"
+                    disabled={savingEdit}
+                    onClick={() => setEditingAccount(null)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </Card>
+            </form>
+          ) : (
           <form onSubmit={handleCreate} className={`min-w-0 ${view === "archived" ? "hidden xl:block" : ""}`}>
             <Card className="space-y-2.5 p-3.5 sm:p-4">
               <h2 className="text-base font-semibold text-slate-950 dark:text-white">
@@ -432,6 +601,7 @@ export default function TradingAccountsPage() {
               </Button>
             </Card>
           </form>
+          )}
         </div>
       </div>
     </DashboardShell>
