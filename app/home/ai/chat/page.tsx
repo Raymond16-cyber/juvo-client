@@ -593,7 +593,7 @@ export default function JuvoAIChatPage() {
                 <div
                   ref={scrollerRef}
                   onScroll={handleScroll}
-                  className="absolute inset-0 space-y-4 overflow-x-hidden overflow-y-auto overscroll-contain scroll-smooth p-4 [scrollbar-width:thin]"
+                  className="absolute inset-0 space-y-4 overflow-x-hidden overflow-y-auto overscroll-contain scroll-smooth p-4"
                 >
                   {!messages.length && !isLoading ? (
                     <div className="grid gap-3 sm:grid-cols-2">

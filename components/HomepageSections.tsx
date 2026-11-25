@@ -7,7 +7,9 @@ import LongTermProgress from "@/components/home/LongTermProgress";
 import Pricing from "@/components/home/Pricing";
 import ProductShowcase from "@/components/home/ProductShowcase";
 import Testimonials from "@/components/home/Testimonials";
+import CinematicBackground from "@/components/media/CinematicBackground";
 import Button from "@/components/ui/Button";
+import type { CinematicVideoId } from "@/constants/cinematic-videos";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -48,6 +50,7 @@ function SectionShell({
   description,
   children,
   centered = false,
+  cinematic,
 }: {
   id: string;
   eyebrow: string;
@@ -55,19 +58,44 @@ function SectionShell({
   description: string;
   children: React.ReactNode;
   centered?: boolean;
+  cinematic?: CinematicVideoId;
 }) {
   return (
-    <section id={id} className="relative">
-      <div className="mx-auto max-w-[90rem] px-4 py-20 sm:px-5 lg:px-6 lg:py-28">
+    <section
+      id={id}
+      className={`relative overflow-hidden ${cinematic ? "dark text-white" : ""}`}
+    >
+      {cinematic ? (
+        <CinematicBackground videoId={cinematic} overlay="section" />
+      ) : null}
+      <div className="relative mx-auto max-w-[90rem] px-4 py-20 sm:px-5 lg:px-6 lg:py-28">
         <div className={`max-w-3xl ${centered ? "mx-auto text-center" : ""}`}>
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] text-cyan-700 dark:border-cyan-400/20 dark:bg-cyan-400/8 dark:text-cyan-100/80">
+          <div
+            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-[0.28em] ${
+              cinematic
+                ? "border-cyan-400/25 bg-cyan-400/10 text-cyan-100/85"
+                : "border-cyan-500/25 bg-cyan-500/10 text-cyan-700 dark:border-cyan-400/20 dark:bg-cyan-400/8 dark:text-cyan-100/80"
+            }`}
+          >
             <Sparkles className="h-3.5 w-3.5" />
             {eyebrow}
           </div>
-          <h2 className="mt-5 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-4xl lg:text-5xl">
+          <h2
+            className={`mt-5 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl ${
+              cinematic
+                ? "text-white"
+                : "text-slate-950 dark:text-white"
+            }`}
+          >
             {title}
           </h2>
-          <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">
+          <p
+            className={`mt-4 text-base leading-7 sm:text-lg ${
+              cinematic
+                ? "text-slate-200/90"
+                : "text-slate-600 dark:text-slate-300"
+            }`}
+          >
             {description}
           </p>
         </div>
@@ -472,6 +500,7 @@ export default function HomepageSections() {
         eyebrow="Behavioral insights"
         title="Your biggest trading edge might be understanding yourself."
         description="Illustrative insights show how JUVO can surface recurring behavior patterns from journaling data without making promises about profitability."
+        cinematic="behaviour"
       >
         <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <RevealCard>

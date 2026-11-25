@@ -1,5 +1,6 @@
 "use client";
 
+import "../css/Sidebar.css"
 import AccountSwitcher from "@/components/dashboard/AccountSwitcher";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { panelTransition } from "@/lib/motion";

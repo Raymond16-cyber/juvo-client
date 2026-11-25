@@ -2,32 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Chrome, Edge, Safari */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+/* Hide scrollbars app-wide; scrolling still works via wheel / trackpad / touch */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge / IE */
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.35);
-  border-radius: 999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
-  background-clip: padding-box;
-  border: 2px solid transparent;
-}
-
-html {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(100, 116, 139, 0.45) transparent;
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none; /* Chrome, Safari, Edge */
 }
 
 /*
