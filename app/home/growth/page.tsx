@@ -212,25 +212,42 @@ export default function GrowthPage() {
                           </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <Button
-                            variant="ghost"
-                            className="h-11 px-3"
-                            onClick={() =>
-                              updateGoal(goal._id, {
-                                currentValue: Math.min(
-                                  goal.targetValue,
-                                  goal.currentValue + goal.targetValue / 10,
-                                ),
-                                status:
-                                  goal.currentValue + goal.targetValue / 10 >=
-                                  goal.targetValue
-                                    ? "Completed"
-                                    : goal.status,
-                              })
-                            }
-                          >
-                            Log progress
-                          </Button>
+                          {goal.autoManaged ? (
+                            <Button
+                              variant="ghost"
+                              className="h-11 px-3"
+                              onClick={() =>
+                                updateGoal(goal._id, {
+                                  status:
+                                    goal.status === "Archived"
+                                      ? "Active"
+                                      : "Archived",
+                                })
+                              }
+                            >
+                              {goal.status === "Archived" ? "Resume" : "Pause"}
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              className="h-11 px-3"
+                              onClick={() =>
+                                updateGoal(goal._id, {
+                                  currentValue: Math.min(
+                                    goal.targetValue,
+                                    goal.currentValue + goal.targetValue / 10,
+                                  ),
+                                  status:
+                                    goal.currentValue + goal.targetValue / 10 >=
+                                    goal.targetValue
+                                      ? "Completed"
+                                      : goal.status,
+                                })
+                              }
+                            >
+                              Log progress
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             className="h-11 px-3"
@@ -244,13 +261,15 @@ export default function GrowthPage() {
                                 ? "Goal coach"
                                 : "Unlock coach"}
                           </Button>
-                          <Button
-                            variant="ghost"
-                            className="h-11 px-3"
-                            onClick={() => deleteGoal(goal._id)}
-                          >
-                            Remove
-                          </Button>
+                          {!goal.autoManaged ? (
+                            <Button
+                              variant="ghost"
+                              className="h-11 px-3"
+                              onClick={() => deleteGoal(goal._id)}
+                            >
+                              Remove
+                            </Button>
+                          ) : null}
                         </div>
                       </div>
                       <div className="mt-4 h-2 rounded-full bg-slate-100 dark:bg-white/10">
@@ -259,6 +278,13 @@ export default function GrowthPage() {
                           style={{ width: `${progress}%` }}
                         />
                       </div>
+                      {goal.progressSource === "reviewed_observations" ? (
+                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                          {goal.currentValue} of {goal.targetValue} observations
+                          reviewed · tracking review activity, not behaviour
+                          improvement
+                        </p>
+                      ) : null}
                       {coachByGoal[goal._id] ? (
                         <div className="juvo-break-words mt-3 rounded-2xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm whitespace-pre-wrap text-slate-700 dark:border-primary/30 dark:bg-primary/10 dark:text-slate-200">
                           {coachByGoal[goal._id]}

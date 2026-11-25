@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 
 type ComplianceCheck = {
   label?: string;
-  status?: string;
+  status?: "followed" | "violated" | "unknown" | "not_configured" | "not_recorded";
   evidence?: string;
   rule?: string;
   reason?: string;
@@ -25,6 +25,8 @@ type ComplianceResult = {
   followed?: ComplianceCheck[];
   violated?: ComplianceCheck[];
   unknown?: ComplianceCheck[];
+  notConfigured?: ComplianceCheck[];
+  notRecorded?: ComplianceCheck[];
   interpretation?: string;
   question?: string;
   counts?: {
@@ -32,6 +34,8 @@ type ComplianceResult = {
     violated?: number;
     unknown?: number;
     total?: number;
+    notConfigured?: number;
+    notRecorded?: number;
   };
 };
 
@@ -41,7 +45,17 @@ type PlanComplianceCardProps = {
 };
 
 function checkTitle(item: ComplianceCheck) {
-  return item.label || item.rule || "Rule";
+  const label = item.label || item.rule || "Rule";
+  const labels: Record<string, string> = {
+    max_risk_per_trade: "Maximum risk per trade",
+    minimum_rr: "Minimum risk/reward ratio",
+    max_daily_trades: "Maximum trades per day",
+    allowed_sessions: "Allowed trading sessions",
+    followed_trading_plan: "Trading plan adherence",
+    followed_risk_management: "Risk-management adherence",
+    revenge_trading: "Revenge trading",
+  };
+  return labels[label] || label;
 }
 
 function checkDetail(item: ComplianceCheck) {
@@ -136,8 +150,15 @@ export default function PlanComplianceCard({
         <div className="mt-4 space-y-3 text-sm">
           {result.counts ? (
             <p className="juvo-break-words text-slate-500 dark:text-slate-400">
-              {result.counts.followed || 0} followed Â· {result.counts.violated || 0}{" "}
-              not followed Â· {result.counts.unknown || 0} unverified
+              {result.counts.followed || 0} followed |{" "}
+              {result.counts.violated || 0} not followed |{" "}
+              {result.counts.unknown || 0} unverified
+              {(result.counts.notConfigured || 0) > 0
+                ? ` | ${result.counts.notConfigured} not configured`
+                : ""}
+              {(result.counts.notRecorded || 0) > 0
+                ? ` | ${result.counts.notRecorded} not recorded`
+                : ""}
             </p>
           ) : null}
           {result.interpretation ? (
@@ -161,6 +182,16 @@ export default function PlanComplianceCard({
               items: result.unknown || [],
               tone: "text-amber-700 dark:text-amber-300",
             },
+            {
+              label: "Not configured (not scored)",
+              items: result.notConfigured || [],
+              tone: "text-slate-600 dark:text-slate-300",
+            },
+            {
+              label: "Not recorded (not scored)",
+              items: result.notRecorded || [],
+              tone: "text-slate-600 dark:text-slate-300",
+            },
           ].map((group) =>
             group.items.length ? (
               <div key={group.label}>
@@ -169,7 +200,7 @@ export default function PlanComplianceCard({
                   {group.items.map((item, index) => (
                     <li key={`${group.label}-${index}`}>
                       {checkTitle(item)}
-                      {checkDetail(item) ? ` â€” ${checkDetail(item)}` : null}
+                      {checkDetail(item) ? ` - ${checkDetail(item)}` : null}
                     </li>
                   ))}
                 </ul>

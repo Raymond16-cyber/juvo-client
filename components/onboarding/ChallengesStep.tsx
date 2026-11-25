@@ -13,6 +13,7 @@ const labels: Record<string, string> = {
   emotional_trading: "Emotional trading",
   lack_of_discipline: "Lack of discipline",
   inconsistent_strategy: "Inconsistent strategy",
+  overconfidence: "Euphoria / overconfidence",
 };
 
 export default function ChallengesStep() {

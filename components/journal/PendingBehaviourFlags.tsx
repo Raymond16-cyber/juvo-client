@@ -8,7 +8,7 @@ import {
 } from "@/services/behaviour.service";
 import { BehaviourFlag } from "@/types/behaviour.types";
 import { ShieldAlert } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type PendingBehaviourFlagsProps = {
   flags: BehaviourFlag[];
@@ -22,11 +22,11 @@ export default function PendingBehaviourFlags({
   title = "Suggested behaviour flags",
 }: PendingBehaviourFlagsProps) {
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const [items, setItems] = useState(flags);
-
-  useEffect(() => {
-    setItems(flags);
-  }, [flags]);
+  const [resolvedIds, setResolvedIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [error, setError] = useState<string | null>(null);
+  const items = flags.filter((flag) => !resolvedIds.has(flag.id));
 
   if (!items.length) return null;
 
@@ -36,6 +36,7 @@ export default function PendingBehaviourFlags({
   ) => {
     if (pendingId) return;
     setPendingId(flag.id);
+    setError(null);
     try {
       const payload = {
         flagId: flag.id,
@@ -47,10 +48,10 @@ export default function PendingBehaviourFlags({
       } else {
         await dismissBehaviourFlagService(payload);
       }
-      setItems((current) => current.filter((item) => item.id !== flag.id));
+      setResolvedIds((current) => new Set(current).add(flag.id));
       onResolved?.();
     } catch {
-      // Keep the banner visible if the request fails.
+      setError("Could not save your review. Please try again.");
     } finally {
       setPendingId(null);
     }
@@ -67,8 +68,14 @@ export default function PendingBehaviourFlags({
             {title}
           </p>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            Auto suggestions only. Confirm if it fits, or dismiss if it does not.
+            Review prompts are not diagnoses. Confirm if the observation fits,
+            or dismiss it if it does not.
           </p>
+          {error ? (
+            <p className="mt-2 text-sm text-rose-700 dark:text-rose-300" role="alert">
+              {error}
+            </p>
+          ) : null}
           <div className="mt-3 space-y-3">
             {items.map((flag) => (
               <div
@@ -89,6 +96,16 @@ export default function PendingBehaviourFlags({
                     </span>
                   ) : null}
                 </div>
+                {flag.evidence?.description ? (
+                  <p className="mt-2 text-sm leading-5 text-slate-700 dark:text-slate-300">
+                    <span className="font-medium">
+                      {flag.source === "manual"
+                        ? "Journal reflection: "
+                        : "Recorded signal: "}
+                    </span>
+                    {flag.evidence.description}
+                  </p>
+                ) : null}
                 {flag.tip ? (
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                     {flag.tip}
@@ -98,7 +115,7 @@ export default function PendingBehaviourFlags({
                   <Button
                     type="button"
                     className="min-h-9 px-3 py-1.5 text-xs"
-                    disabled={pendingId === flag.id}
+                    disabled={pendingId !== null}
                     onClick={() => resolve(flag, "confirm")}
                   >
                     Confirm
@@ -107,7 +124,7 @@ export default function PendingBehaviourFlags({
                     type="button"
                     variant="ghost"
                     className="min-h-9 px-3 py-1.5 text-xs"
-                    disabled={pendingId === flag.id}
+                    disabled={pendingId !== null}
                     onClick={() => resolve(flag, "dismiss")}
                   >
                     Dismiss

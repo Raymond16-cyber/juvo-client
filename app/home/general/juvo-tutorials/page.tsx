@@ -7,6 +7,10 @@ const tutorials = [
     title: "How to Connect Your cTrader Account to JUVO",
     url: "https://youtu.be/2Wh36UKXT_s",
   },
+  // {
+  //   title: "How to Connect Your MetaTrader 5 Account to JUVO",
+  //   url: "https://youtu.be/MGx0P7_kHYA",
+  // }
 ];
 
 export default function JuvoTutorialsPage() {

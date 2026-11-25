@@ -2,6 +2,9 @@ export interface Goal {
   _id: string;
   title: string;
   description?: string;
+  behaviorChallenge?: string | null;
+  autoManaged?: boolean;
+  progressSource?: "reviewed_observations";
   category:
     | "Performance"
     | "Risk Management"

@@ -58,6 +58,7 @@ export const CHALLENGES = [
   "emotional_trading",
   "lack_of_discipline",
   "inconsistent_strategy",
+  "overconfidence",
 ];
 
 export const CHALLENGE_TIPS: Record<string, string> = {
@@ -69,6 +70,7 @@ export const CHALLENGE_TIPS: Record<string, string> = {
   emotional_trading: "Name the feeling before you click. Journal first if needed.",
   lack_of_discipline: "Follow the written plan for the next three trades only.",
   inconsistent_strategy: "Pick one playbook for the session and stick to it.",
+  overconfidence: "Keep risk consistent after wins; let your plan set the size.",
 };
 
 export const CHALLENGE_TO_DISCIPLINE: Record<
